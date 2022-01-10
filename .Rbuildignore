@@ -1,0 +1,13 @@
+^renv$
+^renv\.lock$
+^\.gitlab\-ci\.yml$
+^\.git$
+^\.gitignore$
+^README\.md$
+^LICENSE\.md$
+\.so$
+\.dll$
+\.o$
+^pwiz$
+\.tar\.gz$
+^junit_result\.xml$
