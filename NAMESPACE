@@ -2,5 +2,6 @@
 
 export(convert_files)
 export(hello_world)
+export(peakpicking)
 importFrom(Rcpp,sourceCpp)
 useDynLib(workflow.lipido)

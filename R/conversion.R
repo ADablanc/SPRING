@@ -97,8 +97,10 @@ convert_file <- function(raw_file, outdir, converter, verbose = TRUE) {
     }
     # check if file can be read
     ms_file <- tryCatch(MSnbase::readMSData(new_filepath, mode = "onDisk"), 
-        error = function(e) NULL)
-    if (length(ms_file) == 0) stop(sprintf("file converted %s cannot be read", 
-        basename(raw_file)))
+        error = function(e) e$message)
+    if (class(ms_file) != "OnDiskMSnExp") {
+        print(ms_file)
+        stop(sprintf("file converted %s cannot be read", basename(raw_file)))
+    }
     return(new_filepath)
 }
