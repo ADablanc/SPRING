@@ -17,5 +17,5 @@ Escape all special characters
 special characters are : .|()^{}+$*?[]
 }
 \examples{
-\dontrun{escapeRegex("C:/msconvert.exe")}
+\dontrun{escapeRegex("C:/msconvert?xcms.exe")}
 }
