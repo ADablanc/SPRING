@@ -4,21 +4,21 @@
 \alias{obiwarp}
 \title{Alignment: Retention time correction methods.}
 \usage{
-obiwarp(z, cntr, cntr_pr, parms)
+obiwarp(ms_files, obw_params, operator, show_pb)
 }
 \arguments{
-\item{z}{XCMSnExp object of the file to adjust time retentions}
+\item{ms_files}{list of XCMSnExp}
 
-\item{cntr}{XCMSnExp object of the file used as reference}
+\item{obw_params}{ObiwarpParam object created by xcms}
 
-\item{cntr_pr}{a profile matrix of the file used as reference (rows 
-representing scans, columns equally spaced m/z values).}
+\item{operator}{function to use for parallelization (`\%dopar\%`) 
+or not (`\%do\%`)}
 
-\item{parms}{ObiwarpParam object created by xcms}
+\item{show_pb}{boolean indicate if we print a progress bar or not}
 }
 \value{
-vector with the rT adjusted of the file according the rT of the 
-     file used as reference
+XCMSnExp which regroup all the files in one object 
+     with the rT corrected
 }
 \description{
 perform retention time correction (alignment) between chromatograms of 
@@ -27,10 +27,8 @@ the alignment is based on the complete mz-rt data. This method does not
      require any identified peaks or defined features. 
 This function comes from the XCMS package and only the function `.obiwarp` 
      was imported in order to use & export the parallelisation infos
+It force to use the sample with the most peak as the center sample
 }
 \seealso{
 xcms:::adjustRtime
-}
-\author{
-Johannes Rainer
 }

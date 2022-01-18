@@ -2,17 +2,10 @@
 local({
 
   # the requested version of renv
-  version <- "0.15.0-15"
+  version <- "0.15.1-1"
 
   # the project directory
   project <- getwd()
-
-  # figure out path to 'renv' folder from this script
-  if (is.na(Sys.getenv("RENV_PATHS_RENV", unset = NA))) {
-    call <- sys.call(1L)
-    if (is.call(call) && identical(call[[1L]], as.symbol("source")))
-      Sys.setenv(RENV_PATHS_RENV = dirname(call[[2L]]))
-  }
 
   # figure out whether the autoloader is enabled
   enabled <- local({

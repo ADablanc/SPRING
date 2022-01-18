@@ -7,7 +7,8 @@
 ms_process(
   mzxml_files,
   cwt_params,
-  obw_params,
+  obw_params = NULL,
+  pd_params = NULL,
   cores = parallel::detectCores(),
   show_pb = TRUE
 )
@@ -15,11 +16,11 @@ ms_process(
 \arguments{
 \item{mzxml_files}{vector of filepaths to the files}
 
-\item{cwt_params}{CentWaveParam object created by xcms, 
-if not given it will launch the parameters by default}
+\item{cwt_params}{CentWaveParam object created by xcms,}
 
-\item{obw_params}{ObiwarpParam object created by xcms, 
-if not given it will launch the parameters by default}
+\item{obw_params}{ObiwarpParam object created by xcms,}
+
+\item{pd_params}{PeakDensityParam object created by xcms,}
 
 \item{cores}{numeric number of cores to use for the peakpicking 
 (one core = one file peakpicked)}
@@ -38,6 +39,22 @@ it launch the substeps:
      \item alignment
      \item fill missing peaks
 }
+Some parameters have a default parameter. This is the case for : 
+\itemize{
+     \item verboseColumns is TRUE cause we want all the infos 
+         exported by XCMS
+     \item binSize is 1 cause i find it sufficient & 
+         1 is too high to perform a well alignment of the spectras
+     \item sampleGroups is equal to the length of the provided files
+         I prefer to apply some rules to filter later & that will allow
+         the possibility to change this anytime instead of re-run 
+         the entire process
+     \item minFraction is the minimum integer possible for the same 
+         reason than `sampleGroups`
+     \item minSamples is at 1, same reason than `sampleGroups`
+     \item maxFeatures is at 500 cause the workflow will probably 
+         need to deal with some huge datasets
+}
 }
 \examples{
 \dontrun{
@@ -51,25 +68,14 @@ it launch the substeps:
         peakwidth = c(4, 39), 
         snthresh = 6.5, 
         prefilter = c(2, 815), 
-        mzCenterFun = "wMean", 
-        integrate = 1, 
         mzdiff = .041, 
-        fitgauss = FALSE, 
         noise = 0, 
-        verboseColumns = TRUE, 
         firstBaselineCheck = FALSE)
-    obw_params <- xcms::ObiwarpParam(
-        binSize = .1,
-        centerSample = integer(),
-        response = 1L,
-        distFun = "cor_opt",
-        gapInit = .3,
-        gapExtend = 2.4,
-        factorDiag = 2,
-        factorGap = 1,
-        localAlignment = FALSE,
-        initPenalty = 0
-    ) 
-    ms_process(mzxml_files, cwt_params)
+    obw_params <- xcms::ObiwarpParam() 
+    pd_params <- xcms::PeakDensityParam(
+         bw = 5, 
+         binSize = .010
+    )
+    ms_process(mzxml_files, cwt_params, obw_params, pd_params)
 }
 }

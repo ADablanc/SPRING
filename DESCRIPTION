@@ -28,4 +28,5 @@ Imports:
     MSnbase,
     doSNOW,
     foreach,
-    iterators
+    iterators,
+    S4Vectors
