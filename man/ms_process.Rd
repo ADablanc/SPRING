@@ -9,6 +9,7 @@ ms_process(
   cwt_params,
   obw_params = NULL,
   pd_params = NULL,
+  ann_params,
   cores = parallel::detectCores(),
   show_pb = TRUE
 )
@@ -16,11 +17,13 @@ ms_process(
 \arguments{
 \item{mzxml_files}{vector of filepaths to the files}
 
-\item{cwt_params}{CentWaveParam object created by xcms,}
+\item{cwt_params}{CentWaveParam object created by xcms}
 
-\item{obw_params}{ObiwarpParam object created by xcms,}
+\item{obw_params}{ObiwarpParam object created by xcms}
 
-\item{pd_params}{PeakDensityParam object created by xcms,}
+\item{pd_params}{PeakDensityParam object created by xcms}
+
+\item{ann_params}{AnnotationParam object}
 
 \item{cores}{numeric number of cores to use for the peakpicking 
 (one core = one file peakpicked)}

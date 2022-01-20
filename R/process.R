@@ -27,9 +27,10 @@
 #' }
 #'
 #' @param mzxml_files vector of filepaths to the files
-#' @param cwt_params CentWaveParam object created by xcms, 
-#' @param obw_params ObiwarpParam object created by xcms, 
-#' @param pd_params PeakDensityParam object created by xcms, 
+#' @param cwt_params CentWaveParam object created by xcms
+#' @param obw_params ObiwarpParam object created by xcms 
+#' @param pd_params PeakDensityParam object created by xcms
+#' @param ann_params AnnotationParam object 
 #' @param cores numeric number of cores to use for the peakpicking 
 #'      (one core = one file peakpicked)
 #' @param show_pb boolean print a progress bar or not
@@ -60,8 +61,10 @@
 #'     ms_process(mzxml_files, cwt_params, obw_params, pd_params)
 #' }
 ms_process <- function(mzxml_files, cwt_params, obw_params = NULL, 
-        pd_params = NULL, cores = parallel::detectCores(), show_pb = TRUE) {
-    check_ms_process_args(mzxml_files, cwt_params, obw_params, pd_params, cores)
+        pd_params = NULL, ann_params, cores = parallel::detectCores(), 
+        show_pb = TRUE) {
+    check_ms_process_args(mzxml_files, cwt_params, obw_params, pd_params, 
+        ann_params, cores)
     xcms::verboseColumns(cwt_params) <- TRUE
     if (length(mzxml_files) > 1) {
         xcms::binSize(obw_params) <- 1
@@ -96,10 +99,11 @@ ms_process <- function(mzxml_files, cwt_params, obw_params = NULL,
                 param = cwt_params, BPPARAM = BiocParallel::SerialParam())))
         if (show_pb) close(pb)
     
-        if (length(ms_files) > 1) group_peaks(
-            obiwarp(ms_files, obw_params, operator, show_pb), 
-                pd_params, operator, show_pb)
-        else ms_files[[1]]
+        ms_files <- if (length(ms_files) > 1) group_peaks(
+                obiwarp(ms_files, obw_params, operator, show_pb), 
+                    pd_params, operator, show_pb)
+            else ms_files[[1]]
+        annotate_peaklists(ms_files, ann_params, show_pb)
     }, error = function(e) e$message)
     
     if (exists("cl")) parallel::stopCluster(cl)
@@ -119,15 +123,13 @@ ms_process <- function(mzxml_files, cwt_params, obw_params = NULL,
 #'
 #' @param mzxml_files vector of filepaths to the files
 #' @param cwt_params CentWaveParam object created by xcms, 
-#'      if not given it will launch the parameters by default
 #' @param obw_params ObiwarpParam object created by xcms, 
-#'      if not given it will launch the parameters by default
 #' @param pd_params PeakDensityParam object created by xcms, 
-#'      if not given it will launch the parameters by default
+#' @param ann_params AnnotationParam object 
 #' @param cores numeric number of cores to use for the peakpicking 
 #'      (one core = one file peakpicked)
 check_ms_process_args <- function(mzxml_files, cwt_params, obw_params, 
-        pd_params, cores) {
+        pd_params, ann_params, cores) {
     if (length(mzxml_files) == 0) stop("you must give at least one mzxml file")
     else if (class(mzxml_files) != "character") stop(
         "mzxml_files argument must contain only characters")
@@ -146,6 +148,8 @@ check_ms_process_args <- function(mzxml_files, cwt_params, obw_params,
         "obw_params argument must be a ObiwarpParam object")
     if (class(pd_params) != "PeakDensityParam" & length(mzxml_files) > 1) stop(
         "pd_params argument must be a PeakDensityParam object")
+    if (class(ann_params) != "AnnotationParam") stop(
+        "ann_params argument must be an AnnotationParam object")
     if (class(cores) != "numeric" & class(cores) != "integer") stop(
         "cores argument must be numerical")
     else if (length(cores) > 1) stop(
@@ -156,3 +160,47 @@ check_ms_process_args <- function(mzxml_files, cwt_params, obw_params,
         "system have a maximum of %s cores", parallel::detectCores()))
     return(0)
 }
+
+setClass("AnnotationParam", 
+    slots = c(
+        da_tol = "numeric", 
+        rt_tol = "numeric", 
+        abd_tol = "numeric", 
+        adduct_names = "character", 
+        instrument = "character"
+    ), 
+    prototype = prototype(
+        da_tol = .015, 
+        rt_tol = 10, 
+        abd_tol = 25, 
+        adduct_names = c("M+Na", "M+NH4", "M+H-H2O", "M+H"), 
+        instrument = "QTOF_XevoG2-S_R25000@200"
+    ), 
+    validity = function(object) {
+        msg <- character()
+        if (length(object@da_tol) != 1 | any(object@da_tol < 0)) msg <- c(msg, 
+           "da_tol need to be a positive number")
+        if (length(object@rt_tol) != 1 | any(object@rt_tol < 0)) msg <- c(msg, 
+            "rt_tol need to be a positive number")
+        if (length(object@abd_tol) != 1 | any(object@abd_tol < 0) | 
+            any(object@abd_tol > 100)) msg <- c(msg, 
+            "abd_tol need to be a positive number between 0 & 100")
+        if (length(object@adduct_names) < 1) msg <- c(msg, 
+            "adduct_names is required")
+        test <- which(!object@adduct_names %in% adducts$Name)
+        if (length(test) > 0) msg <- c(msg, sprintf(
+            "%s doesn't exists in the adduct list", 
+            paste(object@adduct_names[test], collapse = " and ")))
+        if (length(object@instrument) != 1) msg <- c(msg, 
+            "instrument is required")
+        if (!object@instrument %in% names(resolution_list)) msg <- 
+            c(msg, sprintf("%s doesn't exists in the instrument list", 
+                object@instrument))        
+        if (length(msg)) msg else TRUE
+    }
+)
+AnnotationParam <- function(da_tol = 0.015, rt_tol = 10, abd_tol = 25, 
+        adduct_names = c("M+Na", "M+NH4", "M+H-H2O", "M+H"), 
+        instrument = "QTOF_XevoG2-S_R25000@200") 
+    methods::new("AnnotationParam", da_tol = da_tol, rt_tol = rt_tol, 
+        abd_tol = abd_tol, adduct_names = adduct_names, instrument = instrument)

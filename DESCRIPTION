@@ -29,4 +29,5 @@ Imports:
     doSNOW,
     foreach,
     iterators,
-    S4Vectors
+    S4Vectors,
+    enviPat

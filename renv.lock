@@ -626,6 +626,14 @@
         "rlang"
       ]
     },
+    "enviPat": {
+      "Package": "enviPat",
+      "Version": "2.4",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "a11afe709fa34b39232d61f1986405ac",
+      "Requirements": []
+    },
     "evaluate": {
       "Package": "evaluate",
       "Version": "0.14",

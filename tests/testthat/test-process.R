@@ -1,18 +1,18 @@
 testthat::test_that("process", {
     testthat::expect_error(
-        ms_process(c(), NULL, NULL, NULL),
+        ms_process(c(), NULL, NULL, NULL, NULL),
         "you must give at least one mzxml file")
     
     testthat::expect_error(
-       ms_process(1, NULL, NULL, NULL), 
+       ms_process(1, NULL, NULL, NULL, NULL), 
        "mzxml_files argument must contain only characters")
 
     testthat::expect_error(
-       ms_process("C:/small.txt", NULL, NULL, NULL), 
+       ms_process("C:/small.txt", NULL, NULL, NULL, NULL), 
        "file extension of small.txt are not supported")
 
     testthat::expect_error(
-       ms_process("C:/small.mzXML", NULL, NULL, NULL), 
+       ms_process("C:/small.mzXML", NULL, NULL, NULL, NULL), 
         escape_regex("file(s) C:/small.mzXML doesn't exist"))
     
     mzxml_files <- c(
@@ -21,7 +21,7 @@ testthat::test_that("process", {
         system.file("testdata", "200204PLF_QC02_pos_filtered.mzML", 
             package = "workflow.lipido"))
     testthat::expect_error(
-        ms_process(mzxml_files, "a", NULL, NULL), 
+        ms_process(mzxml_files, "a", NULL, NULL, NULL), 
         "cwt_params argument must be a CentWaveParam object")
     
     cwt_params <- xcms::CentWaveParam(
@@ -38,7 +38,7 @@ testthat::test_that("process", {
         firstBaselineCheck = FALSE
     )
     testthat::expect_error(
-        ms_process(mzxml_files, cwt_params, "a", NULL), 
+        ms_process(mzxml_files, cwt_params, "a", NULL, NULL), 
         "obw_params argument must be a ObiwarpParam object")
     
     obw_params <- xcms::ObiwarpParam(
@@ -54,7 +54,7 @@ testthat::test_that("process", {
         initPenalty = 0
     )
     testthat::expect_error(
-        ms_process(mzxml_files, cwt_params, obw_params, "a"), 
+        ms_process(mzxml_files, cwt_params, obw_params, "a", NULL), 
         "pd_params argument must be a PeakDensityParam object")
     
     pd_params <- xcms::PeakDensityParam(
@@ -67,28 +67,40 @@ testthat::test_that("process", {
     )
     
     testthat::expect_error(
+        ms_process(mzxml_files, cwt_params, obw_params, pd_params, "a"), 
+        "ann_params argument must be an AnnotationParam object")
+    
+    ann_params <- AnnotationParam(
+         da_tol = .015, 
+        rt_tol = 10, 
+        abd_tol = 25, 
+        adduct_names = c("M+Na", "M+NH4", "M+H-H2O", "M+H"), 
+        instrument = "QTOF_XevoG2-S_R25000@200"
+    )
+    
+    testthat::expect_error(
         ms_process(mzxml_files, cwt_params, obw_params, pd_params, 
-            cores = "a"), 
+            ann_params, cores = "a"), 
         "cores argument must be numerical")
     
     testthat::expect_error(
         ms_process(mzxml_files, cwt_params, obw_params, pd_params, 
-            cores = c(1, 2)), 
+            ann_params, cores = c(1, 2)), 
         "cores argument must contain only ONE number !")
     
     testthat::expect_error(
         ms_process(mzxml_files, cwt_params, obw_params, pd_params, 
-            cores = 0), 
+            ann_params, cores = 0), 
         "cores cannot be a number under 1")
     
     testthat::expect_error(
         ms_process(mzxml_files, cwt_params, obw_params, pd_params, 
-            cores = 1.2), 
+            ann_params, cores = 1.2), 
         "cores must not contain any digits")
     
     testthat::expect_error(
         ms_process(mzxml_files, cwt_params, obw_params, pd_params, 
-            cores = 99), 
+            ann_params, cores = 99), 
         sprintf("system have a maximum of %s cores", parallel::detectCores()))
     
     tmp_file <- tempfile(fileext = ".mzXML")
@@ -96,20 +108,24 @@ testthat::test_that("process", {
     expect_error(
         invisible(capture.output(
             ms_process(tmp_file, cwt_params, obw_params, pd_params, 
-                show_pb = FALSE))), 
+                ann_params, show_pb = FALSE))), 
         "cannot execute ms_process")
     
     observed <- suppressMessages(ms_process(mzxml_files[1], cwt_params, 
-        show_pb = FALSE))
+        ann_params = ann_params, show_pb = FALSE))
     expected <- readRDS(system.file("testdata", "process_1.rds", 
             package = "workflow.lipido"))
     expect_identical(
         xcms::chromPeaks(observed), 
         xcms::chromPeaks(expected)
     )
+    expect_identical(
+        observed@ann, 
+        expected@ann
+    )
     
     observed <- suppressMessages(ms_process(mzxml_files, cwt_params, 
-        obw_params, pd_params, show_pb = FALSE))
+        obw_params, pd_params, ann_params, show_pb = FALSE))
     expected <- readRDS(system.file("testdata", "process_2.rds", 
             package = "workflow.lipido"))
     expect_identical(
@@ -123,5 +139,9 @@ testthat::test_that("process", {
     expect_identical(
         xcms::featureDefinitions(observed), 
         xcms::featureDefinitions(expected)
+    )
+    expect_identical(
+        observed@ann, 
+        expected@ann
     )
 })

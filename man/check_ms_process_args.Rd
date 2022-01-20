@@ -4,19 +4,25 @@
 \alias{check_ms_process_args}
 \title{Check all args of "Process"}
 \usage{
-check_ms_process_args(mzxml_files, cwt_params, obw_params, pd_params, cores)
+check_ms_process_args(
+  mzxml_files,
+  cwt_params,
+  obw_params,
+  pd_params,
+  ann_params,
+  cores
+)
 }
 \arguments{
 \item{mzxml_files}{vector of filepaths to the files}
 
-\item{cwt_params}{CentWaveParam object created by xcms, 
-if not given it will launch the parameters by default}
+\item{cwt_params}{CentWaveParam object created by xcms,}
 
-\item{obw_params}{ObiwarpParam object created by xcms, 
-if not given it will launch the parameters by default}
+\item{obw_params}{ObiwarpParam object created by xcms,}
 
-\item{pd_params}{PeakDensityParam object created by xcms, 
-if not given it will launch the parameters by default}
+\item{pd_params}{PeakDensityParam object created by xcms,}
+
+\item{ann_params}{AnnotationParam object}
 
 \item{cores}{numeric number of cores to use for the peakpicking 
 (one core = one file peakpicked)}
