@@ -1,4 +1,5 @@
 .onLoad <- function(libname, pkgname) {
+    require(MSnbase)
     utils::data(isotopes, package = "enviPat")
     utils::data(adducts, package = "enviPat")
     utils::data(resolution_list, package = "enviPat")

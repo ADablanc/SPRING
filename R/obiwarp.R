@@ -43,7 +43,7 @@ obiwarp <- function(ms_files, obw_params, operator, show_pb) {
             .options.snow = if (!show_pb) NULL 
                 else list(progress = function(n) 
                     utils::setTxtProgressBar(pb, n))
-        ), {
+        ), tryCatch({
             message("Aligning ", basename(MSnbase::fileNames(ms_file)), 
                 " against ", basename(MSnbase::fileNames(ms_file_center)), 
                 " ... ", appendLF = FALSE)
@@ -190,8 +190,8 @@ obiwarp <- function(ms_files, obw_params, operator, show_pb) {
                         adj_starts_at:1]))), rtadj)
             }
             message("OK")
-            return(list(unname(rtadj)))
-        }
+            list(unname(rtadj))
+        }, error = function(e) list(unname(xcms::rtime(ms_file))))
     )
     if (show_pb) close(pb)
     adjusted_rtime <- vector(mode = "list", length = length(ms_files))

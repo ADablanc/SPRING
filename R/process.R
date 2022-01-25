@@ -7,7 +7,7 @@
 #'      \item peakpicking
 #'      \item rT correction
 #'      \item alignment
-#'      \item fill missing peaks
+#'      \item annotation
 #' }
 #' Some parameters have a default parameter. This is the case for : 
 #' \itemize{
@@ -27,6 +27,7 @@
 #' }
 #'
 #' @param mzxml_files vector of filepaths to the files
+#' @param filter_params FilterParam object 
 #' @param cwt_params CentWaveParam object created by xcms
 #' @param obw_params ObiwarpParam object created by xcms 
 #' @param pd_params PeakDensityParam object created by xcms
@@ -60,24 +61,23 @@
 #'     )
 #'     ms_process(mzxml_files, cwt_params, obw_params, pd_params)
 #' }
-ms_process <- function(mzxml_files, cwt_params, obw_params = NULL, 
-        pd_params = NULL, ann_params, cores = parallel::detectCores(), 
-        show_pb = TRUE) {
-    check_ms_process_args(mzxml_files, cwt_params, obw_params, pd_params, 
-        ann_params, cores)
+ms_process <- function(mzxml_files, filter_params, cwt_params, 
+        obw_params, pd_params, ann_params, 
+        cores = parallel::detectCores(), show_pb = TRUE) {
+    check_ms_process_args(mzxml_files, filter_params, cwt_params, obw_params, 
+        pd_params, ann_params, cores)
     xcms::verboseColumns(cwt_params) <- TRUE
-    if (length(mzxml_files) > 1) {
-        xcms::binSize(obw_params) <- 1
-        xcms::sampleGroups(pd_params) <- seq(length(mzxml_files))
-        xcms::minFraction(pd_params) <- 10**-9
-        xcms::minSamples(pd_params) <- 1
-        xcms::maxFeatures(pd_params) <- 500
-    }
+    xcms::binSize(obw_params) <- 1
+    xcms::sampleGroups(pd_params) <- seq(length(mzxml_files))
+    xcms::minFraction(pd_params) <- 10**-9
+    xcms::minSamples(pd_params) <- 1
+    xcms::maxFeatures(pd_params) <- 500
     
-    if (cores > 1 & length(mzxml_files) > 1) {
+    if (cores > 1) {
         if (cores > length(mzxml_files)) cores <- length(mzxml_files)
         cl <- parallel::makeCluster(cores)
         doSNOW::registerDoSNOW(cl)
+        parallel::clusterEvalQ(cl, require("MSnbase"))
         operator <- foreach::"%dopar%"
     } else operator <- foreach::"%do%"
     
@@ -94,16 +94,21 @@ ms_process <- function(mzxml_files, cwt_params, obw_params = NULL,
                 else list(progress = function(n) 
                     utils::setTxtProgressBar(pb, n))), 
             list(xcms::findChromPeaks(
-                MSnbase::readMSData(mzxml_file, msLevel = 1, 
-                    centroided = TRUE, mode = "onDisk"), 
-                param = cwt_params, BPPARAM = BiocParallel::SerialParam())))
+                MSnbase::filterMz(
+                    MSnbase::filterRt(
+                        MSnbase::readMSData(mzxml_file, msLevel = 1, 
+                            centroided = TRUE, mode = "onDisk"), 
+                        rt = filter_params@rt_range), 
+                    mz = filter_params@mz_range), 
+                param = cwt_params, 
+                BPPARAM = BiocParallel::SerialParam())))
         if (show_pb) close(pb)
     
-        ms_files <- if (length(ms_files) > 1) group_peaks(
+        annotate_peaklists(
+            group_peaks(
                 obiwarp(ms_files, obw_params, operator, show_pb), 
-                    pd_params, operator, show_pb)
-            else ms_files[[1]]
-        annotate_peaklists(ms_files, ann_params, show_pb)
+                    pd_params, operator, show_pb), 
+            ann_params, show_pb)
     }, error = function(e) e$message)
     
     if (exists("cl")) parallel::stopCluster(cl)
@@ -122,31 +127,34 @@ ms_process <- function(mzxml_files, cwt_params, obw_params = NULL,
 #'      Will raise an error if one argument is incorrect
 #'
 #' @param mzxml_files vector of filepaths to the files
+#' @param filter_params FilterParam object 
 #' @param cwt_params CentWaveParam object created by xcms, 
 #' @param obw_params ObiwarpParam object created by xcms, 
 #' @param pd_params PeakDensityParam object created by xcms, 
 #' @param ann_params AnnotationParam object 
 #' @param cores numeric number of cores to use for the peakpicking 
 #'      (one core = one file peakpicked)
-check_ms_process_args <- function(mzxml_files, cwt_params, obw_params, 
-        pd_params, ann_params, cores) {
-    if (length(mzxml_files) == 0) stop("you must give at least one mzxml file")
+check_ms_process_args <- function(mzxml_files, filter_params, cwt_params, 
+        obw_params, pd_params, ann_params, cores) {
+    if (length(mzxml_files) <= 1) stop("you must give at least two mzxml files")
     else if (class(mzxml_files) != "character") stop(
         "mzxml_files argument must contain only characters")
     file_ext <- c("\\.mzXML$", "\\.mzML$", "\\.CDF$")
     test_ext <- sapply(mzxml_files, function(x) 
         any(sapply(file_ext, grepl, x, ignore.case = TRUE)))
     if (any(!test_ext)) stop(sprintf("file extension of %s are not supported",
-        paste(basename(mzxml_files[!test_ext]), collapse = " ")))
+        paste(basename(mzxml_files[!test_ext]), collapse = " and ")))
     test_exist <- file.exists(mzxml_files)
     if (any(!test_exist)) stop(sprintf("file(s) %s doesn't exist", 
-        paste(mzxml_files[!test_exist], collapse = " ")))
+        paste(mzxml_files[!test_exist], collapse = " and ")))
     mzxml_files <- normalizePath(mzxml_files)
+    if (class(filter_params) != "FilterParam") stop(
+        "filter_params argument must be a FilterParam object")
     if (class(cwt_params) != "CentWaveParam") stop(
         "cwt_params argument must be a CentWaveParam object")
-    if (class(obw_params) != "ObiwarpParam" & length(mzxml_files) > 1) stop(
+    if (class(obw_params) != "ObiwarpParam") stop(
         "obw_params argument must be a ObiwarpParam object")
-    if (class(pd_params) != "PeakDensityParam" & length(mzxml_files) > 1) stop(
+    if (class(pd_params) != "PeakDensityParam") stop(
         "pd_params argument must be a PeakDensityParam object")
     if (class(ann_params) != "AnnotationParam") stop(
         "ann_params argument must be an AnnotationParam object")
@@ -160,6 +168,30 @@ check_ms_process_args <- function(mzxml_files, cwt_params, obw_params,
         "system have a maximum of %s cores", parallel::detectCores()))
     return(0)
 }
+
+setClass("FilterParam", 
+    slots = c(
+        mz_range = "numeric", 
+        rt_range = "numeric"
+    ), 
+    prototype = prototype(
+        mz_range = c(300, 1000), 
+        rt_range = c(.7 * 60, 6.3 * 60)
+    ), 
+    validity = function(object) {
+        msg <- character()
+        if (length(object@mz_range) < 2 | 
+            any(object@mz_range < 0)) msg <- c(msg, 
+                "mz_range must contain two positive number")
+        if (length(object@rt_range) < 2 | 
+            any(object@rt_range < 0)) msg <- c(msg, 
+                "rt_range must contain two positive number")
+        if (length(msg)) msg else TRUE
+    }
+)
+FilterParam <- function(mz_range = c(300, 1000), 
+        rt_range = c(.7 * 60, 6.3 * 60)) 
+    methods::new("FilterParam", mz_range = mz_range, rt_range = rt_range)
 
 setClass("AnnotationParam", 
     slots = c(

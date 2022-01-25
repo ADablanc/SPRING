@@ -6,9 +6,10 @@
 \usage{
 ms_process(
   mzxml_files,
+  filter_params,
   cwt_params,
-  obw_params = NULL,
-  pd_params = NULL,
+  obw_params,
+  pd_params,
   ann_params,
   cores = parallel::detectCores(),
   show_pb = TRUE
@@ -16,6 +17,8 @@ ms_process(
 }
 \arguments{
 \item{mzxml_files}{vector of filepaths to the files}
+
+\item{filter_params}{FilterParam object}
 
 \item{cwt_params}{CentWaveParam object created by xcms}
 
@@ -40,7 +43,7 @@ it launch the substeps:
      \item peakpicking
      \item rT correction
      \item alignment
-     \item fill missing peaks
+     \item annotation
 }
 Some parameters have a default parameter. This is the case for : 
 \itemize{

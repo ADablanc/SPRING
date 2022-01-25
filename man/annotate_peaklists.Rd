@@ -18,8 +18,16 @@ annotate_peaklists(ms_files, ann_params, show_pb, sigma = 6, perfwhm = 0.6)
 \item{perfwhm}{ignore}
 }
 \value{
-a XCMSnExp
+a XCMSnExp with a new slot `ann` which contains a dataframe
 }
 \description{
 Annotate peaklists from an XCMSnExp with grouping information
+it loop through the peaks grouped dataframe
+if the peak match with one of the theoretical monoisotopic from database 
+     it will search all isotopologue grouped in 
+     the rt window of the peak +/- fwhm
+it compare then the spectra obtained against the theoretical spectra 
+     & compute an isotopic score
+at the end it will merge rows which corresponds to the same annotation but 
+     were not grouped together by XCMS (parameters not right ?)
 }

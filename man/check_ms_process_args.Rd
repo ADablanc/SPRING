@@ -6,6 +6,7 @@
 \usage{
 check_ms_process_args(
   mzxml_files,
+  filter_params,
   cwt_params,
   obw_params,
   pd_params,
@@ -15,6 +16,8 @@ check_ms_process_args(
 }
 \arguments{
 \item{mzxml_files}{vector of filepaths to the files}
+
+\item{filter_params}{FilterParam object}
 
 \item{cwt_params}{CentWaveParam object created by xcms,}
 
