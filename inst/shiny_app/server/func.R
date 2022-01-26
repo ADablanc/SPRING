@@ -10,10 +10,18 @@
 #' 
 #' @examples
 #' \dontrun{toastr_error("Aaaaaaargh", "A zombie bite me...")}
-toastr_error <- function(msg = "") shinyFeedback::showToast(
-	type = "error", msg, .options = list(
-		closeButton = TRUE, newestOnTop = TRUE, progressBar = FALSE, 
-		preventDuplicates = TRUE, positionClass = "toast-top-center"))
+toastr_error <- function(msg = "") 
+    shinyFeedback::showToast(
+        type = "error", 
+        msg, 
+        .options = list(
+            closeButton = TRUE, 
+            newestOnTop = TRUE, 
+            progressBar = FALSE, 
+            preventDuplicates = TRUE, 
+            positionClass = "toast-top-center"
+        )
+    )
 
 #' @title Send toastr success msg
 #'
@@ -27,10 +35,18 @@ toastr_error <- function(msg = "") shinyFeedback::showToast(
 #' 
 #' @examples
 #' \dontrun{toastr_success("yeeeeees", "Just dodged a zombie...")}
-toastr_success <- function(msg = "") shinyFeedback::showToast(
-	type = "success", msg, .options = list(
-		closeButton = TRUE, newestOnTop = TRUE, progressBar = FALSE, 
-		preventDuplicates = TRUE, positionClass = "toast-top-center"))
+toastr_success <- function(msg = "") 
+    shinyFeedback::showToast(
+        type = "success", 
+        msg, 
+        .options = list(
+            closeButton = TRUE, 
+            newestOnTop = TRUE, 
+            progressBar = FALSE, 
+            preventDuplicates = TRUE, 
+            positionClass = "toast-top-center"
+        )
+    )
 
 #' @title Send toastr warning msg
 #'
@@ -44,10 +60,18 @@ toastr_success <- function(msg = "") shinyFeedback::showToast(
 #' 
 #' @examples
 #' \dontrun{toastr_error("Ohoh", "Is it a zombie ?...")}
-toastr_warning <- function(msg = "") shinyFeedback::showToast(
-	type = "warning", msg, .options = list(
-		closeButton = TRUE, newestOnTop = TRUE, progressBar = FALSE, 
-		preventDuplicates = TRUE, positionClass = "toast-top-center"))
+toastr_warning <- function(msg = "") 
+    shinyFeedback::showToast(
+        type = "warning", 
+        msg, 
+        .options = list(
+            closeButton = TRUE, 
+            newestOnTop = TRUE, 
+            progressBar = FALSE, 
+            preventDuplicates = TRUE, 
+            positionClass = "toast-top-center"
+        )
+    )
 
 #' @title Send sweet alert error msg
 #'
@@ -61,26 +85,35 @@ toastr_warning <- function(msg = "") shinyFeedback::showToast(
 #' 
 #' @examples
 #' \dontrun{sweet_alert_error("Garrrrrrrr", "Braiiiinn...")}
-sweet_alert_error <- function(title = "", msg = "") shinyWidgets::sendSweetAlert(
-	session, html = TRUE, title = title, 
-	text = shiny::tags$div(msg, shiny::tags$br(), 
-		shiny::tags$a(href = sprintf(
-			'mailto:sebastien.hutinet@oniris-nantes.fr?subject=Describe header of error&body=don\'t forget to attach error log (in "%s")', 
-			log_file_path), "Contact me"
-		)
-	), type='error')
+sweet_alert_error <- function(title = "", msg = "") 
+    shinyWidgets::sendSweetAlert(
+        session, 
+        html = TRUE,  
+        type = "error", 
+        title = title, 
+        text = shiny::tags$div(
+            msg, 
+            shiny::tags$br(), 
+            shiny::tags$a(
+                href = sprintf(
+                    'mailto:sebastien.hutinet@oniris-nantes.fr?
+                        subject=Describe header of error&
+                        body=don\'t forget to attach error log (in "%s")', 
+                    log_file_path
+                ), 
+                "Contact me"
+            )
+        )
+    )
 
-condition <- function(subclass, message, call=sys.call(-1), ...){
-	structure(
-		class=c(subclass, "condition"),
-		list(message=message, call=call),
-		...
-	)
-}
-custom_stop <- function(subclass, message, call=sys.call(-1), ...){
-	c <- condition(c(subclass, "error"), message, call=call, ...)
-	stop(c)
-}
+condition <- function(subclass, message, call=sys.call(-1), ...) 
+    structure(
+        class = c(subclass, "condition"),
+        list(message = message, call = call),
+        ...
+    )
+custom_stop <- function(subclass, message, call=sys.call(-1), ...) 
+    stop(condition(c(subclass, "error"), message, call = call, ...))
 
 #' @title Check inputs
 #'
@@ -90,17 +123,20 @@ custom_stop <- function(subclass, message, call=sys.call(-1), ...){
 #'
 #' @param inputs vector of strings, inputs name
 #' @param condition vector of booleans, condition to respect for each input
-#' @param msg vector of strings, message to display in toastr & shinyFeedback for each error
+#' @param msg vector of strings, 
+#'      message to display in toastr & shinyFeedback for each error
 check_inputs <- function(inputs, conditions, msgs) {
-	for (i in 1:length(inputs)) {
-		if (!conditions[i]) {
-			print(msgs[i])
-			show_feedback(inputs[i], msgs[i])
-			toastr_error(msgs[i])
-		} else hide_feedback(inputs[i])
-	}
-	if (any(!conditions)) custom_stop("invalid", "invalid inputs")
+    for (i in seq(length(inputs))) {
+        if (!conditions[i]) {
+            print(msgs[i])
+            show_feedback(inputs[i], msgs[i])
+            toastr_error(msgs[i])
+        } else hide_feedback(inputs[i])
+    }
+    if (any(!conditions)) custom_stop("invalid", "invalid inputs")
 }
 
-show_feedback <- function(input, msg) if (input != "") shinyFeedback::showFeedbackDanger(input, msg)
-hide_feedback <- function(input) if (input != "") shinyFeedback::hideFeedback(input)
+show_feedback <- function(input, msg) 
+    if (input != "") shinyFeedback::showFeedbackDanger(input, msg)
+hide_feedback <- function(input) 
+    if (input != "") shinyFeedback::hideFeedback(input)

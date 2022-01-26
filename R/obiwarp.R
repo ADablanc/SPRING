@@ -18,7 +18,7 @@
 #' @return XCMSnExp which regroup all the files in one object 
 #'      with the rT corrected
 #' 
-#' @seealso xcms:::adjustRtime
+#' @seealso xcms::adjustRtime
 obiwarp <- function(ms_files, obw_params, operator, show_pb) {
     xcms::centerSample(obw_params) <- which.max(
         sapply(ms_files, function(x) nrow(xcms::chromPeaks(x))))
@@ -199,7 +199,7 @@ obiwarp <- function(ms_files, obw_params, operator, show_pb) {
         unname(xcms::rtime(ms_files[[xcms::centerSample(obw_params)]]))
     adjusted_rtime[-xcms::centerSample(obw_params)] <- 
         tmp_adjusted_rtimes
-    adjusted_rtime <- xcms:::adjustRtimeSubset(rtraw, adjusted_rtime)
+    adjusted_rtime <- adjustRtimeSubset(rtraw, adjusted_rtime)
     ms_files <- do.call(c, ms_files)
     xcms::adjustedRtime(ms_files) <- adjusted_rtime
     return(ms_files)

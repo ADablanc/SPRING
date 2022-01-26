@@ -30,5 +30,5 @@ This function comes from the XCMS package and only the function `.obiwarp`
 It force to use the sample with the most peak as the center sample
 }
 \seealso{
-xcms:::adjustRtime
+xcms::adjustRtime
 }

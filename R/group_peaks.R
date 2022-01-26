@@ -34,7 +34,7 @@ group_peaks <- function(ms_files, pd_params, operator, show_pb) {
     mass <- seq(peaks[1, "mz"], 
         peaks[nrow(peaks), "mz"] + xcms::binSize(pd_params), 
         by = xcms::binSize(pd_params) / 2)
-    masspos <- xcms:::findEqualGreaterM(peaks[, "mz"], mass)
+    masspos <- findEqualGreaterM(peaks[, "mz"], mass)
 
     dens_from <- rt_range[1] - 3 * xcms::bw(pd_params)
     dens_to <- rt_range[2] + 3 * xcms::bw(pd_params)
@@ -57,7 +57,7 @@ group_peaks <- function(ms_files, pd_params, operator, show_pb) {
             start_idx <- masspos[i]
             end_idx <- masspos[i + 2] - 1
             if (end_idx - start_idx < 0) NULL
-            else xcms:::.group_peaks_density(
+            else group_peaks_density(
                 peaks[start_idx:end_idx, , drop = FALSE],
                 bw = xcms::bw(pd_params), densFrom = dens_from,
                 densTo = dens_to, densN = dens_n,
@@ -79,7 +79,7 @@ group_peaks <- function(ms_files, pd_params, operator, show_pb) {
                     drop = FALSE]))
         uorder <- order(-numsamp, groups[, "npeaks"])
 
-        uindex <- xcms:::rectUnique(
+        uindex <- rectUnique(
             as.matrix(groups[, c("mzmin", "mzmax", "rtmin", "rtmax"),
                 drop = FALSE]), uorder)
         groups <- groups[uindex, , drop = FALSE]

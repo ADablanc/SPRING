@@ -2,5 +2,6 @@
 
 export(convert_files)
 export(ms_process)
+export(run_shiny_app)
 importFrom(Rcpp,sourceCpp)
 useDynLib(workflow.lipido)

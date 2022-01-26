@@ -17,11 +17,13 @@ Suggests:
     knitr,
     testthat (>= 3.0.0),
     lintr,
-    covr
+    covr,
+    shinytest
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 RoxygenNote: 7.1.2
 Imports: 
+    ProtGenerics,
     xcms,
     Rcpp,
     BiocParallel,
@@ -35,4 +37,6 @@ Imports:
     shinyFeedback,
     bsplus,
     rintrojs,
-    shinydashboard
+    shinydashboard,
+    shiny,
+    methods
