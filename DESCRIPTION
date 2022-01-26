@@ -30,4 +30,9 @@ Imports:
     foreach,
     iterators,
     S4Vectors,
-    enviPat
+    enviPat,
+    shinyjs,
+    shinyFeedback,
+    bsplus,
+    rintrojs,
+    shinydashboard
