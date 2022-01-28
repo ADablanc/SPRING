@@ -17,7 +17,8 @@ run_shiny_app <- function(log_file_path = "~/.workflow.lipido.log") {
         sink(log_file, type = "message")
         sink(log_file, type = "output")
     }
-    shiny::runApp(system.file("shiny_app", package = "workflow.lipido"))
+    shiny::runApp(system.file("shiny_app", package = "workflow.lipido"), 
+        launch.browser = TRUE)
     if (length(log_file_path) > 0) {
         sink(type = "message")
         sink(type = "output")
