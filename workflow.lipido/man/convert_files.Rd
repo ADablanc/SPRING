@@ -4,22 +4,44 @@
 \alias{convert_files}
 \title{Convert RAW files}
 \usage{
-convert_files(raw_files, converter, verbose = TRUE)
+convert_files(
+  raw_files,
+  converter,
+  outdir,
+  cores = parallel::detectCores(),
+  show_txt_pb = TRUE,
+  pb_fct = NULL
+)
 }
 \arguments{
 \item{raw_files}{vector of filepaths}
 
-\item{converter}{filepath to the msonvert executable}
+\item{converter}{filepath to the msconvert executable}
 
-\item{verbose}{boolean disable prints}
+\item{outdir}{dirpath to directory where to save the mzXML files}
+
+\item{cores}{numeric number of cores to use for the peakpicking
+(one core = one file peakpicked)
+if cores == 1 it will print for each file a commands &
+    result of the conversion (useful for tracking)}
+
+\item{show_txt_pb}{boolean print a progress bar or not on the console}
+
+\item{pb_fct}{function used to update the progress bar}
 }
 \value{
-vector of filepaths to the mzXML files converted
+dataframe (each row represent a file) with a column foreach polarity
+     Each cell contains a message about the conversion process
+         ("SUCCESS" if no errors occur for example)
 }
 \description{
 Convert RAW files with msconvert to mzXML files
+It will create in the `outdir` directory two dirs :
+one for the positive converted file, the other for the negatives
+For each file converted with success it will run some test to see
+     if the file can be read, contains not empty scans, ...
 }
 \examples{
-\dontrun{convert_files("testdata/small.RAW", 
+\dontrun{convert_files("testdata/small.RAW",
      converter = "pwiz/msconvert.exe")}
 }
