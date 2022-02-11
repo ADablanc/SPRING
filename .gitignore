@@ -1,2 +1,6 @@
-*\.log
+.renvignore$
+.Rprofile$
 R-Portable/library/*
+.log$
+.Rproj$
+.Rproj.user
