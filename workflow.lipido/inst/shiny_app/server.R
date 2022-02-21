@@ -1,7 +1,6 @@
 server <- function(input, output, session) {
-
     #' @title Clean the RAM
-    #' 
+    #'
     #' @description
     #' Call garbage collector every 10 sec
     shiny::observe({
@@ -12,37 +11,34 @@ server <- function(input, output, session) {
     #' @title Event when session is ended
     #'
     #' @description
-    #' At session end it remove all object in environnement & 
+    #' At session end it remove all object in environnement &
     #'      call garbage collector
     session$onSessionEnded(function() {
+        if (!is.null(db)) RSQLite::dbDisconnect(db)
         gc()
         shiny::stopApp()
     })
 
-    #' @title Print in console in which user swicth to tab
-    #'
-    #' @description
-    #' Print each time the tab which the user switch
-    #'
-    #' @params input$tabs string, name of the tab associated (see file ui.R)
-    shiny::observeEvent(input$tabs, {
-        gc()
-        print("                                                            ")
-        print("############################################################")
-        print(stringr::str_trunc(
-            paste0(
-                "TAB ######################### ", 
-                        input$tabs, 
-                " ###########################"),
-            60)
-        )
-        print("############################################################")
-    })
+    volumes <- c(home = tools::file_path_as_absolute("~"),
+        shinyFiles::getVolumes()())
 
     source("server/func.R", local = TRUE)$value
+
+    source("server/project.R", local = TRUE)$value
+
+    # source("server/plots.R", local = TRUE)$value
+
+    source("server/process.R", local = TRUE)$value
+
+    # source("server/conflicts.R", local = TRUE)$value
+
+    # source("server/check_data.R", local = TRUE)$value
+
+    # source("server/summary.R", local = TRUE)$value
+
+    source("server/database.R", local = TRUE)$value
 
     # hide loader & show app div
     shinyjs::hide(id = "loader", anim = TRUE, animType = "fade")
     shinyjs::show("app-content")
-
 }
