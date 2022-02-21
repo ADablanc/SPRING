@@ -188,12 +188,15 @@ filtrate_ann <- function(ann, spectra_infos, sigma = 6, perfwhm = .6) {
                 if (nrow(y) == 1) return(y)
                 new_y <- y[which.max(y$best_score), , drop = FALSE]
                 new_y[, c("rtdiff", "rt", "rtmin", "rtmax")] <- apply(
-                    new_y[, c("rtdiff", "rt", "rtmin", "rtmax")], 2, median)
+                    new_y[, c("rtdiff", "rt", "rtmin", "rtmax"),
+                          drop = FALSE], 2, median)
                 new_y[, c("best_score", "best_npeak")] <- apply(
-                    new_y[, c("best_score", "best_npeak")], 2, max)
+                    new_y[, c("best_score", "best_npeak"),
+                          drop = FALSE], 2, max)
                 new_y$best_deviation_mz <- y[which.min(
                     abs(y$best_deviation_mz)), "best_deviation_mz"]
-                new_y[, 14:ncol(y)] <- apply(y[, 14:ncol(y)], 2, function(z)
+                new_y[, 14:ncol(y)] <- apply(y[, 14:ncol(y),
+                                               drop = FALSE], 2, function(z)
                     if (length(which(!is.na(z))) == 1) z[!is.na(z)]
                     else z[!is.na(z)][which.max(spectra_infos[
                         spectra_infos$spectra_id %in% z[!is.na(z)], "score"])])
@@ -226,26 +229,27 @@ split_conflicts <- function(ann) {
 #' @return the annotation dataframe grouped by compound
 summarise_ann <- function(ann, spectra_infos) {
     int_ann <- get_int_ann(ann, spectra_infos)
-    do.call(rbind, lapply(split(int_ann, int_ann$name), function(x)
+    data <- do.call(rbind, lapply(split(int_ann, int_ann$name), function(x)
         cbind.data.frame(
             name = x[1, "name"],
             `rT (min)` = round(mean(x[, "rT (min)"]), 2),
             `Diff rT (sec)` = min(x[, "Diff rT (sec)"]),
             Adducts = paste(x$Adduct, collapse = " "),
-            nSamples = sum(sapply(x[, 9:ncol(x)], function(y) any(y > 0))),
+            nSamples = sum(sapply(x[, 9:ncol(x), drop = FALSE],
+                                  function(y) any(y > 0))),
             `Most intense ion` = as.factor(x[which.max(
-                apply(x[, 9:ncol(x)], 1, max)), "Adduct"]),
+                apply(x[, 9:ncol(x), drop = FALSE], 1, max)), "Adduct"]),
             `Best score (%)` = max(x[, "Best score (%)"]),
             `Best m/z dev (mDa)` = min(x[, "Best m/z dev (mDa)"]),
             `Max iso` = max(x[, "Max iso"]),
-            lapply(x[, 9:ncol(x)], sum)
+            sapply(x[, 9:ncol(x), drop = FALSE], sum)
         )
     ))
+    colnames(data)[10:ncol(data)] <- colnames(int_ann[9:ncol(int_ann)])
+    return(data)
 }
 
 get_int_ann <- function(ann, spectra_infos) {
-    # split first ann informations
-    ann <- split_conflicts(ann)$no_conflicts
     # extract intensity of basepeaks
     cbind.data.frame(
         name = ann$name,
@@ -256,7 +260,7 @@ get_int_ann <- function(ann, spectra_infos) {
         `Best score (%)` = round(ann$best_score),
         `Best m/z dev (mDa)` = round(ann$best_deviation_mz),
         `Max iso` = ann$best_npeak,
-        apply(ann[, 14:ncol(ann)], c(1, 2), function(x)
+        apply(ann[, 14:ncol(ann), drop = FALSE], c(1, 2), function(x)
             if (is.na(x)) NA
             else spectra_infos[as.numeric(x), "basepeak_int"]
         )
