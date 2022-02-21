@@ -9,7 +9,29 @@ db_connect <- function(sqlite_path) {
     return(db)
 }
 
-db_record_samples <- function(db, sample_names) RSQLite::dbWriteTable(
+dbWriteTable <- function(db, table_name, data, overwrite = TRUE) {
+	msg <- "database is locked"
+	while (msg == "database is locked") {
+		msg <- tryCatch({
+			RSQLite::dbWriteTable(db, table_name, data, overwrite = overwrite)
+			"success"
+			}, error = function(e) e$message)
+	}
+	if (msg != "success") stop(msg)		
+}
+
+dbExecute <- function(db, query, ...) {
+	msg <- "database is locked"
+	while (msg == "database is locked") {
+		msg <- tryCatch({
+			RSQLite::dbExecute(db, query, ...)
+			"success"
+			}, error = function(e) e$message)
+	}
+	if (msg != "success") stop(msg)	
+}
+
+db_record_samples <- function(db, sample_names) dbWriteTable(
     db, "sample", data.frame(
         sample = sample_names,
         ms_file_positive = NA,
@@ -39,7 +61,7 @@ db_record_ms_file <- function(db, sample_name, polarity, ms_file, bin_size) {
         "UPDATE sample SET ms_file_%s = :a,
             profile_%s = :b WHERE sample == \"%s\";",
         polarity, polarity, sample_name)
-    RSQLite::dbExecute(db, query, params = list(a = ms_file, b = profile))
+    dbExecute(db, query, params = list(a = ms_file, b = profile))
     rm(ms_file)
     rm(profile)
     gc()
@@ -64,34 +86,34 @@ db_get_profile <- function(db, sample_name, polarity) {
 }
 
 compress <- function(obj) {
-    blob::blob(fst::compress_fst(serialize(obj, NULL), compression = 100))
-    # blob::blob(serialize(obj, NULL))
+    # blob::blob(fst::compress_fst(serialize(obj, NULL), compression = 100))
+    blob::blob(serialize(obj, NULL))
 }
 decompress <- function(obj) {
-    unserialize(fst::decompress_fst(obj))
-    # unserialize(obj)
+    # unserialize(fst::decompress_fst(obj))
+    unserialize(obj)
 }
 
 db_record_xsets <- function(db, ann, spectras, spectra_infos, peaks,
                             peak_groups) {
-    RSQLite::dbWriteTable(db, "ann", ann, overwrite = TRUE)
-    RSQLite::dbWriteTable(db, "spectras", spectras, overwrite = TRUE)
-    RSQLite::dbWriteTable(db, "spectra_infos", spectra_infos, overwrite = TRUE)
-    RSQLite::dbWriteTable(db, "peaks", peaks, overwrite = TRUE)
-    RSQLite::dbWriteTable(db, "peak_groups", peak_groups, overwrite = TRUE)
+    dbWriteTable(db, "ann", ann, overwrite = TRUE)
+    dbWriteTable(db, "spectras", spectras, overwrite = TRUE)
+    dbWriteTable(db, "spectra_infos", spectra_infos, overwrite = TRUE)
+    dbWriteTable(db, "peaks", peaks, overwrite = TRUE)
+    dbWriteTable(db, "peak_groups", peak_groups, overwrite = TRUE)
 }
 
 db_record_params <- function(db, filter_params, cwt_params, obw_params,
                              pd_params, ann_params) {
-    RSQLite::dbWriteTable(db, "filter_params",
+    dbWriteTable(db, "filter_params",
                           params_to_dataframe(filter_params), overwrite = TRUE)
-    RSQLite::dbWriteTable(db, "cwt_params",
+    dbWriteTable(db, "cwt_params",
                           params_to_dataframe(cwt_params), overwrite = TRUE)
-    RSQLite::dbWriteTable(db, "obw_params",
+    dbWriteTable(db, "obw_params",
                           params_to_dataframe(obw_params), overwrite = TRUE)
-    RSQLite::dbWriteTable(db, "pd_params",
+    dbWriteTable(db, "pd_params",
                           params_to_dataframe(pd_params), overwrite = TRUE)
-    RSQLite::dbWriteTable(db, "ann_params",
+    dbWriteTable(db, "ann_params",
                           params_to_dataframe(ann_params), overwrite = TRUE)
 }
 

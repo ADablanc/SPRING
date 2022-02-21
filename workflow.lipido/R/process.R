@@ -152,6 +152,7 @@ ms_process <- function(raw_files, sqlite_path, converter, filter_params,
         if (cores > length(raw_files)) cores <- length(raw_files)
         cl <- parallel::makeCluster(cores)
         parallel::clusterExport(cl, list("sqlite_path", "db_connect",
+					"dbExecute", "dbWriteTable", 
                                          "import_ms_file", "convert_file",
                                          "check_ms_file", "db_record_ms_file",
                                          "compress", "filter_ms_file",
@@ -221,7 +222,7 @@ ms_process <- function(raw_files, sqlite_path, converter, filter_params,
              operator, pb_fct)
         if (class(xsets_neg) != "xcmsSet") stop(xsets_neg)
     } else xsets_neg <- NULL
-
+	
     merged_results <- merge_xsets(xsets_pos, xsets_neg)
     db <- db_connect(sqlite_path)
     db_record_xsets(db, merged_results$ann, merged_results$spectras,
