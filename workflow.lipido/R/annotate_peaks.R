@@ -116,7 +116,7 @@ annotate_peaklists <- function(xsets, samples, ann_params,
                 spectra <- tmp[[k]]$spectra
                 spectras <- rbind(spectras,
                                   cbind(spectra_id = spectra_id, spectra))
-                tmp_spectra_infos <- rbind(spectra_infos,
+                spectra_infos <- rbind(spectra_infos,
                                        data.frame(
                                              spectra_id = spectra_id,
                                              score = tmp[[k]]$score,
