@@ -95,11 +95,13 @@ sweet_alert_error <- function(title = "", msg = "")
             msg, 
             shiny::tags$br(), 
             shiny::tags$a(
-                href = sprintf(
-                    'mailto:sebastien.hutinet@oniris-nantes.fr?
-                        subject=Describe header of error&
-                        body=don\'t forget to attach error log (in "%s")', 
-                    log_file_path
+                href = paste0(
+                    "mailto:sebastien.hutinet@inserm.fr?", 
+                    "subject=Describe header of error", 
+                    if (exists("log_file_path")) sprintf(
+                        "&body=don\'t forget to attach error log (in \"%s\")", 
+                        log_file_path) 
+                    else NULL
                 ), 
                 "Contact me"
             )
@@ -127,11 +129,11 @@ custom_stop <- function(subclass, message, call=sys.call(-1), ...)
 #'      message to display in toastr & shinyFeedback for each error
 check_inputs <- function(inputs, conditions, msgs) {
     for (i in seq(length(inputs))) {
-        if (!conditions[i]) {
-            print(msgs[i])
-            show_feedback(inputs[i], msgs[i])
-            toastr_error(msgs[i])
-        } else hide_feedback(inputs[i])
+        if (!conditions[[i]]) {
+            print(msgs[[i]])
+            show_feedback(inputs[[i]], msgs[[i]])
+            toastr_error(msgs[[i]])
+        } else hide_feedback(inputs[[i]])
     }
     if (any(!conditions)) custom_stop("invalid", "invalid inputs")
 }

@@ -9,7 +9,7 @@ options(show.error.messages = TRUE)
 
 utils::setWinProgressBar(pb, 0, label = "Activate application ...")
 source("renv/activate.R")
-renv::upgrade(prompt = FALSE)
+# renv::upgrade(prompt = FALSE)
 utils::setWinProgressBar(pb, value = .25,
     label = "Restore library...(could take some time if first time)")
 renv::restore(library = "R-Portable/library", clean = TRUE, prompt = FALSE)
