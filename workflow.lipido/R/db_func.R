@@ -1,11 +1,11 @@
 db_connect <- function(sqlite_path) {
     db <- RSQLite::dbConnect(RSQLite::SQLite(), sqlite_path)
-    RSQLite::dbExecute(db, 'pragma temp_store = memory;')
-    RSQLite::dbExecute(db, 'pragma synchronous = normal;')
-    RSQLite::dbExecute(db, 'pragma locking_mode = normal;')
-    RSQLite::dbExecute(db, 'pragma cache_size = 1000000;')
-    RSQLite::dbExecute(db, 'pragma journal_mode = wal;')
-    RSQLite::dbExecute(db, 'pragma auto_vacuum = FULL;')
+    dbExecute(db, 'pragma temp_store = memory;')
+    dbExecute(db, 'pragma synchronous = normal;')
+    dbExecute(db, 'pragma locking_mode = normal;')
+    dbExecute(db, 'pragma cache_size = 1000000;')
+    dbExecute(db, 'pragma journal_mode = wal;')
+    dbExecute(db, 'pragma auto_vacuum = FULL;')
     return(db)
 }
 
@@ -17,7 +17,7 @@ dbWriteTable <- function(db, table_name, data, overwrite = TRUE) {
 			"success"
 			}, error = function(e) e$message)
 	}
-	if (msg != "success") stop(msg)		
+	if (msg != "success") stop(msg)
 }
 
 dbExecute <- function(db, query, ...) {
@@ -28,7 +28,7 @@ dbExecute <- function(db, query, ...) {
 			"success"
 			}, error = function(e) e$message)
 	}
-	if (msg != "success") stop(msg)	
+	if (msg != "success") stop(msg)
 }
 
 db_record_samples <- function(db, sample_names) dbWriteTable(
