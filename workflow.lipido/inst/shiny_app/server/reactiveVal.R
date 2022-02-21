@@ -1,0 +1,4 @@
+sqlite_path <- shiny::reactiveVal(NULL)
+db <- shiny::reactiveVal(NULL)
+ann <- shiny::reactiveVal(list())
+spectra_infos <- shiny::reactiveVal(data.frame())

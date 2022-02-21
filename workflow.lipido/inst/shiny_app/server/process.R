@@ -46,7 +46,7 @@ shiny::observeEvent(input$process_launch, {
         if (is.integer(input$process_files)) custom_stop("invalid_2", "No files selected")
 
         params <- list(
-            sqlite_path = sqlite_path,
+            sqlite_path = sqlite_path(),
             Cores = input$process_cores,
             Files = shinyFiles::parseFilePaths(volumes,
                 input$process_files)$datapath,
@@ -183,7 +183,15 @@ shiny::observeEvent(input$process_launch, {
         shinyWidgets::closeSweetAlert()
         if (class(infos) != "character") stop(infos)
 
-        db <<- db_connect(sqlite_path)
+        db(db_connect(sqlite_path()))
+        ann <- db_get_ann(db())
+        if (nrow(ann) > 0) {
+            ann(split_conflicts(ann))
+            spectra_infos(db_get_spectra_infos(db()))
+        } else {
+            ann(list())
+            spectra_infos(data.frame())
+        }
     }, invalid = function(i) NULL
     , invalid_2 = function(i) {
         print("########## PROCESS")

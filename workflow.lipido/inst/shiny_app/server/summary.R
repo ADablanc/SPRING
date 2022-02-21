@@ -55,8 +55,9 @@ summary_table_options <- list(
 )
 output$summary_table <- DT::renderDataTable({
     # to invalidate the summary table
-    ann <- summarise_ann(db_get_ann(db), db_get_spectra_infos(db))
-    if (nrow(ann) > 0) {
+    ann <- ann()
+    if (length(ann) > 0) {
+        ann <- summarise_ann(ann$no_conflicts, spectra_infos())
         ann[ann == 0] <- NA
         DT::formatCurrency(
             table = do.call(DT::datatable,
@@ -72,19 +73,22 @@ output$summary_table <- DT::renderDataTable({
 
 output$summary_export <- shiny::downloadHandler(
     filename = function() {
-        if (is.null(sqlite_path)) "*.xlsx"
-        else paste0(tools::file_path_sans_ext(basename(sqlite_path)), ".xlsx")
+        if (is.null(sqlite_path())) "*.xlsx"
+        else paste0(tools::file_path_sans_ext(basename(sqlite_path())), ".xlsx")
     },
     content = function(file) {
         wb <- openxlsx::createWorkbook()
         openxlsx::addWorksheet(wb, "Summary")
         openxlsx::addWorksheet(wb, "Details")
-        openxlsx::writeDataTable(wb, "Summary",
-                                 summarise_ann(db_get_ann(db),
-                                               db_get_spectra_infos(db)))
-        openxlsx::writeDataTable(wb, "Details",
-                                 get_int_ann(db_get_ann(db),
-                                               db_get_spectra_infos(db)))
+        ann <- ann()
+        if (length(ann) > 0) {
+            openxlsx::writeDataTable(wb, "Summary",
+                                     summarise_ann(ann$no_conflicts,
+                                                   spectra_infos()))
+            openxlsx::writeDataTable(wb, "Details",
+                                     get_int_ann(ann$no_conflicts,
+                                                   spectra_infos()))
+        }
         openxlsx::saveWorkbook(wb, file, overwrite = TRUE)
         return(file)
     }

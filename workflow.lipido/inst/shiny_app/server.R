@@ -1,4 +1,6 @@
 server <- function(input, output, session) {
+    source("server/reactiveVal.R", local = TRUE)$value
+
     #' @title Clean the RAM
     #'
     #' @description
@@ -14,7 +16,7 @@ server <- function(input, output, session) {
     #' At session end it remove all object in environnement &
     #'      call garbage collector
     session$onSessionEnded(function() {
-        if (!is.null(db)) RSQLite::dbDisconnect(db)
+        if (!is.null(db())) RSQLite::dbDisconnect(db())
         gc()
         shiny::stopApp()
     })
