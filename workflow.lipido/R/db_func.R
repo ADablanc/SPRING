@@ -9,11 +9,12 @@ db_connect <- function(sqlite_path) {
     return(db)
 }
 
-dbWriteTable <- function(db, table_name, data, overwrite = TRUE) {
+dbWriteTable <- function(db, table_name, data, overwrite = TRUE, ...) {
 	msg <- "database is locked"
 	while (msg == "database is locked") {
 		msg <- tryCatch({
-			RSQLite::dbWriteTable(db, table_name, data, overwrite = overwrite)
+			RSQLite::dbWriteTable(db, table_name, data, overwrite = overwrite,
+			                      ...)
 			"success"
 			}, error = function(e) e$message)
 	}
@@ -29,6 +30,26 @@ dbExecute <- function(db, query, ...) {
 			}, error = function(e) e$message)
 	}
 	if (msg != "success") stop(msg)
+}
+
+dbGetQuery <- function(db, query, ...) {
+    res <- tryCatch(RSQLite::dbGetQuery(db, query, ...),
+             error = function(e) {
+                 if (grepl("^no such table", e$message)) data.frame()
+                 else e$message
+             })
+    if (class(res) != "data.frame") stop(e$message)
+    else res
+}
+
+dbReadTable <- function(db, table_name, ...) {
+    res <- tryCatch(RSQLite::dbReadTable(db, table_name, ...),
+                    error = function(e) {
+                        if (grepl("^no such table", e$message)) data.frame()
+                        else e$message
+                    })
+    if (class(res) != "data.frame") stop(e$message)
+    else res
 }
 
 db_record_samples <- function(db, sample_names) dbWriteTable(
@@ -71,7 +92,7 @@ db_read_ms_file <- function(db, sample_name, polarity) {
     query <- sprintf(
         "select ms_file_%s from sample where sample == \"%s\";",
         polarity, sample_name)
-    ms_file <- RSQLite::dbGetQuery(db, query)[1, 1][[1]]
+    ms_file <- dbGetQuery(db, query)[1, 1][[1]]
     if (is.na(ms_file[1])) return(NULL)
     else decompress(ms_file)
 }
@@ -80,7 +101,7 @@ db_get_profile <- function(db, sample_name, polarity) {
     query <- sprintf(
         "select profile_%s from sample where sample == \"%s\";",
         polarity, sample_name)
-    profile <- RSQLite::dbGetQuery(db, query)[1, 1][[1]]
+    profile <- dbGetQuery(db, query)[1, 1][[1]]
     if (is.na(profile[1])) return(NULL)
     else decompress(profile)
 }
@@ -117,6 +138,6 @@ db_record_params <- function(db, filter_params, cwt_params, obw_params,
                           params_to_dataframe(ann_params), overwrite = TRUE)
 }
 
-db_get_spectras <- function(db) RSQLite::dbReadTable(db, "spectras")
-db_get_spectra_infos <- function(db) RSQLite::dbReadTable(db, "spectra_infos")
-db_get_ann <- function(db) RSQLite::dbReadTable(db, "ann")
+db_get_spectras <- function(db) dbReadTable(db, "spectras")
+db_get_spectra_infos <- function(db) dbReadTable(db, "spectra_infos")
+db_get_ann <- function(db) dbReadTable(db, "ann")
