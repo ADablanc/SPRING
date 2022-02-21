@@ -159,6 +159,8 @@ annotate_peaklists <- function(xsets, samples, ann_params,
 #'      the rT of the referenced spectra +/- fwhm
 #' It will also regroup lines which correspond
 #'      to the same annotations but were not grouped by XCMS
+#' It reject also the annotation if the best ion has only one isotopologue
+#'      (only "M")
 #'
 #' @param ann the annotation dataframe obtained
 #'      from the function `annotate_peaklists`
@@ -168,7 +170,8 @@ annotate_peaklists <- function(xsets, samples, ann_params,
 #' @return the annotation dataframe filtered & regrouped
 filtrate_ann <- function(ann, spectra_infos, sigma = 6, perfwhm = .6) {
     do.call(rbind, lapply(split(ann, ann$name), function(x) {
-        if (nrow(x) == 1) return(x)
+        if (max(x$best_npeak) == 1) return(NULL)
+        else if (nrow(x) == 1) return(x)
         best_peak <- x[order(
             -x$best_npeak,
             -x$best_score,
