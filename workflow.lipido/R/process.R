@@ -149,10 +149,9 @@ ms_process <- function(raw_files, sqlite_path, converter, filter_params,
     xcms::maxFeatures(pd_params) <- 500
 
     if (cores > 1) {
-        if (cores > length(raw_files)) cores <- length(raw_files)
         cl <- parallel::makeCluster(cores)
         parallel::clusterExport(cl, list("sqlite_path", "db_connect",
-					"dbExecute", "dbWriteTable", 
+                                         "dbExecute", "dbWriteTable",
                                          "import_ms_file", "convert_file",
                                          "check_ms_file", "db_record_ms_file",
                                          "compress", "filter_ms_file",
@@ -168,7 +167,8 @@ ms_process <- function(raw_files, sqlite_path, converter, filter_params,
     db <- db_connect(sqlite_path)
     db_record_samples(
         db, unique(gsub("[positive]|[negative]|[pos]|[neg]", "",
-            tools::file_path_sans_ext(basename(raw_files)))))
+            tools::file_path_sans_ext(basename(raw_files)),
+            ignore.case = TRUE)))
     RSQLite::dbDisconnect(db)
 
     if (show_txt_pb)
@@ -188,7 +188,8 @@ ms_process <- function(raw_files, sqlite_path, converter, filter_params,
         {
             db <- db_connect(sqlite_path)
             sample_name <- gsub("[positive]|[negative]|[pos]|[neg]", "",
-                                tools::file_path_sans_ext(basename(raw_file)))
+                                tools::file_path_sans_ext(basename(raw_file)),
+                                ignore.case = TRUE)
             msg <- cbind(
                 sample = sample_name,
                 positive = import_ms_file(raw_file, converter, "positive",
@@ -222,7 +223,7 @@ ms_process <- function(raw_files, sqlite_path, converter, filter_params,
              operator, pb_fct)
         if (class(xsets_neg) != "xcmsSet") stop(xsets_neg)
     } else xsets_neg <- NULL
-	
+
     merged_results <- merge_xsets(xsets_pos, xsets_neg)
     db <- db_connect(sqlite_path)
     db_record_xsets(db, merged_results$ann, merged_results$spectras,
