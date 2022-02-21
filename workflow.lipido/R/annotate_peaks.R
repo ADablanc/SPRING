@@ -43,6 +43,7 @@ annotate_peaklists <- function(xsets, samples, ann_params,
     ann <- data.frame()
     sample_matrix <- matrix(, nrow = 1, ncol = length(samples),
                             dimnames = list(c(), samples))
+    # i represent a group of peaks
     for (i in seq(nrow(peak_groups))) {
         if (!is.null(pb_fct)) pb_fct(i, nrow(peak_groups), "Annotate")
         db_match <- db[which(
@@ -72,6 +73,7 @@ annotate_peaklists <- function(xsets, samples, ann_params,
                            best_deviation_mz = Inf,
                            best_npeak = 0,
                            sample_matrix)
+        # j represent ONE sample
         for (j in which(peak_groups[i, 8:ncol(peak_groups)] > 0)) {
             # get the rt range where all isotpologue must fall
                 # it corresponds to the fwhm of the basepeak
@@ -103,14 +105,18 @@ annotate_peaklists <- function(xsets, samples, ann_params,
                                     l_spectras2,
                                     da_tol_iso,
                                     ann_params@abd_tol)
-            tmp_ann[, 13 + j] <- spectra_id + seq(length(tmp))
+            # dont forget that there is the possibility where
+                # tmp_ann contains multiple time the same formula
+                # and tmp contains only UNIQUE formula
+            k_2 <- split(seq(nrow(tmp_ann)), db_match$ion_id)
+            # k represent ONE ion formula, so multiple rows on tmp_ann
             for (k in seq(length(tmp))) {
                 if (tmp[[k]]$score == 0) next
                 spectra_id <- spectra_id + 1
                 spectra <- tmp[[k]]$spectra
                 spectras <- rbind(spectras,
                                   cbind(spectra_id = spectra_id, spectra))
-                spectra_infos <- rbind(spectra_infos,
+                tmp_spectra_infos <- rbind(spectra_infos,
                                        data.frame(
                                              spectra_id = spectra_id,
                                              score = tmp[[k]]$score,
@@ -123,10 +129,11 @@ annotate_peaklists <- function(xsets, samples, ann_params,
                                                  "int"]),
                                              sample = samples[j],
                                              rt = basepeak$rt))
-                if (tmp[[k]]$score > tmp_ann[k, "best_score"]) {
-                    tmp_ann[k, "best_score"] <- tmp[[k]]$score
-                    tmp_ann[k, "best_deviation_mz"] <- tmp[[k]]$deviation_mz
-                    tmp_ann[k, "best_npeak"] <- tmp[[k]]$npeak
+                if (tmp[[k]]$score > tmp_ann[k_2[[k]][1], "best_score"]) {
+                    tmp_ann[k_2[[k]], j + 13] <- spectra_id
+                    tmp_ann[k_2[[k]], "best_score"] <- tmp[[k]]$score
+                    tmp_ann[k_2[[k]], "best_deviation_mz"] <- tmp[[k]]$deviation_mz
+                    tmp_ann[k_2[[k]], "best_npeak"] <- tmp[[k]]$npeak
                 }
             }
         }
@@ -234,6 +241,8 @@ summarise_ann <- function(ann, spectra_infos) {
 }
 
 get_int_ann <- function(ann, spectra_infos) {
+    # split first ann informations
+    ann <- split_conflicts(ann)$no_conflicts
     # extract intensity of basepeaks
     cbind.data.frame(
         name = ann$name,
