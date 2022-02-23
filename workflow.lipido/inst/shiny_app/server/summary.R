@@ -1,8 +1,3 @@
-default_summary_table <- data.frame(matrix(, nrow = 0, ncol = 9,
-   dimnames = list(c(), c("name", "rT (min)", "Diff rT (sec)", "Adducts", "nSamples",
-                          "Most intense ion", "Best score (%)",
-                          "Best m/z dev (mDa)", "Max iso"))),
-   check.names = FALSE)
 summary_table_options <- list(
     rownames = FALSE,
     selection = "none",
@@ -55,20 +50,16 @@ summary_table_options <- list(
 )
 output$summary_table <- DT::renderDataTable({
     # to invalidate the summary table
-    ann <- ann()
-    if (length(ann) > 0) {
-        ann <- summarise_ann(ann$no_conflicts, spectra_infos())
-        ann[ann == 0] <- NA
-        DT::formatCurrency(
-            table = do.call(DT::datatable,
-                            c(list(data = ann), summary_table_options)),
-            columns = 10:ncol(ann),
-            mark = " ",
-            digits = 0,
-            currency = ""
-        )
-    } else do.call(DT::datatable, c(list(data = default_summary_table),
-                                    summary_table_options))
+    ann <- summarise_ann(ann()$no_conflicts, spectra_infos())
+    ann[ann == 0] <- NA
+    DT::formatCurrency(
+        table = do.call(DT::datatable,
+                        c(list(data = ann), summary_table_options)),
+        columns = 10:ncol(ann),
+        mark = " ",
+        digits = 0,
+        currency = ""
+    )
 })
 
 output$summary_export <- shiny::downloadHandler(
@@ -80,15 +71,12 @@ output$summary_export <- shiny::downloadHandler(
         wb <- openxlsx::createWorkbook()
         openxlsx::addWorksheet(wb, "Summary")
         openxlsx::addWorksheet(wb, "Details")
-        ann <- ann()
-        if (length(ann) > 0) {
-            openxlsx::writeDataTable(wb, "Summary",
-                                     summarise_ann(ann$no_conflicts,
-                                                   spectra_infos()))
-            openxlsx::writeDataTable(wb, "Details",
-                                     get_int_ann(ann$no_conflicts,
-                                                   spectra_infos()))
-        }
+        openxlsx::writeDataTable(wb, "Summary",
+                                 summarise_ann(ann()$no_conflicts,
+                                               spectra_infos()))
+        openxlsx::writeDataTable(wb, "Details",
+                                 get_int_ann(ann()$no_conflicts,
+                                               spectra_infos()))
         openxlsx::saveWorkbook(wb, file, overwrite = TRUE)
         return(file)
     }

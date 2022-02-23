@@ -229,6 +229,12 @@ split_conflicts <- function(ann) {
 #' @return the annotation dataframe grouped by compound
 summarise_ann <- function(ann, spectra_infos) {
     int_ann <- get_int_ann(ann, spectra_infos)
+    if (nrow(int_ann) == 0) return(data.frame(matrix(, nrow = 0, ncol = 10,
+        dimnames = list(c(),
+                        c("name", "rT (min)", "Diff rT (sec)", "Adducts",
+                          "nSamples", "Most intense ion", "Best score (%)",
+                          "Best m/z dev (mDa)", "Max iso", "X"))),
+        check.names = FALSE))
     data <- do.call(rbind, lapply(split(int_ann, int_ann$name), function(x)
         cbind.data.frame(
             name = x[1, "name"],
@@ -250,6 +256,12 @@ summarise_ann <- function(ann, spectra_infos) {
 }
 
 get_int_ann <- function(ann, spectra_infos) {
+    if (nrow(ann) == 0) return(data.frame(matrix(, nrow = 0, ncol = 8,
+        dimnames = list(c(),
+                        c("name", "rT (min)", "Diff rT (sec)", "Adduct",
+                          "nSamples", "Best score (%)", "Best m/z dev (mDa)",
+                          "Max iso"))),
+        check.names = FALSE))
     # extract intensity of basepeaks
     cbind.data.frame(
         name = ann$name,
