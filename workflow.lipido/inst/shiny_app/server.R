@@ -16,7 +16,7 @@ server <- function(input, output, session) {
     #' At session end it remove all object in environnement &
     #'      call garbage collector
     session$onSessionEnded(function() {
-        if (!is.null(db())) RSQLite::dbDisconnect(db())
+        if (!is.null(isolate(db()))) RSQLite::dbDisconnect(isolate(db()))
         gc()
         shiny::stopApp()
     })
