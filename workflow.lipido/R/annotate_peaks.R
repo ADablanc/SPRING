@@ -183,7 +183,7 @@ filtrate_ann <- function(ann, spectra_infos, sigma = 6, perfwhm = .6) {
         x <- x[x$rt >= best_peak$rt - fwhm &
                    x$rt <= best_peak$rt + fwhm, , drop = FALSE]
         # merge rows where the peak picking or the alignment fail
-        if (any(duplicated(x$adduct)))
+        if (any(duplicated(x$adduct))) {
             do.call(rbind, lapply(split(x, x$adduct), function(y) {
                 if (nrow(y) == 1) return(y)
                 new_y <- y[which.max(y$best_score), , drop = FALSE]
@@ -203,6 +203,7 @@ filtrate_ann <- function(ann, spectra_infos, sigma = 6, perfwhm = .6) {
                 new_y$nsamples <- sum(!is.na(new_y[, 14:ncol(new_y)]))
                 new_y
             }))
+        } else x
     }))
 }
 
@@ -242,13 +243,14 @@ summarise_ann <- function(ann, spectra_infos) {
             `Diff rT (sec)` = min(x[, "Diff rT (sec)"]),
             Adducts = paste(x$Adduct, collapse = " "),
             nSamples = sum(sapply(x[, 9:ncol(x), drop = FALSE],
-                                  function(y) any(y > 0))),
+                                  function(y) any(!is.na(y)))),
             `Most intense ion` = as.factor(x[which.max(
-                apply(x[, 9:ncol(x), drop = FALSE], 1, max)), "Adduct"]),
+                apply(x[, 9:ncol(x), drop = FALSE], 1, max, na.rm = TRUE)),
+                "Adduct"]),
             `Best score (%)` = max(x[, "Best score (%)"]),
             `Best m/z dev (mDa)` = min(x[, "Best m/z dev (mDa)"]),
             `Max iso` = max(x[, "Max iso"]),
-            sapply(x[, 9:ncol(x), drop = FALSE], sum)
+            lapply(x[, 9:ncol(x), drop = FALSE], sum, na.rm = TRUE)
         )
     ))
     colnames(data)[10:ncol(data)] <- colnames(int_ann[9:ncol(int_ann)])

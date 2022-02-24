@@ -152,12 +152,12 @@ ms_process <- function(raw_files, sqlite_path, converter, filter_params,
         cl <- parallel::makeCluster(cores)
         parallel::clusterExport(cl, list("sqlite_path", "db_connect",
                                          "dbExecute", "dbWriteTable",
-                                         "import_ms_file", "convert_file",
-                                         "check_ms_file", "db_record_ms_file",
-                                         "compress", "filter_ms_file",
-                                         "filter_params", "db_read_ms_file",
-                                         "decompress", "findChromPeaks",
-                                         "db_get_profile"),
+                                         "dbGetQuery", "import_ms_file",
+                                         "convert_file", "check_ms_file",
+                                         "db_record_ms_file", "compress",
+                                         "filter_ms_file", "filter_params",
+                                         "db_read_ms_file", "decompress",
+                                         "findChromPeaks", "db_get_profile"),
                                 envir = pryr::where("sqlite_path"))
         parallel::clusterEvalQ(cl, getClass("xcmsSet", where = "xcms"))
         doSNOW::registerDoSNOW(cl)
@@ -321,12 +321,12 @@ merge_xsets <- function(xsets_pos, xsets_neg) {
         peaks_neg <- data.frame(xsets_neg@peaks)
         peaks_neg <- cbind(feature_id = seq(nrow(peaks_neg)),
                            peaks_neg,
-                           polarity = "positive")
+                           polarity = "negative")
         peaks_neg$sample <- samples[peaks_neg$sample]
         colnames(peaks_neg)[which(colnames(peaks_neg) == "into")] <- "int"
         peak_groups_neg <- data.frame(xsets_neg@groups)
         peak_groups_neg <- cbind(group_id = seq(nrow(peak_groups_neg)),
-                                 polarity = "positive",
+                                 polarity = "negative",
                                  peak_groups_neg)
         peak_groups_neg[, 10:ncol(peak_groups_neg)] <- xcms::groupval(xsets_neg)
         colnames(peak_groups_neg)[10:ncol(peak_groups_neg)] <- samples
@@ -360,7 +360,7 @@ merge_xsets <- function(xsets_pos, xsets_neg) {
         }
     }
 
-    ann <- filtrate_ann(ann)
+    ann <- filtrate_ann(ann, spectra_infos)
     list(
         ann = ann,
         spectras = spectras,

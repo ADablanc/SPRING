@@ -9,12 +9,13 @@ db_connect <- function(sqlite_path) {
     return(db)
 }
 
-dbWriteTable <- function(db, table_name, data, overwrite = TRUE, ...) {
+dbWriteTable <- function(db, table_name, data, overwrite = FALSE,
+                         append = FALSE, ...) {
 	msg <- "database is locked"
 	while (msg == "database is locked") {
 		msg <- tryCatch({
 			RSQLite::dbWriteTable(db, table_name, data, overwrite = overwrite,
-			                      ...)
+			                      append = append, ...)
 			"success"
 			}, error = function(e) e$message)
 	}
@@ -43,7 +44,8 @@ dbGetQuery <- function(db, query, ...) {
 }
 
 dbReadTable <- function(db, table_name, ...) {
-    res <- tryCatch(RSQLite::dbReadTable(db, table_name, ...),
+    res <- tryCatch(RSQLite::dbReadTable(db, table_name, check.names = FALSE,
+                                         ...),
                     error = function(e) {
                         if (grepl("^no such table", e$message)) data.frame()
                         else e$message
@@ -141,3 +143,12 @@ db_record_params <- function(db, filter_params, cwt_params, obw_params,
 db_get_spectras <- function(db) dbReadTable(db, "spectras")
 db_get_spectra_infos <- function(db) dbReadTable(db, "spectra_infos")
 db_get_ann <- function(db) dbReadTable(db, "ann")
+db_get_spectra <- function(db, spectra_id) dbGetQuery(db, sprintf(
+    "select * from spectras where spectra_id == %s;", spectra_id))
+
+db_resolve_conflict <- function(db, conflict, i) {
+    dbExecute(db, sprintf(
+        "delete from ann where group_id == %s;",
+        conflict[1, "group_id"]))
+    dbWriteTable(db, "ann", conflict[i, , drop = FALSE], append = TRUE)
+}
