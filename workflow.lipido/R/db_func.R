@@ -145,6 +145,19 @@ db_get_spectra_infos <- function(db) dbReadTable(db, "spectra_infos")
 db_get_ann <- function(db) dbReadTable(db, "ann")
 db_get_spectra <- function(db, spectra_id) dbGetQuery(db, sprintf(
     "select * from spectras where spectra_id == %s;", spectra_id))
+db_get_params <- function(db) list(
+    filter = dbReadTable(db, "filter_params")[1, ],
+    cwt = dbReadTable(db, "cwt_params")[1, ],
+    obw = dbReadTable(db, "obw_params")[1, ],
+    pd = dbReadTable(db, "pd_params")[1, ],
+    ann = dbReadTable(db, "ann_params")[1, ]
+)
+db_get_peaks <- function(db, feature_ids = NULL) {
+    if (is.null(feature_ids)) dbReadTable(db, "peaks")
+    else dbGetQuery(db, sprintf(
+        "select * from peaks where feature_id in (%s);",
+        paste(feature_ids, collapse = ", ")))
+}
 
 db_resolve_conflict <- function(db, conflict, i) {
     dbExecute(db, sprintf(

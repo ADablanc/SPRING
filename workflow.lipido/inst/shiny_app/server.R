@@ -34,7 +34,7 @@ server <- function(input, output, session) {
 
     source("server/conflicts.R", local = TRUE)$value
 
-    # source("server/check_data.R", local = TRUE)$value
+    source("server/check_data.R", local = TRUE)$value
 
     source("server/summary.R", local = TRUE)$value
 

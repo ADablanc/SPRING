@@ -19,9 +19,12 @@
 #'      \item abd relative abundance
 #'      \item iso isotopologue annotation
 #' }
-load_db <- function(adduct_names,  instrument) {
+load_db <- function(adduct_names,  instrument, cpd_names = NULL) {
     db <- utils::read.csv(system.file("extdata", "database.csv",
         package = "workflow.lipido"))
+    # the rt in database is in min !!
+    db$rt <- db$rt * 60
+    if (!is.null(cpd_names)) db <- db[db$name %in% cpd_names, , drop = FALSE]
     ions <- do.call(rbind, lapply(adduct_names, function(adduct_name)
         get_ions(
             unique(db$formula),
@@ -162,4 +165,12 @@ compare_spectras <- function(q_spectra, l_spectras,
             npeak = tmp$npeak[i]
         )
     })
+}
+
+get_eic <- function(ms_file, mz_range, rt_range) {
+    eic <- xcms::rawEIC(ms_file, mzrange = mz_range, rtrange = rt_range)
+    data.frame(
+        rt = ms_file@scantime[eic$scan],
+        int = eic$intensity
+    )
 }

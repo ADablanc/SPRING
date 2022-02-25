@@ -22,8 +22,6 @@ annotate_peaklists <- function(xsets, samples, ann_params,
                                pb_fct = NULL,
                                sigma = 6, perfwhm = .6) {
     db <- load_db(ann_params@adduct_names, ann_params@instrument)
-    # the rt in database is in min !!
-    db$rt <- db$rt * 60
     l_spectras <- unique(db[, c("ion_id", "mz", "abd", "iso")])
     l_spectras <- split(l_spectras, l_spectras$ion_id)
     db <- unique(db[db$abd == 100,

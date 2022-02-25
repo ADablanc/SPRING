@@ -67,6 +67,9 @@ plot_empty_chromato <- function(title = "Total Ion Chromatogram(s)") {
                         responsive = TRUE,
                         displaylogo = FALSE,
                         scrollZoom = FALSE,
+                        edits = list(
+                            annotationTail = TRUE
+                        ),
                         modeBarButtons = list(
                             list(list(
                                 name = 'toImage',
@@ -86,6 +89,7 @@ plot_empty_chromato <- function(title = "Total Ion Chromatogram(s)") {
     p
 }
 
+# plot_eic <- function(eics, peaks) {
 plot_eic <- function(eics, peaks) {
   p <- plot_empty_chromato("EIC")
   rt_range <- range(eics[[1]]$rt)
@@ -100,23 +104,21 @@ plot_eic <- function(eics, peaks) {
                  else NULL)
        integrated <- eic[idx2, , drop = FALSE]
        eic[idx, "int"] <- NA
-       p <- plotly::add_trace(
-         p,
-         mode = "lines",
-         data = integrated,
-         x = ~rt,
-         y = ~int,
-         name = names(eics)[i],
-         legendgroup = names(eics)[i],
-         showlegend = TRUE
-       )
-    }
+    } else integrated <- data.frame(rt = rt_range[1], int = 0)
+    p <- plotly::add_trace(
+        p,
+        mode = "lines",
+        x = integrated$rt / 60,
+        y = integrated$int,
+        name = names(eics)[i],
+        legendgroup = names(eics)[i],
+        showlegend = nrow(peak) > 0
+    )
     p <- plotly::add_trace(
       p,
       mode = "lines",
-      data = eic,
-      x = ~rt,
-      y = ~int,
+      x = eic$rt / 60,
+      y = eic$int,
       name = names(eics)[i],
       legendgroup = names(eics)[i],
       showlegend = !nrow(peak) > 0,
@@ -126,9 +128,31 @@ plot_eic <- function(eics, peaks) {
         dash = 'dash'
       )
     )
+    p <- plotly::add_annotations(
+        p,
+        x = eics[[i]][which.max(eics[[i]]$int), "rt"] / 60,
+        y = eics[[i]][which.max(eics[[i]]$int), "int"],
+        text = names(eics)[i],
+        xref = 'x',
+        yref = 'y',
+        valign = "bottom",
+        arrowhead = 0
+    )
   }
-
-  plotly::layout(p, xaxis = list(range = rt_range))
+    p <- plotly::layout(p, xaxis = list(range = rt_range / 60))
+    htmlwidgets::onRender(p, '
+        function(el, x) {
+            el.on("plotly_restyle", () => {
+                annotations = el.layout.annotations;
+                for (var i = 1; i < annotations.length; i++) {
+                    annotations[i].visible = el._fullData[i * 2 - 1].visible != "legendonly"
+                }
+				Plotly.relayout(el, {
+				    annotations: annotations
+			    });
+			});
+        }
+    ')
 }
 
 #' @title Construct empty MS
@@ -346,3 +370,55 @@ plot_composite_ms <- function(spectras) {
     ')
 }
 
+plot_empty_heatmap <- function() {
+    {
+        p <- plotly::plot_ly(
+            type = "heatmap"
+        )
+        p <- plotly::layout(p,
+                            hoverlabel = list(
+                                namelength = -1
+                            )
+        )
+        p <- plotly::config(p,
+                            responsive = TRUE,
+                            displaylogo = FALSE,
+                            modeBarButtons = list(
+                                list(list(
+                                    name = 'toImage',
+                                    title = 'Download plot as a png',
+                                    icon = htmlwidgets::JS('Plotly.Icons.camera'),
+                                    click = htmlwidgets::JS("function(gd){Plotly.downloadImage(gd, {format:'png', width:1200, height:400, filename:'MS'})}")
+                                )),
+                                list('zoom2d', 'autoScale2d')
+                            )
+        )
+        p
+    }
+}
+
+plot_heatmap <- function(ann, cpd_names) {
+    sub_ann <- do.call(rbind, lapply(cpd_names, function(cpd_name)
+        if (!cpd_name %in% ann$name) data.frame(matrix(0, nrow = 1,
+           ncol = ncol(ann) - 13, dimnames = list(c(cpd_name),
+              colnames(ann)[14:ncol(ann)])), check.names = FALSE)
+        else ann[ann$name == cpd_name, 14:ncol(ann)]))
+    p <- plot_empty_heatmap()
+    p <- plotly::add_trace(
+        p,
+        x = colnames(sub_ann),
+        y = rownames(sub_ann),
+        z = as.matrix(sub_ann)
+    )
+    htmlwidgets::onRender(p, '
+        function(el, x) {
+            el.on("plotly_click", function(data) {
+                Shiny.onInputChange("check_data_heatmap_click",
+                    {
+                        sample: data.points[0].x,
+                        cpd_name: data.points[0].y
+                    })
+            })
+        }
+    ')
+}

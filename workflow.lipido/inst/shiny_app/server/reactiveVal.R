@@ -1,5 +1,5 @@
 sqlite_path <- shiny::reactiveVal(NULL)
 db <- shiny::reactiveVal(NULL)
-ann <- shiny::reactiveVal(list())
+ann <- shiny::reactiveVal(list(conflicts = list(), no_conflicts = data.frame()))
 spectra_infos <- shiny::reactiveVal(data.frame())
 conflict_id <- shiny::reactiveVal(0)
