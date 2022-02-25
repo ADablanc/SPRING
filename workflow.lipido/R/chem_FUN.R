@@ -168,6 +168,7 @@ compare_spectras <- function(q_spectra, l_spectras,
 }
 
 get_eic <- function(ms_file, mz_range, rt_range) {
+	if (is.null(ms_file)) return(data.frame())
     eic <- xcms::rawEIC(ms_file, mzrange = mz_range, rtrange = rt_range)
     data.frame(
         rt = ms_file@scantime[eic$scan],

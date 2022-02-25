@@ -143,8 +143,8 @@ db_record_params <- function(db, filter_params, cwt_params, obw_params,
 db_get_spectras <- function(db) dbReadTable(db, "spectras")
 db_get_spectra_infos <- function(db) dbReadTable(db, "spectra_infos")
 db_get_ann <- function(db) dbReadTable(db, "ann")
-db_get_spectra <- function(db, spectra_id) dbGetQuery(db, sprintf(
-    "select * from spectras where spectra_id == %s;", spectra_id))
+db_get_spectra <- function(db, spectra_ids) dbGetQuery(db, sprintf(
+    "select * from spectras where spectra_id in (%s);", paste(spectra_ids, collapse = ", ")))
 db_get_params <- function(db) list(
     filter = dbReadTable(db, "filter_params")[1, ],
     cwt = dbReadTable(db, "cwt_params")[1, ],

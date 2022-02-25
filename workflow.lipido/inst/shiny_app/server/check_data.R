@@ -73,11 +73,20 @@ output$check_data_eic <- plotly::renderPlotly({
 
             # get peaks
             sub_ann <- ann[, c(4, which(colnames(ann) == sample_name))]
-            colnames(sub_ann)[2] <- "feature_id"
-            sub_ann <- sub_ann[!is.na(sub_ann$feature_id), , drop = FALSE]
+            colnames(sub_ann)[2] <- "spectra_id"
+            sub_ann <- sub_ann[!is.na(sub_ann$spectra_id), , drop = FALSE]
             if (nrow(sub_ann) > 0) {
-                peaks <- db_get_peaks(db(), sub_ann$feature_id)
-                peaks <- merge(sub_ann, peaks[, c("feature_id", "rtmin", "rtmax")])
+                spectras <- db_get_spectra(db(), sub_ann$spectra_id)
+		spectras <- spectras[which(spectras$iso_theo == "M"), 
+                                     c("spectra_id", "feature_id")]
+		peaks <- db_get_peaks(db(), spectras$feature_id)
+                peaks <- merge(sub_ann, 
+                               merge(spectras, 
+                                     peaks[, c("feature_id", "rtmin", "rtmax")], 
+				     by = "feature_id"
+                               ), 
+                               by = "spectra_id"
+                )
             } else peaks <- data.frame()
 
             plot_eic(eics, peaks)

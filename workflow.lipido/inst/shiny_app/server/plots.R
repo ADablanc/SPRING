@@ -95,6 +95,7 @@ plot_eic <- function(eics, peaks) {
   rt_range <- range(eics[[1]]$rt)
   for (i in seq(length(eics))) {
     eic <- eics[[i]]
+	if (nrow(eic) == 0) next
     peak <- peaks[peaks$adduct == names(eics)[i], ]
     if (nrow(peak) > 0) {
        idx <- which(eic$rt >= peak$rtmin & eic$rt <= peak$rtmax)
