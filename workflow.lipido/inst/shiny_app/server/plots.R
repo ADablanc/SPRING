@@ -1,0 +1,348 @@
+#' @title Construct empty chromatogram
+#'
+#' @description
+#' Construct an empty chromatogram
+#'
+#' @return plotly object
+plot_empty_chromato <- function(title = "Total Ion Chromatogram(s)") {
+    p <- plotly::plot_ly(
+        type='scatter',
+        mode='markers'
+    )
+    p <- plotly::layout(p,
+                        title = list(
+                            text = sprintf('<b>%s</b>', title),
+                            y = .95,
+                            x = .5,
+                            font = list(
+                                family = '"Open Sans",verdana,arial,sans-serif',
+                                size = 18
+                            ),
+                            xanchor = "center",
+                            yanchor = "bottom"
+                        ),
+                        margin = list(t = 50),
+                        spikedistance = -1,
+                        hovermode = "x unified",
+                        xaxis = list(
+                            title = 'Retention time',
+                            titlefont = list(
+                                family = '"Open Sans",verdana,arial,sans-serif',
+                                size = 18
+                            ),
+                            showspikes = TRUE,
+                            spikemode = "across",
+                            spikedash = "dash",
+                            spikecolor = "#000000",
+                            spikethickness = 1,
+                            ticksuffix = " min",
+                            showticksuffix = "all",
+                            hoverformat = '.2f'
+                        ),
+                        yaxis = list(
+                            exponentformat = 'e',
+                            title = '',
+                            hoverformat = '.2e'
+                        ),
+                        hoverlabel = list(
+                            namelength = -1
+                        ),
+                        selectdirection = "h",
+                        annotations = list(list(
+                            xref = 'paper',
+                            yref = 'paper',
+                            x = 0,
+                            y = 1,
+                            xanchor = 'left',
+                            yanchor = 'bottom',
+                            text = 'Intensity',
+                            showarrow = FALSE,
+                            font = list(
+                                family = '"Open Sans",verdana,arial,sans-serif',
+                                size = 18
+                            )
+                        ))
+    )
+    p <- plotly::config(p,
+                        responsive = TRUE,
+                        displaylogo = FALSE,
+                        scrollZoom = FALSE,
+                        modeBarButtons = list(
+                            list(list(
+                                name = 'toImage',
+                                title = 'Download plot as a png',
+                                icon = htmlwidgets::JS('Plotly.Icons.camera'),
+                                click = htmlwidgets::JS(sprintf("function(gd){Plotly.downloadImage(gd, {format:'png', width:1200, height:400, filename:'Chromatogram'})}"))
+                            )),
+                            list('zoom2d', 'autoScale2d'),
+                            list(list(
+                                name = 'resetView',
+                                title = 'Reset legend',
+                                icon = htmlwidgets::JS("Plotly.Icons.undo"),
+                                click = htmlwidgets::JS(sprintf("function(gd){Plotly.restyle(gd, 'visible', true);}")))
+                            )
+                        )
+    )
+    p
+}
+
+plot_eic <- function(eics, peaks) {
+  p <- plot_empty_chromato("EIC")
+  rt_range <- range(eics[[1]]$rt)
+  for (i in seq(length(eics))) {
+    eic <- eics[[i]]
+    peak <- peaks[peaks$adduct == names(eics)[i], ]
+    if (nrow(peak) > 0) {
+       idx <- which(eic$rt >= peak$rtmin & eic$rt <= peak$rtmax)
+       idx2 <- c(if (idx[1] != 1) idx[1] - 1 else NULL,
+                 idx,
+                 if (idx[length(idx)] != nrow(eic)) idx[length(idx)] + 1
+                 else NULL)
+       integrated <- eic[idx2, , drop = FALSE]
+       eic[idx, "int"] <- NA
+       p <- plotly::add_trace(
+         p,
+         mode = "lines",
+         data = integrated,
+         x = ~rt,
+         y = ~int,
+         name = names(eics)[i],
+         legendgroup = names(eics)[i],
+         showlegend = TRUE
+       )
+    }
+    p <- plotly::add_trace(
+      p,
+      mode = "lines",
+      data = eic,
+      x = ~rt,
+      y = ~int,
+      name = names(eics)[i],
+      legendgroup = names(eics)[i],
+      showlegend = !nrow(peak) > 0,
+      line = list(
+        color = 'rgb(0,0,0)',
+        width = 1,
+        dash = 'dash'
+      )
+    )
+  }
+
+  plotly::layout(p, xaxis = list(range = rt_range))
+}
+
+#' @title Construct empty MS
+#'
+#' @description
+#' Construct an empty MS
+#'
+#' @return plotly object
+plot_empty_MS <- function(title = "Mass Spectra", yTitle = 'Intensity') {
+    p <- plotly::plot_ly(
+        type = 'scatter',
+        mode='markers'
+    )
+    p <- plotly::layout(p,
+                        title = list(
+                            text = sprintf('<b>%s</b>', title),
+                            y = .95,
+                            x = .5,
+                            font = list(
+                                family = '"Open Sans",verdana,arial,sans-serif',
+                                size = 18
+                            ),
+                            xanchor = "center",
+                            yanchor = "bottom"
+                        ),
+                        margin = list(t = 50),
+                        xaxis = list(
+                            title = 'm/z',
+                            titlefont = list(
+                                family = '"Open Sans",verdana,arial,sans-serif',
+                                size = 18
+                            ),
+                            showspikes = FALSE,
+                            showticksuffix = "all",
+                            hoverformat = ".5f"
+                        ),
+                        yaxis = list(
+                            exponentformat = 'e',
+                            title = '',
+                            hoverformat = '.2e'
+                        ),
+                        hoverlabel = list(
+                            namelength = -1
+                        ),
+                        annotations=list(list(
+                            xref = 'paper',
+                            yref = 'paper',
+                            x = 0,
+                            y = 1,
+                            xanchor = 'left',
+                            yanchor = 'bottom',
+                            text = yTitle,
+                            showarrow = FALSE,
+                            font = list(
+                                family = '"Open Sans",verdana,arial,sans-serif',
+                                size = 18
+                            )
+                        ))
+    )
+    p <- plotly::config(p,
+                        responsive = TRUE,
+                        scrollZoom = FALSE,
+                        displaylogo = FALSE,
+                        edits = list(
+                            annotationTail = TRUE
+                        ),
+                        modeBarButtons = list(
+                            list(list(
+                                name = 'toImage',
+                                title = 'Download plot as a png',
+                                icon = htmlwidgets::JS('Plotly.Icons.camera'),
+                                click = htmlwidgets::JS("function(gd){Plotly.downloadImage(gd, {format:'png', width:1200, height:400, filename:'MS'})}")
+                            )),
+                            list('zoom2d', 'autoScale2d')
+                        )
+    )
+    p
+}
+
+plot_composite_ms <- function(spectras) {
+    p <- plot_empty_MS(title = "Hybrid mass spectra")
+
+    mz_range <- c(Inf, 0)
+    for (i in seq(length(spectras))) {
+        spectra <- spectras[[i]]
+        mz_range[1] <- min(mz_range[1], spectra$mz, spectra$mz_theo,
+                           na.rm = TRUE)
+        mz_range[2] <- max(mz_range[2], spectra$mz, spectra$mz_theo,
+                   na.rm = TRUE)
+        # create the column int_theo which represent the theoretic intensity
+        spectra$int_theo <- spectra$abd_theo *
+            spectra[which(spectra$iso_theo == "M"), "int"] / 100
+        matched <- spectra[!is.na(spectra$mz) & !is.na(spectra$mz_theo),
+                           , drop = FALSE]
+        not_matched <- spectra[is.na(spectra$mz) | is.na(spectra$mz_theo),
+                           , drop = FALSE]
+        p <- plotly::add_segments(
+            p,
+            x = c(matched$mz, matched$mz_theo),
+            xend = c(matched$mz, matched$mz_theo),
+            y = 0,
+            yend = c(matched$int, -matched$int_theo),
+            name = names(spectras)[i],
+            legendgroup = names(spectras)[i],
+            showlegend = TRUE,
+            hoverinfo = "text",
+            text = c(
+                sprintf(
+                    "observed<br />adduct: %s<br />iso: %s<br />m/z: %s<br / >abd: %s%%",
+                    names(spectras)[i],
+                    matched$iso_theo,
+                    round(matched$mz, 5),
+                    round(matched$abd)
+                ),
+                sprintf(
+                    "theoretical<br />adduct: %s<br />iso: %s<br />m/z: %s<br / >abd: %s%%",
+                    names(spectras)[i],
+                    matched$iso_theo,
+                    round(matched$mz_theo, 5),
+                    round(matched$abd_theo)
+                )
+            )
+        )
+        p <- plotly::add_segments(
+            p,
+            x = c(not_matched$mz, not_matched$mz_theo),
+            xend = c(not_matched$mz, not_matched$mz_theo),
+            y = 0,
+            yend = c(not_matched$int, -not_matched$int_theo),
+            color = I("black"),
+            legendgroup = names(spectras)[i],
+            showlegend = FALSE,
+            hoverinfo = "text",
+            text = c(
+                sprintf(
+                    "observed<br /><br />m/z: %s",
+                    round(not_matched$mz, 5)
+                ),
+                sprintf(
+                    "theoretical<br />adduct: %s<br />iso: %s<br />m/z: %s<br / >abd: %s%%",
+                    names(spectras)[i],
+                    not_matched$iso_theo,
+                    round(not_matched$mz_theo, 5),
+                    round(not_matched$abd_theo)
+                )
+            )
+        )
+        p <- plotly::add_annotations(
+            p,
+            x = matched[matched$iso_theo == "M", "mz"],
+            y = matched[matched$iso_theo == "M", "int"],
+            text = names(spectras)[i],
+            xref = 'x',
+            yref = 'y',
+            valign = "bottom",
+            arrowhead = 0
+        )
+    }
+
+    p <- plotly::layout(p, xaxis = list(
+        range = c(mz_range[1] - 1, mz_range[2] + 1)))
+
+    # add 2 functions on JS
+        # first is when the mouse is over an observed peak
+            # we will try to show the corresponding theoretical point
+            # the points are in this order : [observed$M, observed$M1, theoretical$M, theoretical$M1]
+            # so the theoretical must be at the same index but if we start in the middle of the array !
+                 # for example for the peak observed M1, the index is 1
+                 # so the theoretical must be at 1 + middle = 1 + (length / 2) = 1 + (4 / 2) = 1 + 2 = 3
+         # second is for hiding the annotations bind to the trace
+             # and to force the relayout between the xaxis range +/- 1
+    htmlwidgets::onRender(p, '
+        function(el, x) {
+            el.on("plotly_hover", function(eventdata) {
+                var plot_id = $(eventdata.event.srcElement).closest
+                    (".plotly.html-widget").get(0).id;
+                if (eventdata.points[0].data.showlegend) {
+                    Plotly.Fx.hover(plot_id, [
+                        {
+                            curveNumber: eventdata.points[0].curveNumber,
+                            pointNumber: eventdata.points[0].pointNumber
+                        },
+                        {
+                        curveNumber: eventdata.points[0].curveNumber,
+                        pointNumber: eventdata.points[0].pointIndex +
+                            (eventdata.points[0].fullData.x.length + 1) / 2
+                        }
+                    ])
+                }
+            });
+            el.on("plotly_restyle", () => {
+                annotations = el.layout.annotations;
+                for (var i = 1; i < annotations.length; i++) {
+                    annotations[i].visible = el._fullData[i * 2 - 1].visible != "legendonly"
+                }
+				Plotly.relayout(el, {
+				    annotations: annotations,
+				    xaxis: {
+			            range: [
+			                Math.min(...el._fullData
+			                    .filter(x => x.visible == true)
+			                    .map(x => Math.min(...x.x
+			                        .filter(y =>  y!= null))
+		                        )) - 1,
+                            Math.max(...el._fullData
+                                .filter(x => x.visible == true)
+                                .map(x => Math.max(...x.x
+                                    .filter(y =>  y!= null))
+                                )) + 1
+			            ]
+			        }
+			    });
+			});
+        }
+    ')
+}
+

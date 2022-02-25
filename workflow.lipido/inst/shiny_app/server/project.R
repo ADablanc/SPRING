@@ -9,7 +9,10 @@ observeEvent(input$project_load2, {
     db(db_connect(sqlite_path))
     ann <- db_get_ann(db())
     if (nrow(ann) > 0) {
-        ann(split_conflicts(ann))
+        ann <- split_conflicts(ann)
+        ann(ann)
+        if (length(ann$conflicts) > 0) conflict_id(1)
+        else conflict_id(0)
         spectra_infos(db_get_spectra_infos(db()))
     }
     shinyjs::runjs(sprintf('load_db("%s")', tools::file_path_sans_ext(

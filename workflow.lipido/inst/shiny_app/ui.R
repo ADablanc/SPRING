@@ -74,7 +74,7 @@ body <- shinydashboard::dashboardBody(
             shiny::div(id = "app-content",
                 shinydashboard::tabItems(
                     source("ui/process.R", local = TRUE)$value,
-                    # source("ui/conflicts.R", local = TRUE)$value,
+                    source("ui/conflicts.R", local = TRUE)$value,
                     # source("ui/check_data.R", local = TRUE)$value,
                     source("ui/summary.R", local = TRUE)$value,
                     source("ui/database.R", local = TRUE)$value

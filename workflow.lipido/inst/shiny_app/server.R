@@ -28,11 +28,11 @@ server <- function(input, output, session) {
 
     source("server/project.R", local = TRUE)$value
 
-    # source("server/plots.R", local = TRUE)$value
+    source("server/plots.R", local = TRUE)$value
 
     source("server/process.R", local = TRUE)$value
 
-    # source("server/conflicts.R", local = TRUE)$value
+    source("server/conflicts.R", local = TRUE)$value
 
     # source("server/check_data.R", local = TRUE)$value
 

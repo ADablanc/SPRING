@@ -39,7 +39,7 @@ dbGetQuery <- function(db, query, ...) {
                  if (grepl("^no such table", e$message)) data.frame()
                  else e$message
              })
-    if (class(res) != "data.frame") stop(e$message)
+    if (class(res) != "data.frame") stop(res)
     else res
 }
 
@@ -50,7 +50,7 @@ dbReadTable <- function(db, table_name, ...) {
                         if (grepl("^no such table", e$message)) data.frame()
                         else e$message
                     })
-    if (class(res) != "data.frame") stop(e$message)
+    if (class(res) != "data.frame") stop(res)
     else res
 }
 
