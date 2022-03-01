@@ -226,7 +226,8 @@ ms_process <- function(raw_files, sqlite_path, converter, filter_params,
 
     merged_results <- merge_xsets(xsets_pos, xsets_neg)
     db <- db_connect(sqlite_path)
-    db_record_xsets(db, merged_results$ann, merged_results$spectras,
+    db_record_xsets(db, xsets_pos, xsets_neg, infos[1, "sample"])
+    db_record_ann(db, merged_results$ann, merged_results$spectras,
                     merged_results$spectra_infos, merged_results$peaks,
                     merged_results$peak_groups)
     db_record_params(db, filter_params, cwt_params, obw_params, pd_params,

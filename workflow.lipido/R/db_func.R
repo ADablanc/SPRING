@@ -60,7 +60,9 @@ db_record_samples <- function(db, sample_names) dbWriteTable(
         ms_file_positive = NA,
         ms_file_negative = NA,
         profile_positive = NA,
-        profile_negative = NA
+        profile_negative = NA,
+        xsets_positive = NA,
+        xsets_negative = NA
     ), overwrite = TRUE)
 
 import_ms_file <- function(raw_file, converter, polarity, filter_params,
@@ -117,8 +119,23 @@ decompress <- function(obj) {
     unserialize(obj)
 }
 
-db_record_xsets <- function(db, ann, spectras, spectra_infos, peaks,
-                            peak_groups) {
+db_record_xsets <- function(db, xsets_pos, xsets_neg, sample_name) {
+    if (!is.null(xsets_pos)) {
+        query <- sprintf(
+            "UPDATE sample SET xsets_positive = :a WHERE sample == \"%s\";",
+            sample_name)
+        dbExecute(db, query, params = list(a = compress(xsets_pos)))
+    }
+    if (!is.null(xsets_neg)) {
+        query <- sprintf(
+            "UPDATE sample SET xsets_positive = :a WHERE sample == \"%s\";",
+            sample_name)
+        dbExecute(db, query, params = list(a = compress(xsets_neg)))
+    }
+}
+
+db_record_ann <- function(db, ann, spectras, spectra_infos, peaks,
+                          peak_groups) {
     dbWriteTable(db, "ann", ann, overwrite = TRUE)
     dbWriteTable(db, "spectras", spectras, overwrite = TRUE)
     dbWriteTable(db, "spectra_infos", spectra_infos, overwrite = TRUE)
