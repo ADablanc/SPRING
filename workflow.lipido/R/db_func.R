@@ -128,7 +128,7 @@ db_record_xsets <- function(db, xsets_pos, xsets_neg, sample_name) {
     }
     if (!is.null(xsets_neg)) {
         query <- sprintf(
-            "UPDATE sample SET xsets_positive = :a WHERE sample == \"%s\";",
+            "UPDATE sample SET xsets_negative = :a WHERE sample == \"%s\";",
             sample_name)
         dbExecute(db, query, params = list(a = compress(xsets_neg)))
     }
