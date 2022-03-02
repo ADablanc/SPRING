@@ -1,20 +1,29 @@
-#' @title Check all args of "Process"
+#' @title Check all args of the processing workflow
 #'
 #' @description
-#' Check all arguments of the "Process" step.
+#' Check all arguments of the processing workflow.
 #'      Will raise an error if one argument is incorrect
 #'
-#' @param mzxml_files vector of filepaths to the files
+#' @param raw_files vector of filepaths to the raw files
+#' @param sqlite_path filepath to the sqlite database used to save the process
+#' results
+#' @param converter filepath to the msconvert application
 #' @param filter_params FilterParam object
 #' @param cwt_params CentWaveParam object created by xcms,
 #' @param obw_params ObiwarpParam object created by xcms,
 #' @param pd_params PeakDensityParam object created by xcms,
 #' @param ann_params AnnotationParam object
-#' @param cores numeric number of cores to use for the peakpicking
-#'      (one core = one file peakpicked)
-check_ms_process_args <- function(raw_files, sqlite_path, converter,
-                                  filter_params, cwt_params, obw_params,
-                                  pd_params, ann_params, cores) {
+#' @param cores numeric number of cores to use for the processing workflow
+#' (generaly one core = one file peakpicked)
+check_ms_process_args <- function(raw_files,
+                                  sqlite_path,
+                                  converter,
+                                  filter_params,
+                                  cwt_params,
+                                  obw_params,
+                                  pd_params,
+                                  ann_params,
+                                  cores) {
     # check if the system is Windows
     if (Sys.info()[["sysname"]] != "Windows")
         stop("conversion only works on Windows")
@@ -26,14 +35,25 @@ check_ms_process_args <- function(raw_files, sqlite_path, converter,
     file_ext <- c("\\.mzML$", "\\.mzXML$", "\\.RAW$", "\\.d$",
                   "\\.YEP$", "\\.BAF$", "\\.FID$", "\\.WIFF$", "\\.MGF$")
     test_ext <- sapply(raw_files, function(x)
-        any(sapply(file_ext, grepl, x, ignore.case = TRUE)))
+        any(sapply(file_ext, grepl, x, ignore.case = TRUE))
+    )
     if (any(!test_ext))
-        stop(sprintf("file extension of %s are not supported",
-                     paste(basename(raw_files[!test_ext]), collapse = " ")))
+        stop(sprintf(
+            "file extension of %s are not supported",
+             paste(
+                 basename(raw_files[!test_ext]),
+                 collapse = " and "
+             )
+         ))
     test_exist <- file.exists(raw_files)
     if (any(!test_exist))
-        stop(sprintf("file(s) %s doesn't exist",
-                     paste(raw_files[!test_exist], collapse = " ")))
+        stop(sprintf(
+            "file(s) %s doesn't exist",
+            paste(
+                raw_files[!test_exist],
+                collapse = " and "
+            )
+        ))
     raw_files <- normalizePath(raw_files)
 
     if (class(sqlite_path) != "character")
@@ -70,9 +90,11 @@ check_ms_process_args <- function(raw_files, sqlite_path, converter,
     else if (cores %% 1 != 0)
         stop("cores must not contain any digits")
     else if (cores > parallel::detectCores())
-        stop(sprintf("system have a maximum of %s cores",
-                     parallel::detectCores()))
-    return(0)
+        stop(sprintf(
+            "system have a maximum of %s cores",
+            parallel::detectCores()
+        ))
+    1
 }
 
 setClass(
@@ -89,10 +111,14 @@ setClass(
         msg <- character()
         if (length(object@mz_range) < 2 | any(object@mz_range < 0))
             msg <- c(msg, "mz_range must contain two positive number")
+        else if (diff(object@mz_range) <= 0)
+            msg <- c(msg, "mz_range born min must be lower than the born max")
         if (length(object@rt_range) < 2 | any(object@rt_range < 0))
             msg <- c(msg, "rt_range must contain two positive number")
+        else if (diff(object@rt_range) <= 0)
+            msg <- c(msg, "rt_range born min must be lower than the born max")
         if (length(msg))
-            msg
+            paste(msg, collapse = "\n  ")
         else
             TRUE
     }
@@ -114,7 +140,13 @@ setClass(
         da_tol = .015,
         rt_tol = 10,
         abd_tol = 25,
-        adduct_names = c("M+Na", "M+NH4", "M+H-H2O", "M+H"),
+        adduct_names = c(
+            "[M+Na]+",
+            "[M+NH4]+",
+            "[M+H-H2O]+",
+            "[M+H]+",
+            "[M-H]-"
+        ),
         instrument = "QTOF_XevoG2-S_R25000@200"
     ),
     validity = function(object) {
@@ -125,50 +157,73 @@ setClass(
             msg <- c(msg, "rt_tol need to be a positive number")
         if (length(object@abd_tol) != 1 | any(object@abd_tol < 0) |
             any(object@abd_tol > 100))
-            msg <- c(msg,
-                     "abd_tol need to be a positive number between 0 & 100")
+            msg <- c(
+                msg,
+                "abd_tol need to be a positive number between 0 & 100"
+            )
         if (length(object@adduct_names) < 1)
             msg <- c(msg, "adduct_names is required")
         test <- which(!object@adduct_names %in% adducts$Name)
         if (length(test) > 0)
-            msg <- c(msg,
-                     sprintf("%s doesn't exists in the adduct list",
-                             paste(object@adduct_names[test],
-                                   collapse = " and ")))
+            msg <- c(msg, sprintf(
+                "%s doesn't exists in the adduct list",
+                paste(
+                    object@adduct_names[test],
+                    collapse = " and "
+                )
+            ))
         if (length(object@instrument) != 1)
-            msg <- c(msg, "instrument is required")
+            msg <- c(msg, "an instrument is required")
         if (!object@instrument %in% names(resolution_list))
-            msg <- c(msg, sprintf("%s doesn't exists in the instrument list",
-                                  object@instrument))
+            msg <- c(msg, sprintf(
+                "%s doesn't exists in the instrument list",
+                object@instrument
+            ))
         if (length(msg))
-            msg
+            paste(msg, collapse = "\n  ")
         else
             TRUE
     }
 )
+AnnotationParam <- function(da_tol = 0.015,
+                            rt_tol = 10,
+                            abd_tol = 25,
+                            adduct_names = c(
+                                "[M+Na]+",
+                                "[M+NH4]+",
+                                "[M+H-H2O]+",
+                                "[M+H]+",
+                                "[M-H]-"
+                            ),
+                            instrument = "QTOF_XevoG2-S_R25000@200")
+    methods::new(
+        "AnnotationParam",
+        da_tol = da_tol,
+        rt_tol = rt_tol,
+        abd_tol = abd_tol,
+        adduct_names = adduct_names,
+        instrument = instrument
+    )
 setGeneric("restrict_adducts_polarity", function(object, polarity)
     standardGeneric("restrict_adducts_polarity"))
 setMethod(
     "restrict_adducts_polarity",
     "AnnotationParam",
     function(object, polarity) {
-        adducts_restricted <- adducts[adducts$Name %in%
-                                          object@adduct_names, ,
-                                      drop = FALSE]
-        if (polarity == "positive") adducts_restricted <- adducts_restricted[
-            adducts_restricted$Charge >= 1, ]
-        else adducts_restricted <- adducts_restricted[
-            adducts_restricted$Charge <= -1, ]
+        if (polarity != "positive" & polarity != "negative")
+            stop("polarity must be set to \"positive\" or \"negative\"")
+        adducts_restricted <- adducts[adducts$Name %in% object@adduct_names,
+                                      , drop = FALSE]
+        if (polarity == "positive")
+            adducts_restricted <- adducts_restricted[
+                adducts_restricted$Charge >= 1, , drop = FALSE]
+        else
+            adducts_restricted <- adducts_restricted[
+                adducts_restricted$Charge <= -1, , drop = FALSE]
         object@adduct_names <- adducts_restricted$Name
         return(object)
     }
 )
-AnnotationParam <- function(da_tol = 0.015, rt_tol = 10, abd_tol = 25,
-                            adduct_names = c("M+Na", "M+NH4", "M+H-H2O", "M+H"),
-                            instrument = "QTOF_XevoG2-S_R25000@200")
-    methods::new("AnnotationParam", da_tol = da_tol, rt_tol = rt_tol,
-                 abd_tol = abd_tol, adduct_names = adduct_names,
-                 instrument = instrument)
 
 setGeneric("params_to_dataframe", function(object)
     standardGeneric("params_to_dataframe"))
@@ -243,7 +298,7 @@ setMethod(
         data.frame(
             da_tol = object@da_tol,
             rt_tol = object@rt_tol,
-            abd_tol = object@da_tol,
+            abd_tol = object@abd_tol,
             adduct_names = paste(object@adduct_names, collapse = ";"),
             instrument = object@instrument
         )
