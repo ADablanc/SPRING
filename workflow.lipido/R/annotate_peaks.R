@@ -127,8 +127,8 @@ annotate_peaklists <- function(xsets, samples, ann_params,
                                                  "int"]),
                                              sample = samples[j],
                                              rt = basepeak$rt))
+                tmp_ann[k_2[[k]], j + 13] <- spectra_id
                 if (tmp[[k]]$score > tmp_ann[k_2[[k]][1], "best_score"]) {
-                    tmp_ann[k_2[[k]], j + 13] <- spectra_id
                     tmp_ann[k_2[[k]], "best_score"] <- tmp[[k]]$score
                     tmp_ann[k_2[[k]], "best_deviation_mz"] <- tmp[[k]]$deviation_mz
                     tmp_ann[k_2[[k]], "best_npeak"] <- tmp[[k]]$npeak
