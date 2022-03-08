@@ -2,28 +2,30 @@
 % Please edit documentation in R/chem_FUN.R
 \name{load_db}
 \alias{load_db}
-\title{Get m/z of database}
+\title{Get all ions of chemical database}
 \usage{
-load_db(adduct_names, instrument)
+load_db(adduct_names, instrument, cpd_names = NULL)
 }
 \arguments{
 \item{adduct_names}{vector of adduct names present in the enviPat list}
 
 \item{instrument}{instrument name for enviPat}
+
+\item{cpd_names}{name of compounds to restrict}
 }
 \value{
-DataFrame with 
+DataFrame with
 \itemize{
-     \item spectra_id integer spectra ID
-     \item formula chemical formula 
+     \item formula chemical formula
      \item name of the compound
      \item rt retention time of the compound
-     \item adduct adduct name 
-     \item ion_formula ion chemical formula 
-     \item charge charge of the ion 
-     \item mz m/z 
-     \item abd relative abundance 
-     \item iso isotopologue annotation 
+     \item ion_id id unique for an entry of the database + adduct associated
+     \item adduct adduct name
+     \item ion_formula ion chemical formula
+     \item charge charge of the ion
+     \item mz m/z
+     \item abd relative abundance
+     \item iso isotopologue annotation
 }
 }
 \description{

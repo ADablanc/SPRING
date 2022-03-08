@@ -276,12 +276,12 @@ testthat::test_that("check_ms_process_args", {
     raw_files <- c(
         system.file(
             "testdata",
-            "200204PLF_QC01_pos_filtered.mzML",
+            "220221CCM_global_POS_01_ssleu_filtered.mzML",
             package = "workflow.lipido"
         ),
         system.file(
             "testdata",
-            "200204PLF_QC02_pos_filtered.mzML",
+            "220221CCM_global_POS_02_ssleu_filtered.mzML",
             package = "workflow.lipido"
         )
     )

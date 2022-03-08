@@ -2,15 +2,15 @@
 % Please edit documentation in R/chem_FUN.R
 \name{get_ions}
 \alias{get_ions}
-\title{Get m/z}
+\title{Get ions}
 \usage{
 get_ions(forms, adduct, instrument)
 }
 \arguments{
 \item{forms}{vector with chemical formulas}
 
-\item{adduct}{subset of the adducts dataframe from enviPat
-it needs the columns : 
+\item{adduct}{subset of the adduct dataframe from enviPat
+it needs the columns :
 \itemize{
     item Name name of the adduct
     item Mult the multiplicator to apply
@@ -22,15 +22,15 @@ it needs the columns :
 \item{instrument}{instrument name for enviPat}
 }
 \value{
-DataFrame with 
+DataFrame with
 \itemize{
-     \item formula chemical formula 
-     \item adduct adduct name 
-     \item ion_formula ion chemical formula 
-     \item charge charge of the ion 
-     \item mz m/z 
-     \item abd relative abundance 
-     \item iso isotopologue annotation 
+     \item formula chemical formula
+     \item adduct adduct name
+     \item ion_formula ion chemical formula
+     \item charge charge of the ion
+     \item mz m/z
+     \item abd relative abundance
+     \item iso isotopologue annotation
 }
 }
 \description{

@@ -5,7 +5,7 @@
 \title{Compare spectras}
 \usage{
 compare_spectras(
-  q_spectras,
+  q_spectra,
   l_spectras,
   da_tol = 0.05,
   abd_tol = 25,
@@ -13,7 +13,7 @@ compare_spectras(
 )
 }
 \arguments{
-\item{q_spectras}{list of dataframe with columns (at least) : 
+\item{q_spectra}{dataframe with columns (at least) :
 \itemize{
     \item mz m/z
     \item int or abd for intensity or relative abundance tolerance
@@ -29,34 +29,32 @@ compare_spectras(
 
 \item{abd_tol}{abundance tolerance, at which \% tolerance a peak need to be}
 
-\item{suffix}{which suffix to apply to 
+\item{suffix}{which suffix to apply to
 the column names of the library spectras}
 }
 \value{
-list (1st level for each library spectra, 
-  2nd for each query spectra) 
-     with a dataframe with columns :
+list (for each library spectra) wich contains a list with :
      \itemize{
          \item score the isotopic score between query & library spectra
          \item deviation_mz the meanned m/z deviation
          \item npeak number of peaks matched in query spectra
-         \item spectras list of dataframe consisting of 
-             the merge of the query spectra with the corresponding lines 
+         \item spectras list of dataframe consisting of
+             the merge of the query spectra with the corresponding lines
              of the library spectra
      }
 }
 \description{
 Compare query spectras against library spectras
-The scoring algorithm will search each corresponding observed peak 
+The scoring algorithm will search each corresponding observed peak
      with theoreticals
-Therefore it contains some important rules : 
+Therefore it contains some important rules :
      \itemize{
-         \item an observed peak can only correspond to ONE theoretical peak 
+         \item an observed peak can only correspond to ONE theoretical peak
              and vice versa
-         \item the relative abundance peak must not be under a tolerance 
-             compared to the theoretical 
+         \item the relative abundance peak must not be under a tolerance
+             compared to the theoretical
              but it can be higher since a peak can hide another
-         \item the A+x is not searched if the A+x-1 is not found 
+         \item the A+x is not searched if the A+x-1 is not found
              (the loop search is stopped)
      }
 }

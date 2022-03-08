@@ -1,17 +1,18 @@
-#' @title Get m/z of database
+#' @title Get all ions of chemical database
 #'
 #' @description
 #' Get all m/z & relative abundance for the internal database
 #'
 #' @param adduct_names vector of adduct names present in the enviPat list
 #' @param instrument instrument name for enviPat
+#' @param cpd_names name of compounds to restrict
 #'
 #' @return DataFrame with
 #' \itemize{
-#'      \item spectra_id integer spectra ID
 #'      \item formula chemical formula
 #'      \item name of the compound
 #'      \item rt retention time of the compound
+#'      \item ion_id id unique for an entry of the database + adduct associated
 #'      \item adduct adduct name
 #'      \item ion_formula ion chemical formula
 #'      \item charge charge of the ion
@@ -20,28 +21,34 @@
 #'      \item iso isotopologue annotation
 #' }
 load_db <- function(adduct_names,  instrument, cpd_names = NULL) {
-    db <- utils::read.csv(system.file("extdata", "database.csv",
-        package = "workflow.lipido"))
-    # the rt in database is in min !!
+    db <- utils::read.csv(system.file(
+        "extdata",
+        "database.csv",
+        package = "workflow.lipido"
+    ))
+    # the rt in the database is in minutes !!
     db$rt <- db$rt * 60
-    if (!is.null(cpd_names)) db <- db[db$name %in% cpd_names, , drop = FALSE]
+    if (!is.null(cpd_names))
+        db <- db[db$name %in% cpd_names, , drop = FALSE]
     ions <- do.call(rbind, lapply(adduct_names, function(adduct_name)
         get_ions(
             unique(db$formula),
             adducts[which(adducts$Name == adduct_name), ],
-            instrument)))
+            instrument
+        )
+    ))
     ions <- cbind(ion_id = as.numeric(as.factor(ions$ion_formula)), ions)
     db <- merge(db, ions, by = "formula", all = TRUE)
-    return(db[!is.na(db$mz), , drop = FALSE])
+    db[!is.na(db$mz), , drop = FALSE]
 }
 
-#' @title Get m/z
+#' @title Get ions
 #'
 #' @description
 #' Get all m/z & relative abundance for a set of formulas
 #'
 #' @param forms vector with chemical formulas
-#' @param adduct subset of the adducts dataframe from enviPat
+#' @param adduct subset of the adduct dataframe from enviPat
 #'      it needs the columns :
 #'      \itemize{
 #'          item Name name of the adduct
@@ -64,33 +71,45 @@ load_db <- function(adduct_names,  instrument, cpd_names = NULL) {
 #' }
 get_ions <- function(forms, adduct, instrument) {
     ion_forms <- forms
-    if (adduct$Mult > 1) ion_forms <- enviPat::multiform(ion_forms,
-        adduct$Mult)
-    if (adduct$Formula_add != "FALSE") ion_forms <- enviPat::mergeform(
-        ion_forms, adduct$Formula_add)
+    if (adduct$Mult > 1)
+        ion_forms <- enviPat::multiform(ion_forms, adduct$Mult)
+    if (adduct$Formula_add != "FALSE")
+        ion_forms <- enviPat::mergeform(ion_forms, adduct$Formula_add)
     if (adduct$Formula_ded != "FALSE") {
         test <- enviPat::check_ded(ion_forms, adduct$Formula_ded)
         if (any(test == FALSE)) {
             forms <- forms[test == FALSE]
-            ion_forms <- enviPat::subform(ion_forms[test == FALSE],
-                adduct$Formula_ded)
-        } else return(data.frame(matrix(, nrow = 0, ncol = 6,
-            dimnames = list(c(), c("formula", "adduct", "ion_formula",
-            "charge", "mz", "abd")))))
+            ion_forms <- enviPat::subform(
+                ion_forms[test == FALSE],
+                adduct$Formula_ded
+            )
+        } else
+            return(data.frame(matrix(, nrow = 0, ncol = 6, dimnames = list(c(),
+                    c("formula", "adduct", "ion_formula", "charge", "mz", "abd")
+            ))))
     }
     ion_forms <- enviPat::check_chemform(isotopes, ion_forms)
     resmass <- resolution_list[[which(names(resolution_list) == instrument)]]
-    out_resmass <- which(ion_forms$monoisotopic_mass < min(resmass[, "m/z"]) |
-        ion_forms$monoisotopic_mass > max(resmass[, "m/z"]))
-    if (length(out_resmass) == length(forms)) return(data.frame(
-        matrix(, nrow = 0, ncol = 6, dimnames = list(c(),
-        c("formula", "adduct", "ion_formula", "charge", "mz", "abd")))))
+    out_resmass <- which(
+        ion_forms$monoisotopic_mass < min(resmass[, "m/z"]) |
+        ion_forms$monoisotopic_mass > max(resmass[, "m/z"])
+    )
+    if (length(out_resmass) == length(forms))
+        return(data.frame(matrix(, nrow = 0, ncol = 6, dimnames = list(c(),
+            c("formula", "adduct", "ion_formula", "charge", "mz", "abd")
+        ))))
     else if (length(out_resmass) > 0) {
         forms <- forms[-out_resmass]
         ion_forms <- ion_forms[-out_resmass, ]
     }
-    invisible(utils::capture.output(isotopic_profiles <- enviPat::isowrap(
-        isotopes, ion_forms, resmass = resmass, charge = adduct$Charge)))
+    invisible(utils::capture.output(
+        isotopic_profiles <- enviPat::isowrap(
+            isotopes,
+            ion_forms,
+            resmass = resmass,
+            charge = adduct$Charge
+        )
+    ))
     ions <- do.call(rbind, lapply(seq(isotopic_profiles), function(i)
         data.frame(
             formula = forms[i],
@@ -103,7 +122,7 @@ get_ions <- function(forms, adduct, instrument) {
         )
     ))
     ions[ions$iso == "M+0", "iso"] <- "M"
-    return(ions)
+    ions
 }
 
 #' @title Compare spectras
@@ -123,7 +142,7 @@ get_ions <- function(forms, adduct, instrument) {
 #'              (the loop search is stopped)
 #'      }
 #'
-#' @param q_spectras list of dataframe with columns (at least) :
+#' @param q_spectra dataframe with columns (at least) :
 #'      \itemize{
 #'          \item mz m/z
 #'          \item int or abd for intensity or relative abundance tolerance
@@ -138,9 +157,7 @@ get_ions <- function(forms, adduct, instrument) {
 #' @param suffix which suffix to apply to
 #'      the column names of the library spectras
 #'
-#' @return list (1st level for each library spectra,
-#'   2nd for each query spectra)
-#'      with a dataframe with columns :
+#' @return list (for each library spectra) wich contains a list with :
 #'      \itemize{
 #'          \item score the isotopic score between query & library spectra
 #'          \item deviation_mz the meanned m/z deviation
@@ -149,8 +166,11 @@ get_ions <- function(forms, adduct, instrument) {
 #'              the merge of the query spectra with the corresponding lines
 #'              of the library spectra
 #'      }
-compare_spectras <- function(q_spectra, l_spectras,
-        da_tol = 0.05, abd_tol = 25, suffix = "theo") {
+compare_spectras <- function(q_spectra,
+                             l_spectras,
+                             da_tol = 0.05,
+                             abd_tol = 25,
+                             suffix = "theo") {
     tmp <- align_spectras(q_spectra, l_spectras, da_tol, abd_tol)
     lapply(seq(l_spectras), function(i) {
         l_spectra <- l_spectras[[i]]
@@ -167,8 +187,24 @@ compare_spectras <- function(q_spectra, l_spectras,
     })
 }
 
+#' @title Get EIC
+#'
+#' @description
+#' Get EIC data for an xcmsRaw object
+#' It override the rawEIC function from XCMS in order to return rt instead of
+#' scans.
+#'
+#' @param ms_file xcmsRaw object
+#' @param mz_range numeric(2) containing the m/z range to look for
+#' @param rt_range numeric(2) containing the rt range in sec to look for
+#'
+#' @return dataframe with the columns:
+#' \itemize{
+#'     \item rt retention time in seconds
+#'     \item int intensity measured
+#' }
 get_eic <- function(ms_file, mz_range, rt_range) {
-	if (is.null(ms_file)) return(data.frame())
+    if (is.null(ms_file)) return(data.frame())
     eic <- xcms::rawEIC(ms_file, mzrange = mz_range, rtrange = rt_range)
     data.frame(
         rt = ms_file@scantime[eic$scan],
