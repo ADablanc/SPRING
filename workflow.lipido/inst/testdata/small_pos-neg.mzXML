@@ -59,7 +59,7 @@
           centroided="1"
           msLevel="1"
           peaksCount="1598"
-          polarity="+"
+          polarity="-"
           retentionTime="PT0.4738S"
           lowMz="200.133511396603"
           highMz="1999.579282665097"

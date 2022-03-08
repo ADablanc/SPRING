@@ -4,26 +4,24 @@
 \alias{convert_file}
 \title{Convert RAW file}
 \usage{
-convert_file(raw_file, outdir, converter, polarity, verbose = FALSE)
+convert_file(raw_file, converter, polarity, filter_params)
 }
 \arguments{
 \item{raw_file}{filepath}
 
-\item{outdir}{dirpath to the directory of the converted file}
-
 \item{converter}{filepath to msconvert executable}
 
-\item{polarity}{"positive" or "negative"}
+\item{polarity}{"positive" or "negative" only !}
 
-\item{verbose}{boolean disable prints, only useful for testing}
+\item{filter_params}{FilterParam object}
 }
 \value{
-message "SUCCESS" if no error occur or the reason of the failure
+xcmsRaw object
 }
 \description{
 Convert one RAW file to a mzXML file
 It will try to convert the file in pos or neg
-Check with MSnbase package if the file can be converted
+Check with XCMS package if the file can be converted
 If the file is a CDF it will copy the file instead
 If the conversion failed & the file is a mzML or mzXML
      it will copy the file instead
