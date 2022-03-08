@@ -20,7 +20,9 @@
 #'      \item abd relative abundance
 #'      \item iso isotopologue annotation
 #' }
-load_db <- function(adduct_names,  instrument, cpd_names = NULL) {
+load_db <- function(adduct_names,
+                    instrument,
+                    cpd_names = NULL) {
     db <- utils::read.csv(system.file(
         "extdata",
         "database.csv",
@@ -28,15 +30,19 @@ load_db <- function(adduct_names,  instrument, cpd_names = NULL) {
     ))
     # the rt in the database is in minutes !!
     db$rt <- db$rt * 60
-    if (!is.null(cpd_names))
+    if (!is.null(cpd_names)) {
         db <- db[db$name %in% cpd_names, , drop = FALSE]
-    ions <- do.call(rbind, lapply(adduct_names, function(adduct_name)
-        get_ions(
-            unique(db$formula),
-            adducts[which(adducts$Name == adduct_name), ],
-            instrument
+    }
+    ions <- do.call(
+        rbind,
+        lapply(adduct_names, function(adduct_name)
+            get_ions(
+                unique(db$formula),
+                adducts[which(adducts$Name == adduct_name), ],
+                instrument
+            )
         )
-    ))
+    )
     ions <- cbind(ion_id = as.numeric(as.factor(ions$ion_formula)), ions)
     db <- merge(db, ions, by = "formula", all = TRUE)
     db[!is.na(db$mz), , drop = FALSE]
@@ -69,12 +75,18 @@ load_db <- function(adduct_names,  instrument, cpd_names = NULL) {
 #'      \item abd relative abundance
 #'      \item iso isotopologue annotation
 #' }
-get_ions <- function(forms, adduct, instrument) {
+get_ions <- function(forms,
+                     adduct,
+                     instrument) {
+    default_df <- data.frame(matrix(, nrow = 0, ncol = 6, dimnames = list(c(),
+        c("formula", "adduct", "ion_formula", "charge", "mz", "abd"))))
     ion_forms <- forms
-    if (adduct$Mult > 1)
+    if (adduct$Mult > 1) {
         ion_forms <- enviPat::multiform(ion_forms, adduct$Mult)
-    if (adduct$Formula_add != "FALSE")
+    }
+    if (adduct$Formula_add != "FALSE") {
         ion_forms <- enviPat::mergeform(ion_forms, adduct$Formula_add)
+    }
     if (adduct$Formula_ded != "FALSE") {
         test <- enviPat::check_ded(ion_forms, adduct$Formula_ded)
         if (any(test == FALSE)) {
@@ -83,21 +95,19 @@ get_ions <- function(forms, adduct, instrument) {
                 ion_forms[test == FALSE],
                 adduct$Formula_ded
             )
-        } else
-            return(data.frame(matrix(, nrow = 0, ncol = 6, dimnames = list(c(),
-                    c("formula", "adduct", "ion_formula", "charge", "mz", "abd")
-            ))))
+        } else {
+            return(default_df)
+        }
     }
     ion_forms <- enviPat::check_chemform(isotopes, ion_forms)
     resmass <- resolution_list[[which(names(resolution_list) == instrument)]]
     out_resmass <- which(
-        ion_forms$monoisotopic_mass < min(resmass[, "m/z"]) |
+        ion_forms$monoisotopic_mass < min(resmass[, "m/z"]) ||
         ion_forms$monoisotopic_mass > max(resmass[, "m/z"])
     )
-    if (length(out_resmass) == length(forms))
-        return(data.frame(matrix(, nrow = 0, ncol = 6, dimnames = list(c(),
-            c("formula", "adduct", "ion_formula", "charge", "mz", "abd")
-        ))))
+    if (length(out_resmass) == length(forms)) {
+        return(default_df)
+    }
     else if (length(out_resmass) > 0) {
         forms <- forms[-out_resmass]
         ion_forms <- ion_forms[-out_resmass, ]
@@ -110,17 +120,20 @@ get_ions <- function(forms, adduct, instrument) {
             charge = adduct$Charge
         )
     ))
-    ions <- do.call(rbind, lapply(seq(isotopic_profiles), function(i)
-        data.frame(
-            formula = forms[i],
-            adduct = adduct$Name,
-            ion_formula = ion_forms[i, "new_formula"],
-            charge = adduct$Charge,
-            mz = round(isotopic_profiles[[i]][, "m/z"], 5),
-            abd = round(isotopic_profiles[[i]][, "abundance"], 2),
-            iso = paste0("M+", seq(nrow(isotopic_profiles[[i]])) - 1)
+    ions <- do.call(
+        rbind,
+        lapply(seq(isotopic_profiles), function(i)
+            data.frame(
+                formula = forms[i],
+                adduct = adduct$Name,
+                ion_formula = ion_forms[i, "new_formula"],
+                charge = adduct$Charge,
+                mz = round(isotopic_profiles[[i]][, "m/z"], 5),
+                abd = round(isotopic_profiles[[i]][, "abundance"], 2),
+                iso = paste0("M+", seq(nrow(isotopic_profiles[[i]])) - 1)
+            )
         )
-    ))
+    )
     ions[ions$iso == "M+0", "iso"] <- "M"
     ions
 }
@@ -204,7 +217,6 @@ compare_spectras <- function(q_spectra,
 #'     \item int intensity measured
 #' }
 get_eic <- function(ms_file, mz_range, rt_range) {
-    if (is.null(ms_file)) return(data.frame())
     eic <- xcms::rawEIC(ms_file, mzrange = mz_range, rtrange = rt_range)
     data.frame(
         rt = ms_file@scantime[eic$scan],

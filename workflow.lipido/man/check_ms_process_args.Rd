@@ -22,6 +22,8 @@ check_ms_process_args(
 \item{sqlite_path}{filepath to the sqlite database used to save the process
 results}
 
+\item{converter}{filepath to the msconvert application}
+
 \item{filter_params}{FilterParam object}
 
 \item{cwt_params}{CentWaveParam object created by xcms,}

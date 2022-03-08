@@ -31,7 +31,10 @@ testthat::test_that("filter_param", {
         FilterParam(mz_range = c(300, 1000), rt_range = c(2, 1)),
         "rt_range born min must be lower than the born max"
     )
-    obj <- FilterParam(mz_range = c(300, 1000), rt_range = c(.7 * 60, 6.3 * 60))
+    obj <- FilterParam(
+        mz_range = c(300, 1000),
+        rt_range = c(.7 * 60, 6.3 * 60)
+    )
     testthat::expect_equal(obj, FilterParam())
     testthat::expect_equal(obj@mz_range, c(300, 1000))
     testthat::expect_equal(obj@rt_range, c(.7 * 60, 6.3 * 60))
