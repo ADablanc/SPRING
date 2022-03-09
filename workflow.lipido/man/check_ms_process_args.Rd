@@ -17,24 +17,24 @@ check_ms_process_args(
 )
 }
 \arguments{
-\item{raw_files}{vector of filepaths to the raw files}
+\item{raw_files}{`character vector` filepaths to the raw files}
 
-\item{sqlite_path}{filepath to the sqlite database used to save the process
-results}
+\item{sqlite_path}{`character(1)` filepath to the sqlite database used to
+save the process results}
 
-\item{converter}{filepath to the msconvert application}
+\item{converter}{`character(1)` filepath to the msconvert application}
 
-\item{filter_params}{FilterParam object}
+\item{filter_params}{`FilterParam`}
 
-\item{cwt_params}{CentWaveParam object created by xcms,}
+\item{cwt_params}{`CentWaveParam`}
 
-\item{obw_params}{ObiwarpParam object created by xcms,}
+\item{obw_params}{`ObiwarpParam`}
 
-\item{pd_params}{PeakDensityParam object created by xcms,}
+\item{pd_params}{`PeakDensityParam`}
 
-\item{ann_params}{AnnotationParam object}
+\item{ann_params}{`AnnotationParam`}
 
-\item{cores}{numeric number of cores to use for the processing workflow
+\item{cores}{`integer(1)` number of cores to use for the processing workflow
 (generaly one core = one file peakpicked)}
 }
 \description{

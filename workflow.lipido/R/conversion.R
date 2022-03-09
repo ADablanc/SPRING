@@ -2,18 +2,21 @@
 #'
 #' @description
 #' Convert one RAW file to a mzXML file
-#' It will try to convert the file in pos or neg
+#' It will try to convert the file and extract only the scans in positive or
+#' negative
+#' It also trim the file according the rt range and m/z range specified in
+#' the filter_params with msconvert
 #' Check with XCMS package if the file can be converted
 #' If the file is a CDF it will copy the file instead
 #' If the conversion failed & the file is a mzML or mzXML
-#'      it will copy the file instead
+#' it will copy the file instead and try to trim only the rt range
 #'
-#' @param raw_file filepath
-#' @param converter filepath to msconvert executable
-#' @param polarity "positive" or "negative" only !
-#' @param filter_params FilterParam object
+#' @param raw_file `character(1)` filepath
+#' @param converter `character(1)` filepath to msconvert executable
+#' @param polarity `character(1)` "positive" or "negative" only !
+#' @param filter_params `FilterParam` object
 #'
-#' @return xcmsRaw object
+#' @return `xcmsRaw` object
 convert_file <- function(raw_file, converter, polarity, filter_params) {
     filepath <- tempfile(fileext = ".mzXML")
 
@@ -66,12 +69,12 @@ convert_file <- function(raw_file, converter, polarity, filter_params) {
 #'
 #' @description
 #' check if a mass spectrometry file can be read by xcms
-#'      & if the polarity expected is the good one
+#' & if the polarity expected is the good one
 #'
-#' @param filepath
-#' @param exp_polarity "positive" or "negative" only !
+#' @param filepath `character(1)`
+#' @param exp_polarity `character(1)` "positive" or "negative" only !
 #'
-#' @return xcmsRaw object
+#' @return `xcmsRaw` object
 check_ms_file <- function(filepath, exp_polarity) {
     # check if file can be read
     ms_file <- tryCatch(
@@ -96,10 +99,10 @@ check_ms_file <- function(filepath, exp_polarity) {
 #' Filter MS file according a rT range in seconds
 #' don't filter on the m/z dimension (too long & too heavy in flash memory)
 #'
-#' @param ms_file xcmsRaw object
-#' @param filter_params FilterParam object
+#' @param ms_file `xcmsRaw` object
+#' @param filter_params `FilterParam` object
 #'
-#' @return xcmsRaw object filtered
+#' @return `xcmsRaw` object filtered
 filter_ms_file <- function(ms_file, filter_params) {
     obs_rt_range <- ms_file@scantime
     if (range(obs_rt_range)[1] <= filter_params@rt_range[1] |

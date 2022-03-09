@@ -4,16 +4,16 @@
 #' Check all arguments of the processing workflow.
 #'      Will raise an error if one argument is incorrect
 #'
-#' @param raw_files vector of filepaths to the raw files
-#' @param sqlite_path filepath to the sqlite database used to save the process
-#' results
-#' @param converter filepath to the msconvert application
-#' @param filter_params FilterParam object
-#' @param cwt_params CentWaveParam object created by xcms,
-#' @param obw_params ObiwarpParam object created by xcms,
-#' @param pd_params PeakDensityParam object created by xcms,
-#' @param ann_params AnnotationParam object
-#' @param cores numeric number of cores to use for the processing workflow
+#' @param raw_files `character vector` filepaths to the raw files
+#' @param sqlite_path `character(1)` filepath to the sqlite database used to
+#' save the process results
+#' @param converter `character(1)` filepath to the msconvert application
+#' @param filter_params `FilterParam`
+#' @param cwt_params `CentWaveParam`
+#' @param obw_params `ObiwarpParam`
+#' @param pd_params `PeakDensityParam`
+#' @param ann_params `AnnotationParam`
+#' @param cores `integer(1)` number of cores to use for the processing workflow
 #' (generaly one core = one file peakpicked)
 check_ms_process_args <- function(raw_files,
                                   sqlite_path,
@@ -104,6 +104,10 @@ check_ms_process_args <- function(raw_files,
     1
 }
 
+#' A class containing the filter parameters
+#'
+#' @slot mz_range `numeric(2)` the m/z range to trim all ms files
+#' @slot rt_range `numeric(2)` the rT range to trim all ms files (in sec)
 setClass(
     "FilterParam",
     slots = c(
@@ -134,11 +138,29 @@ setClass(
     }
 )
 
+#' @title FilterParam
+#'
+#' @description
+#' Construct a FilterParam object
+#'
+#' @param mz_range `numeric(2)` a m/z range
+#' @param rt_range `numeric(2)` a rT range
+#'
+#' @return `FilterParam` object
 FilterParam <- function(mz_range = c(300, 1000),
                         rt_range = c(.7 * 60, 6.3 * 60)) {
     methods::new("FilterParam", mz_range = mz_range, rt_range = rt_range)
 }
 
+#' A class containing the annotation parameters
+#'
+#' @slot da_tol `numeric(1)` m/z tolerance in Dalton
+#' @slot rt_tol `numeric(1)` rT tolerance in sec
+#' @slot abd_tol `numeric(1)` relative abundance tolerance, each peak which
+#' have an higher difference of relative abundance with its corresponding
+#' theoretical peak will be discarded
+#' @slot adduct_names `character vector` adduct names from the enviPat package
+#' @slot instrument `character(1)` instrument names from the enviPat package
 setClass(
     "AnnotationParam",
     slots = c(
@@ -205,6 +227,20 @@ setClass(
     }
 )
 
+#' @title AnnotationParam
+#'
+#' @description
+#' Create an AnnotationParam object
+#'
+#' @param da_tol `numeric(1)` m/z tolerance in Dalton
+#' @param rt_tol `numeric(1)` rT tolerance in sec
+#' @param abd_tol `numeric(1)` relative abundance tolerance, each peak which
+#' have an higher difference of relative abundance with its corresponding
+#' theoretical peak will be discarded
+#' @param adduct_names `character vector` adduct names from the enviPat package
+#' @param instrument `character(1)` instrument names from the enviPat package
+#'
+#' @return `AnnotationParam` object
 AnnotationParam <- function(da_tol = 0.015,
                             rt_tol = 10,
                             abd_tol = 25,
@@ -226,10 +262,19 @@ AnnotationParam <- function(da_tol = 0.015,
     )
 }
 
+#' @title Restrict Annotation parameters
+#'
+#' @description
+#' will recreate a new `AnnotationParam` with a set of adduct according a
+#' polarity
+#'
+#' @param object `AnnotationParam`
+#' @param polarity `character(1)` "positive" or "negative"
+#'
+#' @return `AnnotationParam` object
 setGeneric("restrict_adducts_polarity", function(object, polarity)
     standardGeneric("restrict_adducts_polarity")
 )
-
 setMethod(
     "restrict_adducts_polarity",
     "AnnotationParam",
@@ -255,6 +300,20 @@ setGeneric("params_to_dataframe", function(object)
     standardGeneric("params_to_dataframe")
 )
 
+#' @title Convert `FilterParam` to `DataFrame`
+#'
+#' @description
+#' Convert a `FilterParam` object to a `DataFrame` with one line
+#'
+#' @param object `FilterParam`
+#'
+#' @return `DataFrame` with one line & the columns:
+#' \itemize{
+#'     \item mz_range_min `numeric` m/z range min
+#'     \item mz_range_max `numeric` m/z range max
+#'     \item rt_range_min `numeric` rT range min
+#'     \item rt_range_max `numeric` rT range max
+#' }
 setMethod(
     "params_to_dataframe",
     "FilterParam",
@@ -268,6 +327,44 @@ setMethod(
     }
 )
 
+#' @title Convert `CentWaveParam` to `DataFrame`
+#'
+#' @description
+#' Convert a `CentWaveParam` object to a `DataFrame` with one line
+#'
+#' @param object `CentWaveParam`
+#'
+#' @return `DataFrame` with one line & the columns:
+#' \itemize{
+#'     \item ppm `numeric` Maximal tolerated m/z deviation in consecutive scans
+#'     in parts sper million (ppm)
+#'     \item peakwidth_min `numeric` Expected approximate peak width min in
+#'     chromatographic space
+#'     \item peakwidth_max `numeric` Expected approximate peak width max in
+#'     chromatographic space
+#'     \item snthresh `numeric` Signal to noise ratio cutoff
+#'     \item prefilter_step `numeric` Mass traces are only retained if they
+#'     contain at least k peaks with intensity >= I
+#'     \item prefilter_level `numeric` Mass traces are only retained if they
+#'     contain at least k peaks with intensity >= I
+#'     \item mzCenterFun `character` Name of the function to calculate the m/z
+#'     center of the chromatographic peak
+#'     \item integrate `integer` Integration method. If unchecked the descent
+#'     is done on the real data, if checked peak limits are found through
+#'     descent on the mexican hat filtered data. Method 1 is very accurate but
+#'     prone to noise, while method 2 is more robust to noise but less exact
+#'     \item mzdiff `numeric` Minimum difference in m/z for peaks with
+#'     overlapping retention times, can be negative to allow overlap
+#'     \item fitgauss `integer` whether or not a Gaussian should be fitted to
+#'     each peak. This affects mostly the retention time position of the peak
+#'     \item noise `numeric` Optional argument which is useful for data that was
+#'     centroided without any intensity threshold, centroids with intensity <
+#'     noise are omitted from ROI detection
+#'     \item verboseColumns `integer` whether additional peak meta data columns
+#'     should be returned, ignore
+#'     \item firstBaselineCheck `integer` Continuous data within regions of
+#'     interest is checked to be above the first baseline
+#' }
 setMethod(
     "params_to_dataframe",
     "CentWaveParam",
@@ -282,14 +379,48 @@ setMethod(
             mzCenterFun = object@mzCenterFun,
             integrate = object@integrate,
             mzdiff = object@mzdiff,
-            fitgauss = object@fitgauss,
+            fitgauss = as.numeric(object@fitgauss),
             noise = object@noise,
-            verboseColumns = object@verboseColumns,
-            firstBaselineCheck = object@firstBaselineCheck
+            verboseColumns = as.numeric(object@verboseColumns),
+            firstBaselineCheck = as.numeric(object@firstBaselineCheck)
         )
     }
 )
 
+#' @title Convert `ObiwarpParam` to `DataFrame`
+#'
+#' @description
+#' Convert a `ObiwarpParam` object to a `DataFrame` with one line
+#'
+#' @param object `ObiwarpParam` object
+#'
+#' @return `DataFrame` with one line & the columns:
+#' \itemize{
+#'     \item binSize `numeric` slice of overlapping m/z groups
+#'     \item response `numeric` Defining the responsiveness of warping with
+#'     response = 0 giving linear warping on start and end points and
+#'     response = 100 warping using all bijective anchors
+#'     \item distFun `character` Distance function to be used.
+#'     Allowed values are :
+#'     \itemize{
+#'         \item cor : Pearson's correlation
+#'         \item cor_opt : calculate only 10% diagonal band of distance matrix;
+#'         better runtime)
+#'         \item cov : covariance
+#'         \item prd : product
+#'         \item euc : Euclidian distance
+#'     }
+#'     \item gapInit `numeric` Defining the penalty for gap opening
+#'     \item gapExtend `numeric` Defining the penalty for gap enlargement
+#'     \item factorDiag `numeric` Defining the local weight applied to diagonal
+#'     moves in the alignment
+#'     \item factorGap `numeric` Defining the local weight for gap moves in the
+#'     alignment
+#'     \item localAlignment `integer` Whether a local alignment should be
+#'     performed instead of the default global alignment
+#'     \item initPenalty `numeric` Defining the penalty for initiating an
+#'     alignment (for local alignment only)
+#' }
 setMethod(
     "params_to_dataframe",
     "ObiwarpParam",
@@ -302,12 +433,32 @@ setMethod(
             gapExtend = object@gapExtend,
             factorDiag = object@factorDiag,
             factorGap = object@factorGap,
-            localAlignment = object@localAlignment,
+            localAlignment = as.numeric(object@localAlignment),
             initPenalty = object@initPenalty
         )
     }
 )
 
+#' @title Convert `PeakDensityParam` to `DataFrame`
+#'
+#' @description
+#' Convert a `PeakDensityParam` object to a `DataFrame` with one line
+#'
+#' @param object a `PeakDensityParam` object
+#'
+#' @return `DataFrame` with one line & the columns:
+#' \itemize{
+#'     \item bw `numeric` retention time standard deviation (s) allowed
+#'     \item minFraction `numeric` defining the minimum fraction of samples in
+#'     at least one sample group in which the peaks have to be present to be
+#'     considered as a peak group (feature)
+#'     \item minSamples `integer` with the minimum number of samples in at
+#'     least one sample group in which the peaks have to be detected to be
+#'     considered a peak group (feature)
+#'     \item binSize `numeric` slice of overlapping m/z groups
+#'     \item maxFeatures `integer` with the maximum number of peak groups to be
+#'     identified in a single mz slice
+#' }
 setMethod(
     "params_to_dataframe",
     "PeakDensityParam",
@@ -322,6 +473,24 @@ setMethod(
     }
 )
 
+#' @title Convert `AnnotationParam` to `DataFrame`
+#'
+#' @description
+#' Convert a `AnnotationParam` object to a `DataFrame` with one line
+#'
+#' @param object `AnnotationParam`
+#'
+#' @return `DataFrame` with one line & the columns:
+#' \itemize{
+#'     \item da_tol `numeric` m/z tolerance in Dalton
+#'     \item rt_tol `numeric` rT tolerance in sec
+#'     \item abd_tol `numeric` relative abundance tolerance, each peak which
+#'     have an higher difference of relative abundance with its corresponding
+#'     theoretical peak will be discarded
+#'     \item adduct_names `character` adduct names from the enviPat package
+#'     collapsed with the character ";"
+#'     \item instrument `character` instrument names from the enviPat package
+#' }
 setMethod(
     "params_to_dataframe",
     "AnnotationParam",

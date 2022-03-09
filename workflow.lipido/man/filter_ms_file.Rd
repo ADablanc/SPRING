@@ -7,12 +7,12 @@
 filter_ms_file(ms_file, filter_params)
 }
 \arguments{
-\item{ms_file}{xcmsRaw object}
+\item{ms_file}{`xcmsRaw` object}
 
-\item{filter_param}{FilterParam object}
+\item{filter_params}{`FilterParam` object}
 }
 \value{
-xcmsRaw object filtered
+`xcmsRaw` object filtered
 }
 \description{
 Filter MS file according a rT range in seconds

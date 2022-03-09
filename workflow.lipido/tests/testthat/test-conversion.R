@@ -1,12 +1,11 @@
 testthat::test_that("filter ms file", {
-    ms_file <- xcms::xcmsRaw(
-        system.file(
-            "testdata",
-            "small.mzXML",
-            package = "workflow.lipido"
-        ),
-        profstep = 0
+    filepath <- system.file(
+        "testdata",
+        "small.mzXML",
+        package = "workflow.lipido"
     )
+
+    ms_file <- xcms::xcmsRaw(filepath, profstep = 0)
 
     # test with an rt range outside of the ms file
     filter_params <- FilterParam(
@@ -40,6 +39,16 @@ testthat::test_that("filter ms file", {
 })
 
 testthat::test_that("check_ms_file", {
+    filepath_pos <- system.file(
+        "testdata",
+        "small.mzXML",
+        package = "workflow.lipido"
+    )
+    filepath_pos_neg <- system.file(
+        "testdata",
+        "small_pos-neg.mzXML",
+        package = "workflow.lipido"
+    )
     # test with an empty file
     testthat::expect_error(
         check_ms_file(tempfile(fileext = ".mzXML"), "positive"),
@@ -48,46 +57,30 @@ testthat::test_that("check_ms_file", {
 
     # test with the wrong polarity
     testthat::expect_error(
-        check_ms_file(
-            system.file(
-                "testdata",
-                "small.mzXML",
-                package = "workflow.lipido"
-            ),
-            "negative"
-        ),
+        check_ms_file(filepath_pos, "negative"),
         "no scans detected in desired polarity"
     )
 
     # test to split the file according polarity
         # (should return only the first only positive scan)
     testthat::expect_equal(
-        check_ms_file(
-            system.file(
-                "testdata",
-                "small_pos-neg.mzXML",
-                package = "workflow.lipido"
-            ),
-            "positive"
-        )@scanrange,
+        check_ms_file(filepath_pos_neg, "positive")@scanrange,
         c(1, 1)
     )
 
     # test with a polarity which should return the same original file
     testthat::expect_equal(
-        check_ms_file(
-            system.file(
-                "testdata",
-                "small.mzXML",
-                package = "workflow.lipido"
-            ),
-            "positive"
-        )@scanrange,
+        check_ms_file(filepath_pos, "positive")@scanrange,
         c(1, 2)
     )
 })
 
 testthat::test_that("conversion", {
+    filepath <- system.file(
+        "testdata",
+        "small.raw",
+        package = "workflow.lipido"
+    )
     converter <- tools::file_path_as_absolute(
         "~/GitHub/workflow.lipido/pwiz/msconvert.exe"
     )
@@ -97,91 +90,48 @@ testthat::test_that("conversion", {
     )
 
     # test with an absent .wiff.scan
+    missing_filepath <- tempfile(fileext = ".wiff")
     testthat::expect_error(
-        convert_file(
-            tempfile(fileext = ".wiff"),
-            converter,
-            "positive",
-            filter_params
-        ),
+        convert_file(missing_filepath, converter, "positive", filter_params),
         "missing corresponding wiff.scan in same directory"
     )
 
     # test with a raw waters directory (which doesn't exist)
+    missing_filepath <- paste(tempdir(), ".raw", sep = ".")
     testthat::expect_error(
-        convert_file(
-            paste(tempdir(), ".raw", sep = "."),
-            converter,
-            "positive",
-            filter_params
-        ),
+        convert_file(missing_filepath, converter, "positive", filter_params),
         "msconvert error"
     )
 
     # test with an missing mzXML file
+    missing_filepath <- tempfile(fileext = ".mzXML")
     testthat::expect_error(
-        convert_file(
-            tempfile(fileext = ".mzXML"),
-            converter,
-            "positive",
-            filter_params
-        ),
+        convert_file(missing_filepath, converter, "positive", filter_params),
         "file converted cannot be read"
     )
 
     # test with an missing mzML file
+    missing_filepath <- tempfile(fileext = ".mzML")
     testthat::expect_error(
-        convert_file(
-            tempfile(fileext = ".mzML"),
-            converter,
-            "positive",
-            filter_params
-        ),
+        convert_file(missing_filepath, converter, "positive", filter_params),
         "file converted cannot be read"
     )
 
     # test with a missing msconvert.exe
     testthat::expect_error(
-        convert_file(
-            system.file(
-                "testdata",
-                "small.raw",
-                package = "workflow.lipido"
-            ),
-            "msconvert.exe",
-            "positive",
-            filter_params
-        ),
+        convert_file(filepath, "msconvert.exe", "positive", filter_params),
         "'\"msconvert.exe\"' not found"
     )
 
     # test with a absurd polarity
     testthat::expect_error(
-        convert_file(
-            system.file(
-                "testdata",
-                "small.raw",
-                package = "workflow.lipido"
-            ),
-            converter,
-            "impossible polarity",
-            filter_params
-        ),
+        convert_file(filepath, converter, "impossible polarity", filter_params),
         "msconvert error"
     )
 
     # test with the wrong polarity for the ms file
     testthat::expect_error(
-        convert_file(
-            system.file(
-                "testdata",
-                "small.raw",
-                package = "workflow.lipido"
-            ),
-            converter,
-            "negative",
-            filter_params
-        ),
+        convert_file(filepath, converter, "negative", filter_params),
         "file converted cannot be read"
     )
 
@@ -191,16 +141,7 @@ testthat::test_that("conversion", {
         rt_range = c(0, 0.5)
     )
     testthat::expect_error(
-        convert_file(
-            system.file(
-                "testdata",
-                "small.raw",
-                package = "workflow.lipido"
-            ),
-            converter,
-            "positive",
-            filter_params
-        ),
+        convert_file(filepath, converter, "positive", filter_params),
         "file converted cannot be read"
     )
 
@@ -210,16 +151,7 @@ testthat::test_that("conversion", {
         rt_range = c(50, 1000)
     )
     testthat::expect_error(
-        convert_file(
-            system.file(
-                "testdata",
-                "small.raw",
-                package = "workflow.lipido"
-            ),
-            converter,
-            "positive",
-            filter_params
-        ),
+        convert_file(filepath, converter, "positive", filter_params),
         "file converted cannot be read"
     )
 
@@ -228,17 +160,13 @@ testthat::test_that("conversion", {
         mz_range = c(200, 2001),
         rt_range = c(0, 0.5)
     )
+    mzxml_filepath <- system.file(
+        "testdata",
+        "small.mzXML",
+        package = "workflow.lipido"
+    )
     testthat::expect_equal(
-        convert_file(
-            system.file(
-                "testdata",
-                "small.raw",
-                package = "workflow.lipido"
-            ),
-            converter,
-            "positive",
-            filter_params
-        )@scanindex,
+        convert_file(filepath, converter, "positive", filter_params)@scanindex,
         c(0, 1810)
     )
 })

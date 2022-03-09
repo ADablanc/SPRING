@@ -7,12 +7,14 @@
 check_ms_file(filepath, exp_polarity)
 }
 \arguments{
-\item{exp_polarity}{"positive" or "negative" only !}
+\item{filepath}{`character(1)`}
+
+\item{exp_polarity}{`character(1)` "positive" or "negative" only !}
 }
 \value{
-xcmsRaw object
+`xcmsRaw` object
 }
 \description{
 check if a mass spectrometry file can be read by xcms
-     & if the polarity expected is the good one
+& if the polarity expected is the good one
 }

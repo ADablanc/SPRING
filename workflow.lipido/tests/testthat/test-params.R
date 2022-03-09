@@ -217,10 +217,10 @@ testthat::test_that("cwt_param", {
             mzCenterFun = "wMean",
             integrate = 1,
             mzdiff = .041,
-            fitgauss = FALSE,
+            fitgauss = as.numeric(FALSE),
             noise = 0,
-            verboseColumns = TRUE,
-            firstBaselineCheck = FALSE
+            verboseColumns = as.numeric(TRUE),
+            firstBaselineCheck = as.numeric(FALSE)
         )
     )
 })
@@ -248,7 +248,7 @@ testthat::test_that("obw_param", {
             gapExtend = 2.4,
             factorDiag = 2,
             factorGap = 1,
-            localAlignment = FALSE,
+            localAlignment = as.numeric(FALSE),
             initPenalty = 0
         )
     )

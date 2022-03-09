@@ -7,22 +7,25 @@
 convert_file(raw_file, converter, polarity, filter_params)
 }
 \arguments{
-\item{raw_file}{filepath}
+\item{raw_file}{`character(1)` filepath}
 
-\item{converter}{filepath to msconvert executable}
+\item{converter}{`character(1)` filepath to msconvert executable}
 
-\item{polarity}{"positive" or "negative" only !}
+\item{polarity}{`character(1)` "positive" or "negative" only !}
 
-\item{filter_params}{FilterParam object}
+\item{filter_params}{`FilterParam` object}
 }
 \value{
-xcmsRaw object
+`xcmsRaw` object
 }
 \description{
 Convert one RAW file to a mzXML file
-It will try to convert the file in pos or neg
+It will try to convert the file and extract only the scans in positive or
+negative
+It also trim the file according the rt range and m/z range specified in
+the filter_params with msconvert
 Check with XCMS package if the file can be converted
 If the file is a CDF it will copy the file instead
 If the conversion failed & the file is a mzML or mzXML
-     it will copy the file instead
+it will copy the file instead and try to trim only the rt range
 }
