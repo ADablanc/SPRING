@@ -1,5 +1,17 @@
-findChromPeaks <- function(ms_file, cwt_params) {
-    if (is.null(ms_file)) return(NULL)
+#' @title Peak picking
+#'
+#' @description
+#' Execute peak peacking process. It differs from the one from XCMS cause it
+#' take as input an `xcmsRaw` & reconstruct an `xcmsSet` with it
+#'
+#' @param ms_file `xcmsRaw` object
+#' @param cwt_params `CentwaveParam` object
+#'
+#' @return `xcmsSet` object
+find_chrompeaks <- function(ms_file, cwt_params) {
+    if (is.null(ms_file)) {
+        return(NULL)
+    }
 
     object <- new("xcmsSet")
 
@@ -7,14 +19,14 @@ findChromPeaks <- function(ms_file, cwt_params) {
     object@filepaths <- file
 
     ## determine experimental design
-    fromPaths <- xcms::phenoDataFromPaths(file)
-    snames <- rownames(fromPaths)
-    object@phenoData <- fromPaths
+    from_paths <- xcms::phenoDataFromPaths(file)
+    snames <- rownames(from_paths)
+    object@phenoData <- from_paths
     rownames(object@phenoData) <- snames
     object@profinfo <- xcms::profinfo(ms_file)
 
-    date = date()
-    peaks <- xcms::do_findChromPeaks_centWave(
+    date <- date()
+    suppressMessages(suppressWarnings(peaks <- xcms::do_findChromPeaks_centWave(
         mz = as.double(ms_file@env$mz),
         int = as.double(ms_file@env$intensity),
         scantime = ms_file@scantime,
@@ -33,20 +45,26 @@ findChromPeaks <- function(ms_file, cwt_params) {
         firstBaselineCheck = cwt_params@firstBaselineCheck,
         roiScales = cwt_params@roiScales,
         sleep = 0,
-        extendLengthMSW = cwt_params@extendLengthMSW)
+        extendLengthMSW = cwt_params@extendLengthMSW
+    )))
 
-    if (is.null(peaks))
+    if (is.null(peaks)) {
         return(NULL)
-    else if (nrow(peaks) == 0)
+    } else if (nrow(peaks) == 0) {
         return(NULL)
+    }
     peaks <- cbind(peaks, sample = 1)
 
     proclist <- xcms:::ProcessHistory(
-        info. = sprintf("Peak detection in %s : %s peaks identified.",
-                        basename(file), nrow(peaks)),
+        info. = sprintf(
+            "Peak detection in %s : %s peaks identified.",
+            basename(file),
+            nrow(peaks)
+        ),
         date. = date,
         type. = "Peak detection",
-        fileIndex. = 1)
+        fileIndex. = 1
+    )
 
     object@peaks <- peaks
     object@rt <- list(ms_file@scantime)
