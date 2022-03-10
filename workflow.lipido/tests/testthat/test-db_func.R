@@ -483,7 +483,7 @@ testthat::test_that("record params", {
         firstBaselineCheck = FALSE
     )
     obw_params <- xcms::ObiwarpParam(
-        binSize = 1,
+        binSize = .1,
         centerSample = integer(),
         response = 1L,
         distFun = "cor_opt",
@@ -1302,7 +1302,7 @@ testthat::test_that("get params", {
         firstBaselineCheck = FALSE
     )
     obw_params <- xcms::ObiwarpParam(
-        binSize = 1,
+        binSize = .1,
         centerSample = integer(),
         response = 1L,
         distFun = "cor_opt",

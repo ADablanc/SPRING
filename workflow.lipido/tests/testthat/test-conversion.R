@@ -160,11 +160,6 @@ testthat::test_that("conversion", {
         mz_range = c(200, 2001),
         rt_range = c(0, 0.5)
     )
-    mzxml_filepath <- system.file(
-        "testdata",
-        "small.mzXML",
-        package = "workflow.lipido"
-    )
     testthat::expect_equal(
         convert_file(filepath, converter, "positive", filter_params)@scanindex,
         c(0, 1810)

@@ -2,30 +2,43 @@
 % Please edit documentation in R/obiwarp.R
 \name{obiwarp}
 \alias{obiwarp}
-\title{Alignment: Retention time correction methods.}
+\title{Correct retention times}
 \usage{
-obiwarp(ms_files, obw_params, operator, show_pb)
+obiwarp(
+  sqlite_path,
+  samples,
+  polarity,
+  xsets,
+  obw_params,
+  operator = foreach::"\%do\%",
+  pb_fct = NULL
+)
 }
 \arguments{
-\item{ms_files}{list of XCMSnExp}
+\item{sqlite_path}{`character(1)` path to the sqlite file}
 
-\item{obw_params}{ObiwarpParam object created by xcms}
+\item{samples}{`character vector` name of the samples in the database, needed
+to load the `xcmsRaw` objects}
 
-\item{operator}{function to use for parallelization (`\%dopar\%`) 
+\item{xsets}{`xcmsSet list`}
+
+\item{obw_params}{`ObiwarpParam` object}
+
+\item{operator}{function to use for parallelization (`\%dopar\%`)
 or not (`\%do\%`)}
 
-\item{show_pb}{boolean indicate if we print a progress bar or not}
+\item{pb_fct}{function used to update the progress bar}
 }
 \value{
-XCMSnExp which regroup all the files in one object 
-     with the rT corrected
+`xcmsSet` which regroup all the files in one object with the rT
+corrected
 }
 \description{
-perform retention time correction (alignment) between chromatograms of 
-     different samples. 
-the alignment is based on the complete mz-rt data. This method does not 
-     require any identified peaks or defined features. 
-This function comes from the XCMS package and only the function `.obiwarp` 
+perform retention time correction (alignment) between chromatograms of
+     different samples.
+the alignment is based on the complete mz-rt data. This method does not
+     require any identified peaks or defined features.
+This function comes from the XCMS package and only the function `.obiwarp`
      was imported in order to use & export the parallelisation infos
 It force to use the sample with the most peak as the center sample
 }

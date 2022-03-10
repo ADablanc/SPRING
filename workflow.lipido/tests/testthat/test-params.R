@@ -227,7 +227,7 @@ testthat::test_that("cwt_param", {
 
 testthat::test_that("obw_param", {
     obj <- xcms::ObiwarpParam(
-        binSize = 1,
+        binSize = .1,
         centerSample = integer(),
         response = 1L,
         distFun = "cor_opt",
@@ -241,7 +241,7 @@ testthat::test_that("obw_param", {
     testthat::expect_equal(
         params_to_dataframe(obj),
         data.frame(
-            binSize = 1,
+            binSize = .1,
             response = 1,
             distFun = "cor_opt",
             gapInit = .3,
@@ -308,7 +308,7 @@ testthat::test_that("check_ms_process_args", {
         firstBaselineCheck = FALSE
     )
     obw_params <- xcms::ObiwarpParam(
-        binSize = 1,
+        binSize = .1,
         centerSample = integer(),
         response = 1L,
         distFun = "cor_opt",
