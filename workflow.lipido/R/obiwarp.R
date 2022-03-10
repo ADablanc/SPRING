@@ -74,7 +74,10 @@ obiwarp <- function(sqlite_path,
             mzval <- length(mz)
 
             ## median difference between spectras' scan times.
-            diff_scantime <- stats::median(c(diff(center_scantime), diff(scantime)))
+            diff_scantime <- stats::median(
+                c(diff(center_scantime),
+                  diff(scantime))
+            )
 
             # check if there is some gaps in the scantime of the center profile
             center_scantime_gap <- which(

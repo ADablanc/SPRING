@@ -4,25 +4,25 @@
 \alias{group_peaks}
 \title{Group peaklists}
 \usage{
-group_peaks(ms_files, pd_params, operator, show_pb)
+group_peaks(xsets, pd_params, operator = foreach::"\%do\%", pb_fct = NULL)
 }
 \arguments{
-\item{ms_files}{XCMSnExp object with peaklists (not checked)}
+\item{xsets}{`xcmsSet` object with peaklists}
 
-\item{pd_params}{PeakDensityParam object created by XCMS}
+\item{pd_params}{`PeakDensityParam` object created by XCMS}
 
-\item{operator}{function to use for parallelization (`\%dopar\%`) 
+\item{operator}{`function` to use for parallelization (`\%dopar\%`)
 or not (`\%do\%`)}
 
-\item{show_pb}{boolean indicate if we print a progress bar or not}
+\item{pb_fct}{`function` used to update the progress bar}
 }
 \value{
-XCMSnExp object with the grouped info
+`xcmsSet` object with the grouped peaks
 }
 \description{
-Group multiple peaklists from a XCMSnExp object
+Group multiple peaklists from a `xcmsSet` object
 Use the method group.density from XCMS
-The function was modified to parallelize & 
+The function was modified to parallelize &
      output the progression on a progress bar
 }
 \seealso{
