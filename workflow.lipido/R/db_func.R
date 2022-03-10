@@ -31,6 +31,7 @@ db_connect <- function(sqlite_path) {
 #' @param overwrite `logical(1)` should overwrite if an existing table already
 #' exists with that name ?
 #' @param append `logical(1)` should append to the table if it exists
+#' @param ... other parameters passed on the method
 #'
 #' @seealso `DBI::dbWriteTable`
 dbWriteTable <- function(db,
@@ -69,6 +70,7 @@ dbWriteTable <- function(db,
 #'
 #' @param db `SQLiteConnection`
 #' @param query `character(1)` query to send
+#' @param ... other parameters passed on the method
 #'
 #' @seealso `DBI::dbExecute`
 dbExecute <- function(db, query, ...) {
@@ -95,6 +97,7 @@ dbExecute <- function(db, query, ...) {
 #'
 #' @param db `SQLiteConnection`
 #' @param query `character(1)`
+#' @param ... other parameters passed on the method
 #'
 #' @return `DataFrame` of the result query
 #'
@@ -125,6 +128,7 @@ dbGetQuery <- function(db, query, ...) {
 #'
 #' @param db `SQLiteConnection`
 #' @param table_name `character(1)` name of the table queried
+#' @param ... other parameters passed on the method
 #'
 #' @return `DataFrame` of the table
 #'

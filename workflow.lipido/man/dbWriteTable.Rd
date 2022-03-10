@@ -17,6 +17,8 @@ dbWriteTable(db, table_name, data, overwrite = FALSE, append = FALSE, ...)
 exists with that name ?}
 
 \item{append}{`logical(1)` should append to the table if it exists}
+
+\item{...}{other parameters passed on the method}
 }
 \description{
 Override the default function `DBI::dbWriteTable` in order to force the

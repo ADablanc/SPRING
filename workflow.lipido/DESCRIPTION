@@ -39,4 +39,8 @@ Imports:
     rintrojs,
     shinydashboard,
     shiny,
-    methods
+    methods,
+    RSQLite,
+    blob,
+    plyr,
+    pryr

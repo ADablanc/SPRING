@@ -10,6 +10,8 @@ dbReadTable(db, table_name, ...)
 \item{db}{`SQLiteConnection`}
 
 \item{table_name}{`character(1)` name of the table queried}
+
+\item{...}{other parameters passed on the method}
 }
 \value{
 `DataFrame` of the table

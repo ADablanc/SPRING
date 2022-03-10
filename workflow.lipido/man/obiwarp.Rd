@@ -20,6 +20,9 @@ obiwarp(
 \item{samples}{`character vector` name of the samples in the database, needed
 to load the `xcmsRaw` objects}
 
+\item{polarity}{`character(1)` "negative" or "positive", needed to load the
+good `xcmsRaw` objects}
+
 \item{xsets}{`xcmsSet list`}
 
 \item{obw_params}{`ObiwarpParam` object}

@@ -10,6 +10,8 @@ dbExecute(db, query, ...)
 \item{db}{`SQLiteConnection`}
 
 \item{query}{`character(1)` query to send}
+
+\item{...}{other parameters passed on the method}
 }
 \description{
 Override the default function `DBI::dbExecute` in order to force the

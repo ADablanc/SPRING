@@ -10,6 +10,8 @@ dbGetQuery(db, query, ...)
 \item{db}{`SQLiteConnection`}
 
 \item{query}{`character(1)`}
+
+\item{...}{other parameters passed on the method}
 }
 \value{
 `DataFrame` of the result query

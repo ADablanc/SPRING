@@ -13,7 +13,7 @@ find_chrompeaks <- function(ms_file, cwt_params) {
         return(NULL)
     }
 
-    object <- new("xcmsSet")
+    object <- methods::new("xcmsSet")
 
     file <- ms_file@filepath[1]
     object@filepaths <- file

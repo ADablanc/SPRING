@@ -12,8 +12,8 @@
 #' @param sqlite_path `character(1)` path to the sqlite file
 #' @param samples `character vector` name of the samples in the database, needed
 #' to load the `xcmsRaw` objects
-#' @polarity `character(1)` "negative" or "positive", needed to load the good
-#' `xcmsRaw` objects
+#' @param polarity `character(1)` "negative" or "positive", needed to load the
+#' good `xcmsRaw` objects
 #' @param xsets `xcmsSet list`
 #' @param obw_params `ObiwarpParam` object
 #' @param operator function to use for parallelization (`\%dopar\%`)
@@ -40,6 +40,7 @@ obiwarp <- function(sqlite_path,
 
     center <- which.max(table(peakmat[, "sample"]))
 
+    s <- NULL # just to get rid of the NOTE when checking package
     rtimecor <- operator(
         foreach::foreach(
             s = iterators::iter(seq(1, length(samples))[-center]),
@@ -73,7 +74,7 @@ obiwarp <- function(sqlite_path,
             mzval <- length(mz)
 
             ## median difference between spectras' scan times.
-            diff_scantime <- median(c(diff(center_scantime), diff(scantime)))
+            diff_scantime <- stats::median(c(diff(center_scantime), diff(scantime)))
 
             # check if there is some gaps in the scantime of the center profile
             center_scantime_gap <- which(
@@ -205,7 +206,7 @@ obiwarp <- function(sqlite_path,
         round(rtcor[[i]] - rtimecor[[i]], 2))
 
     for (i in seq(length(samples))) {
-        cfun <- stepfun(
+        cfun <- stats::stepfun(
             rtcor[[i]][-1] - diff(rtcor[[i]]) / 2,
             rtcor[[i]] - rtdevsmo[[i]]
         )
