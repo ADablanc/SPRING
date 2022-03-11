@@ -72,16 +72,16 @@ testthat::test_that("group peaks", {
             cwt_params
         )
     )
-    xsets <- obiwarp(
+    xset <- obiwarp(
         sqlite_path,
         sample_names,
         "positive",
         xsets,
         obw_params
     )
-    xsets <- group_peaks(xsets, pd_params)
+    xset <- group_peaks(xset, pd_params)
     testthat::expect_equal(
-        data.frame(xsets@groups),
+        data.frame(xset@groups),
         data.frame(
             mzmed = c(408.251325886321, 426.262123243348, 427.265526700411,
                       428.267904280982, 428.268229167555, 429.27060132947,

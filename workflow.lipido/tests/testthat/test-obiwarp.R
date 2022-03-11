@@ -64,7 +64,7 @@ testthat::test_that("obiwarp", {
             cwt_params
         )
     )
-    xsets <- obiwarp(
+    xset <- obiwarp(
         sqlite_path,
         sample_names,
         "positive",
@@ -73,7 +73,7 @@ testthat::test_that("obiwarp", {
     )
     expect_equal(
         lapply(seq(sample_names), function(i)
-            xsets@rt$raw[[i]] - xsets@rt$corrected[[i]]),
+            xset@rt$raw[[i]] - xset@rt$corrected[[i]]),
         list(
             rep(0, 247),
             c(0.00200073242186249, -0.215306640624988, -0.428853271484371,

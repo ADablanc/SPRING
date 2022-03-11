@@ -4,30 +4,101 @@
 \alias{annotate_peaklists}
 \title{Annotate peaklists}
 \usage{
-annotate_peaklists(ms_files, ann_params, show_pb, sigma = 6, perfwhm = 0.6)
+annotate_peaklists(
+  xset,
+  samples,
+  ann_params,
+  pb_fct = NULL,
+  sigma = 6,
+  perfwhm = 0.6
+)
 }
 \arguments{
-\item{ms_files}{XCMSnExp}
+\item{xset}{`xcmsSet`}
 
-\item{ann_params}{AnnotationParameter object}
+\item{samples}{`character vector` sample names}
 
-\item{show_pb}{boolean print progression bar}
+\item{ann_params}{`AnnotationParameter`}
 
-\item{sigma}{ignore}
+\item{pb_fct}{`function` used to update the progress bar}
 
-\item{perfwhm}{ignore}
+\item{sigma}{`numeric(1)` ignore}
+
+\item{perfwhm}{`numeric(1)` ignore}
 }
 \value{
-a XCMSnExp with a new slot `ann` which contains a dataframe
+`xcmsSet` with three additional slots :
+\itemize{
+    \item ann `DataFrame` each line represent an hypothesis annotation
+    it contains the columns :
+    \itemize{
+        \item group_id `integer` group ID
+        \item name `character` name
+        \item formula `character` chemical formula
+        \item adduct `character` adduct form
+        \item ion_formula `character` ion chemical formula
+        \item rtdiff `numeric` retention time difference between the measured
+         & the expected
+        \item rt `numeric` retention time measured meanned accross the
+        samples
+        \item rtmin `numeric` born min of retention time measured accross the
+        samples
+        \item rtmax `numeric` born max of the retention time measured accross
+         the samples
+        \item nsamples `integer` number of samples where the compound was
+        found
+        \item best_score `numeric` best isotopic score seen
+        \item best_deviation_mz `numeric` best m/z deviation seen
+        \item best_npeak `integer` best number of isotopologues found
+        \item ... `integer` a column for each sample which contain the
+        spectra ID
+    }
+    \item spectras `DataFrame`, each line correspond to a peak annotated with
+     its corresponding theoretical peak or the theoretical peak missed,
+     with the columns :
+    \itemize{
+        \item spectra_id `integer` spectra ID
+        \item feature_id `integer` feature ID
+        \item mz `numeric` m/z
+        \item int `numeric` area integrated
+        \item abd `numeric` relative abundance
+        \item ion_id_theo `integer` ignore
+        \item mz_theo `numeric` theoretical m/z
+        \item abd_theo `numeric` theoretical relative abundance
+        \item iso_theo `character` theoretical isotopologue annotation
+    }
+    \item spectra_infos `DataFrame`, each line correspond to a spectra
+    annotated, with the columns :
+    \itemize{
+        \item spectra_id `integer` spectra ID
+        \item score `numeric` isotopic score observed
+        \item deviation_mz `numeric` m/z deviation observed
+        \item npeak `integer` number of isotopologue annotated
+        \item basepeak_int `numeric` area of the basepeak annotated
+        \item sum_int `numeric` cumulative sum off all the area of the
+        isotopologues annotated
+        \item rt `numeric` retention time
+    }
+}
 }
 \description{
-Annotate peaklists from an XCMSnExp with grouping information
+Annotate peaklists from a `xcmsSet` with grouping information
 it loop through the peaks grouped dataframe
-if the peak match with one of the theoretical monoisotopic from database 
-     it will search all isotopologue grouped in 
+if the peak match with one of the theoretical monoisotopic from database
+     it will search all isotopologue grouped in
      the rt window of the peak +/- fwhm
-it compare then the spectra obtained against the theoretical spectra 
+it compare then the spectra obtained against the theoretical spectra
      & compute an isotopic score
-at the end it will merge rows which corresponds to the same annotation but 
-     were not grouped together by XCMS (parameters not right ?)
+The scoring algorithm will search each corresponding observed peak
+     with theoreticals
+Therefore it contains some important rules :
+\itemize{
+     \item an observed peak can only correspond to ONE theoretical peak
+      and vice versa
+     \item the relative abundance peak must not be under a tolerance
+     compared to the theoretical
+     but it can be higher since a peak can hide another
+     \item the A+x is not searched if the A+x-1 is not found
+     (the loop search is stopped)
+}
 }

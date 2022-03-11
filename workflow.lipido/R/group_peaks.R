@@ -6,7 +6,7 @@
 #' The function was modified to parallelize &
 #'      output the progression on a progress bar
 #'
-#' @param xsets `xcmsSet` object with peaklists
+#' @param xset `xcmsSet` object with peaklists
 #' @param pd_params `PeakDensityParam` object created by XCMS
 #' @param operator `function` to use for parallelization (`\%dopar\%`)
 #'      or not (`\%do\%`)
@@ -15,11 +15,11 @@
 #' @return `xcmsSet` object with the grouped peaks
 #'
 #' @seealso xcms::group.density
-group_peaks <- function(xsets,
+group_peaks <- function(xset,
                         pd_params,
                         operator = foreach::"%do%",
                         pb_fct = NULL) {
-    peaks <- xsets@peaks
+    peaks <- xset@peaks
 
     sample_groups <- as.character(pd_params@sampleGroups)
     sample_group_table <- table(sample_groups)
@@ -106,7 +106,7 @@ group_peaks <- function(xsets,
         rownames(groups) <- NULL
     }
 
-    xsets@groups <- as.matrix(groups[, -match("peakidx", colnames(groups))])
-    xsets@groupidx <- groups$peakidx
-    xsets
+    xset@groups <- as.matrix(groups[, -match("peakidx", colnames(groups))])
+    xset@groupidx <- groups$peakidx
+    xset
 }

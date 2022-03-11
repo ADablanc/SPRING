@@ -4,28 +4,60 @@
 \alias{filtrate_ann}
 \title{Filtrate annotation dataframe}
 \usage{
-filtrate_ann(ann, sigma = 6, perfwhm = 0.6)
+filtrate_ann(ann, spectra_infos, sigma = 6, perfwhm = 0.6)
 }
 \arguments{
-\item{ann}{the annotation dataframe obtained 
-from the function `annotate_peaklists`}
+\item{ann}{`DataFrame` each line correspond to a compound found
+with the columns:
+\itemize{
+    \item group_id `integer` group ID
+    \item name `character` name
+    \item formula `character` chemical formula
+    \item adduct `character` adduct form
+    \item ion_formula `character` ion chemical formula
+    \item rtdiff `numeric` retention time difference between the measured &
+    the expected
+    \item rt `numeric` retention time measured meanned accross the samples
+    \item rtmin `numeric` born min of retention time measured accross the
+    samples
+    \item rtmax `numeric` born max of the retention time measured accross the
+     samples
+    \item nsamples `integer` number of samples where the compound was found
+    \item best_score `numeric` best isotopic score seen
+    \item best_deviation_mz `numeric` best m/z deviation seen
+    \item best_npeak `integer` best number of isotopologues found
+    \item ... `integer` a column for each sample which contain the spectra ID
+}}
 
-\item{sigma}{ignore}
+\item{spectra_infos}{`DataFrame`, each line correspond to a spectra
+annotated, with the columns :
+\itemize{
+    \item spectra_id `integer` spectra ID
+    \item score `numeric` isotopic score observed
+    \item deviation_mz `numeric` m/z deviation observed
+    \item npeak `integer` number of isotopologue annotated
+    \item basepeak_int `numeric` area of the basepeak annotated
+    \item sum_int `numeric` cumulative sum off all the area of the
+    isotopologues annotated
+    \item rt `numeric` retention time
+}}
 
-\item{perfwhm}{ignore}
+\item{sigma}{`numeric(1)` ignore}
+
+\item{perfwhm}{`numeric(1)` ignore}
 }
 \value{
 the annotation dataframe filtered & regrouped
 }
 \description{
 Filtrate annotation dataframe
-Foreach compound annotation it will check if 
+Foreach compound annotation it will check if
      the same annotations fall in the same rT
-For that it will choose a referenced spectra 
-     (the one which as the most isotopologue & 
+For that it will choose a referenced spectra
+     (the one which as the most isotopologue &
          the best isotopic score & the less retention time difference)
-It will calculate a retention time window which correspond to 
+It will calculate a retention time window which correspond to
      the rT of the referenced spectra +/- fwhm
-It will also regroup lines which correspond 
+It will also regroup lines which correspond
      to the same annotations but were not grouped by XCMS
 }

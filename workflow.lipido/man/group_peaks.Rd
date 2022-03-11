@@ -4,10 +4,10 @@
 \alias{group_peaks}
 \title{Group peaklists}
 \usage{
-group_peaks(xsets, pd_params, operator = foreach::"\%do\%", pb_fct = NULL)
+group_peaks(xset, pd_params, operator = foreach::"\%do\%", pb_fct = NULL)
 }
 \arguments{
-\item{xsets}{`xcmsSet` object with peaklists}
+\item{xset}{`xcmsSet` object with peaklists}
 
 \item{pd_params}{`PeakDensityParam` object created by XCMS}
 

@@ -33,10 +33,10 @@ obiwarp <- function(sqlite_path,
                     pb_fct = NULL) {
     rtcor <- lapply(xsets, function(xset) xset@rt[[1]])
     mzranges <- lapply(xsets, function(xset) xset@mzrange)
-    xsets <- do.call(c, xsets)
-    xsets@rt <- list(raw = rtcor, corrected = rtcor)
+    xset <- do.call(c, xsets)
+    xset@rt <- list(raw = rtcor, corrected = rtcor)
 
-    peakmat <- xsets@peaks
+    peakmat <- xset@peaks
 
     center <- which.max(table(peakmat[, "sample"]))
 
@@ -200,7 +200,7 @@ obiwarp <- function(sqlite_path,
 
     # don't forget to add the rtcor of the center sample
     rtimecor <- append(rtimecor, rtcor[center], after = center - 1)
-    xsets@rt$corrected <- rtimecor
+    xset@rt$corrected <- rtimecor
     # Why are we rounding here, but NOT in the retcor.peakgroups?
     # -> issue #122
     # The point is we're using the un-rounded adjusted rt for the rt, BUT
@@ -220,6 +220,6 @@ obiwarp <- function(sqlite_path,
             peakmat[sidx, c("rt", "rtmin", "rtmax")])
     }
 
-    xsets@peaks <- peakmat
-    xsets
+    xset@peaks <- peakmat
+    xset
 }
