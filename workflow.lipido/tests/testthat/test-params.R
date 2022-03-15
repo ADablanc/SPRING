@@ -291,7 +291,7 @@ testthat::test_that("check_ms_process_args", {
     sqlite_path <- tempfile(fileext = ".sqlite")
     converter <- "~/GitHub/workflow.lipido/pwiz/msconvert.exe"
     filter_params <- FilterParam(
-        mz_range = c(300, 1000),
+        mz_range = c(200, 1000),
         rt_range = c(.7 * 60, 6.3 * 60)
     )
     cwt_params <- xcms::CentWaveParam(

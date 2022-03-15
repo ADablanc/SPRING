@@ -33,30 +33,48 @@ obiwarp <- function(sqlite_path,
                     pb_fct = NULL) {
     rtcor <- lapply(xsets, function(xset) xset@rt[[1]])
     mzranges <- lapply(xsets, function(xset) xset@mzrange)
+    peakmat <- do.call(rbind, lapply(seq(xsets), function(i)
+        if (nrow(xsets[[i]]@peaks) > 0) {
+            cbind(xsets[[i]]@peaks[, -23], sample = i)
+        } else {
+            xsets[[i]]@peaks
+        }
+    ))
     xset <- do.call(c, xsets)
     xset@rt <- list(raw = rtcor, corrected = rtcor)
 
-    peakmat <- xset@peaks
-
-    center <- which.max(table(peakmat[, "sample"]))
+    if (length(xsets) == 1) {
+        return(xset)
+    }
+    if (nrow(peakmat) == 0) {
+        center <- 1
+    } else {
+        center <- as.integer(names(which.max(table(peakmat[, "sample"]))))
+    }
 
     s <- NULL # just to get rid of the NOTE when checking package
     rtimecor <- operator(
         foreach::foreach(
             s = iterators::iter(seq(1, length(samples))[-center]),
             .combine = append,
-            .options.snow = if (is.null(pb_fct)) {
-                NULL
-            } else {
-                list(progress = function(n) {
-                    pb_fct(n, length(samples) - 1, "Correct rT")
-                })
-            }
+            .options.snow = list(
+                progress = if (is.null(pb_fct)) {
+                    NULL
+                } else {
+                    function(n) {
+                        pb_fct(n, length(samples) - 1, "Correct rT")
+                    }
+                }
+            )
         ), {
             db <- db_connect(sqlite_path)
             center_profile <- db_get_profile(db, samples[center], polarity)
             profile <- db_get_profile(db, samples[s], polarity)
             RSQLite::dbDisconnect(db)
+
+            if (is.null(profile)) {
+                return(list(rtcor[[s]]))
+            }
 
             center_scantime <- rtcor[[center]]
             center_mzrange <- mzranges[[center]]
@@ -209,6 +227,9 @@ obiwarp <- function(sqlite_path,
         round(rtcor[[i]] - rtimecor[[i]], 2))
 
     for (i in seq(length(samples))) {
+        if (length(rtcor[[i]]) == 0) {
+            next
+        }
         cfun <- stats::stepfun(
             rtcor[[i]][-1] - diff(rtcor[[i]]) / 2,
             rtcor[[i]] - rtdevsmo[[i]]
@@ -216,8 +237,11 @@ obiwarp <- function(sqlite_path,
         rtcor[[i]] <- rtcor[[i]] - rtdevsmo[[i]]
 
         sidx <- which(peakmat[, "sample"] == i)
-        peakmat[sidx, c("rt", "rtmin", "rtmax")] <- cfun(
-            peakmat[sidx, c("rt", "rtmin", "rtmax")])
+        if (length(sidx) > 0) {
+            peakmat[sidx, c("rt", "rtmin", "rtmax")] <- cfun(
+                peakmat[sidx, c("rt", "rtmin", "rtmax")]
+            )
+        }
     }
 
     xset@peaks <- peakmat

@@ -1,4 +1,5 @@
 testthat::test_that("group peaks", {
+    # initialize parameters
     raw_files <- c(
         system.file(
             "testdata",
@@ -9,6 +10,11 @@ testthat::test_that("group peaks", {
             "testdata",
             "220221CCM_global_POS_02_ssleu_filtered.mzML",
             package = "workflow.lipido"
+        ),
+        system.file(
+            "testdata",
+            "220221CCM_global_POS_03_ssleu_filtered.mzML",
+            package = "workflow.lipido"
         )
     )
     sqlite_path <- tempfile(fileext = ".sqlite")
@@ -16,8 +22,21 @@ testthat::test_that("group peaks", {
         "~/GitHub/workflow.lipido/pwiz/msconvert.exe"
     )
     filter_params <- FilterParam(
-        mz_range = c(300, 1000),
+        mz_range = c(200, 1000),
         rt_range = c(.7 * 60, 6.3 * 60)
+    )
+    cwt_params_zero_peaks <- xcms::CentWaveParam(
+        ppm = .01,
+        peakwidth = c(4, 39),
+        snthresh = 1,
+        prefilter = c(2, 815),
+        mzCenterFun = "wMean",
+        integrate = 1,
+        mzdiff = .041,
+        fitgauss = FALSE,
+        noise = 0,
+        verboseColumns = TRUE,
+        firstBaselineCheck = FALSE
     )
     cwt_params <- xcms::CentWaveParam(
         ppm = 30,
@@ -53,8 +72,10 @@ testthat::test_that("group peaks", {
         maxFeatures = 500
     )
 
+    # record files
     db <- db_connect(sqlite_path)
     sample_names <- tools::file_path_sans_ext(basename(raw_files))
+    sample_names[3] <- "220221CCM_global_POS_03_ssleu_filtered"
     db_record_samples(db, sample_names)
     a <- lapply(raw_files, function(raw_file)
         import_ms_file(
@@ -66,17 +87,139 @@ testthat::test_that("group peaks", {
             filter_params
         )
     )
+
+    # 1st test: with no file
     xsets <- lapply(sample_names, function(sample_name)
         find_chrompeaks(
             db_read_ms_file(db, sample_name, "positive"),
-            cwt_params
+            cwt_params_zero_peaks,
+            sample_name
         )
     )
     xset <- obiwarp(
         sqlite_path,
-        sample_names,
+        sample_names[3],
         "positive",
-        xsets,
+        xsets[3],
+        obw_params
+    )
+    pd_params@sampleGroups <- 1
+    xset <- group_peaks(xset, pd_params)
+    testthat::expect_equal(
+        xset@groups,
+        matrix(, nrow = 0, ncol = 8, dimnames = list(
+            c(), c("mzmed", "mzmin", "mzmax", "rtmed", "rtmin", "rtmax",
+                   "npeaks", "1"))
+        )
+    )
+
+    # 2nd test: with no peaks
+    xset <- obiwarp(
+        sqlite_path,
+        sample_names[1:2],
+        "positive",
+        xsets[1:2],
+        obw_params
+    )
+    pd_params@sampleGroups <- 1:2
+    xset <- group_peaks(xset, pd_params)
+    testthat::expect_equal(
+        xset@groups,
+        matrix(, nrow = 0, ncol = 9, dimnames = list(
+            c(), c("mzmed", "mzmin", "mzmax", "rtmed", "rtmin", "rtmax",
+                   "npeaks", "1", "2"))
+        )
+    )
+
+    # 3rd test: with only one sample
+    xsets[[1]] <- find_chrompeaks(
+        db_read_ms_file(db, sample_names[1], "positive"),
+        cwt_params,
+        sample_names[1]
+    )
+    xset <- obiwarp(
+        sqlite_path,
+        sample_names[1],
+        "positive",
+        xsets[1],
+        obw_params
+    )
+    pd_params@sampleGroups <- 1
+    xset <- group_peaks(xset, pd_params)
+    testthat::expect_equal(
+        data.frame(xset@groups),
+        data.frame(
+            mzmed = c(426.261913381751, 427.265348519813, 428.267835743959,
+                      428.267904280982, 428.267896400125, 429.270216373426,
+                      429.270493526998, 429.270341280206, 464.447304014051,
+                      504.440032161331, 505.443534603),
+            mzmin = c(426.261913381751, 427.265348519813, 428.267835743959,
+                      428.267904280982, 428.267896400125, 429.270175958258,
+                      429.270493526998, 429.270341280206, 464.447304014051,
+                      504.440032161331, 505.443534603),
+            mzmax = c(426.261913381751, 427.265348519813, 428.267835743959,
+                      428.267904280982, 428.267896400125, 429.270256788594,
+                      429.270493526998, 429.270341280206, 464.447304014051,
+                      504.440032161331, 505.443534603),
+            rtmed = c(286.81, 286.81, 279.407, 291.569, 260.368, 296.5925,
+                      279.407, 258.253, 197.973, 197.444, 197.444),
+            rtmin = c(286.81, 286.81, 279.407, 291.569, 260.368, 291.569,
+                      279.407, 258.253, 197.973, 197.444, 197.444),
+            rtmax = c(286.81, 286.81, 279.407, 291.569, 260.368, 301.616,
+                      279.407, 258.253, 197.973, 197.444, 197.444),
+            npeaks = c(1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1),
+            `1` = c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+        )
+    )
+
+    # 4th test: only one sample has peaks
+    xset <- obiwarp(
+        sqlite_path,
+        sample_names[1:2],
+        "positive",
+        xsets[1:2],
+        obw_params
+    )
+    pd_params@sampleGroups <- 1:2
+    xset <- group_peaks(xset, pd_params)
+    testthat::expect_equal(
+        data.frame(xset@groups),
+        data.frame(
+            mzmed = c(426.261913381751, 427.265348519813, 428.267835743959,
+                      428.267904280982, 428.267896400125, 429.270216373426,
+                      429.270493526998, 429.270341280206, 464.447304014051,
+                      504.440032161331, 505.443534603),
+            mzmin = c(426.261913381751, 427.265348519813, 428.267835743959,
+                      428.267904280982, 428.267896400125, 429.270175958258,
+                      429.270493526998, 429.270341280206, 464.447304014051,
+                      504.440032161331, 505.443534603),
+            mzmax = c(426.261913381751, 427.265348519813, 428.267835743959,
+                      428.267904280982, 428.267896400125, 429.270256788594,
+                      429.270493526998, 429.270341280206, 464.447304014051,
+                      504.440032161331, 505.443534603),
+            rtmed = c(286.81, 286.81, 279.407, 291.569, 260.368, 296.5925,
+                      279.407, 258.253, 197.973, 197.444, 197.444),
+            rtmin = c(286.81, 286.81, 279.407, 291.569, 260.368, 291.569,
+                      279.407, 258.253, 197.973, 197.444, 197.444),
+            rtmax = c(286.81, 286.81, 279.407, 291.569, 260.368, 301.616,
+                      279.407, 258.253, 197.973, 197.444, 197.444),
+            npeaks = c(1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1),
+            `1` = c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+            `2` = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        )
+    )
+
+    # 5th test: normal
+    xsets[[2]] <- find_chrompeaks(
+        db_read_ms_file(db, sample_names[2], "positive"),
+        cwt_params,
+        sample_names[2]
+        )
+    xset <- obiwarp(
+        sqlite_path,
+        sample_names[1:2],
+        "positive",
+        xsets[1:2],
         obw_params
     )
     xset <- group_peaks(xset, pd_params)
@@ -104,6 +247,44 @@ testthat::test_that("group peaks", {
             npeaks = c(1, 2, 2, 3, 2, 2, 3, 1, 1, 2, 2, 2),
             X1 = c(0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1),
             X2 = c(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1)
+        )
+    )
+
+    # 6th test: with an empty ms file
+    xset <- obiwarp(
+        sqlite_path,
+        sample_names,
+        "positive",
+        xsets,
+        obw_params
+    )
+    pd_params@sampleGroups <- 1:3
+    xset <- group_peaks(xset, pd_params)
+    testthat::expect_equal(
+        data.frame(xset@groups),
+        data.frame(
+            mzmed = c(408.251325886321, 426.262123243348, 427.265526700411,
+                      428.267904280982, 428.268229167555, 429.27060132947,
+                      429.270256788594, 429.270493526998, 448.244170162955,
+                      464.447379285654, 504.440256583886, 505.443684675365),
+            mzmin = c(408.251325886321, 426.261913381751, 427.265348519813,
+                      428.267835743959, 428.267896400125, 429.270341280206,
+                      429.270175958258, 429.270493526998, 448.244170162955,
+                      464.447304014051, 504.440032161331, 505.443534603),
+            mzmax = c(408.251325886321, 426.262333104945, 427.265704881008,
+                      428.268466489791, 428.268561934985, 429.270861378734,
+                      429.270782294993, 429.270493526998, 448.244170162955,
+                      464.447454557257, 504.44048100644, 505.44383474773),
+            rtmed = c(286.278, 286.8085, 286.8085, 279.407, 259.3105, 259.8395,
+                      301.616, 279.407, 286.807, 201.573, 201.3085, 201.044),
+            rtmin = c(286.278, 286.807, 286.807, 278.875, 258.253, 258.253,
+                      291.569, 279.407, 286.807, 197.973, 197.444, 197.444),
+            rtmax = c(286.278, 286.81, 286.81, 291.569, 260.368, 261.426,
+                      306.914, 279.407, 286.807, 205.173, 205.173, 204.644),
+            npeaks = c(1, 2, 2, 3, 2, 2, 3, 1, 1, 2, 2, 2),
+            X1 = c(0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1),
+            X2 = c(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1),
+            X3 = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
         )
     )
     RSQLite::dbDisconnect(db)

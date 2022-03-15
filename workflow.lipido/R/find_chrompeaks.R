@@ -6,23 +6,35 @@
 #'
 #' @param ms_file `xcmsRaw` object
 #' @param cwt_params `CentwaveParam` object
+#' @param sample_name `character(1)` sample name
 #'
 #' @return `xcmsSet` object
-find_chrompeaks <- function(ms_file, cwt_params) {
-    if (is.null(ms_file)) {
-        return(NULL)
-    }
+find_chrompeaks <- function(ms_file, cwt_params, sample_name) {
+    empty_peaklist <- matrix(, nrow = 0, ncol = 23, dimnames = list(
+        c(), c("mz", "mzmin", "mzmax", "rt", "rtmin", "rtmax", "into",
+               "intb", "maxo", "sn", "egauss", "mu", "sigma", "h", "f",
+               "dppm", "scale", "scpos", "scmin", "scmax", "lmin", "lmax",
+               "sample")
+    ))
 
     object <- methods::new("xcmsSet")
+
+    if (is.null(ms_file)) {
+        object@phenoData <- data.frame(stats::runif(1))
+        rownames(object@phenoData) <- sample_name
+        object@rt <- list(c())
+        attributes(object)$mzrange <- c(0, 0)
+        object@peaks <- empty_peaklist
+        return(object)
+    }
 
     file <- ms_file@filepath[1]
     object@filepaths <- file
 
     ## determine experimental design
     from_paths <- xcms::phenoDataFromPaths(file)
-    snames <- rownames(from_paths)
     object@phenoData <- from_paths
-    rownames(object@phenoData) <- snames
+    rownames(object@phenoData) <- sample_name
     object@profinfo <- xcms::profinfo(ms_file)
 
     date <- date()
@@ -49,11 +61,12 @@ find_chrompeaks <- function(ms_file, cwt_params) {
     )))
 
     if (is.null(peaks)) {
-        return(NULL)
+        peaks <- empty_peaklist
     } else if (nrow(peaks) == 0) {
-        return(NULL)
+        peaks <- empty_peaklist
+    } else {
+        peaks <- cbind(peaks, sample = 1)
     }
-    peaks <- cbind(peaks, sample = 1)
 
     proclist <- xcms:::ProcessHistory(
         info. = sprintf(

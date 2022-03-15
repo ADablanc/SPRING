@@ -4,7 +4,7 @@
 \alias{run_shiny_app}
 \title{Run Shiny app}
 \usage{
-run_shiny_app(log_file_path = "~/.workflow.lipido.log")
+run_shiny_app(log_file_path = NULL, converter = "pwiz/msconvert.exe")
 }
 \arguments{
 \item{log_file_path}{path to the file were to write the stderr & stdout}

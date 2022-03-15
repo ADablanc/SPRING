@@ -4,12 +4,14 @@
 \alias{find_chrompeaks}
 \title{Peak picking}
 \usage{
-find_chrompeaks(ms_file, cwt_params)
+find_chrompeaks(ms_file, cwt_params, sample_name)
 }
 \arguments{
 \item{ms_file}{`xcmsRaw` object}
 
 \item{cwt_params}{`CentwaveParam` object}
+
+\item{sample_name}{`character(1)` sample name}
 }
 \value{
 `xcmsSet` object

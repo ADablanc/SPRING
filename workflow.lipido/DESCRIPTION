@@ -42,5 +42,4 @@ Imports:
     methods,
     RSQLite,
     blob,
-    plyr,
     pryr

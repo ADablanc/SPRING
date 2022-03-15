@@ -20,6 +20,18 @@ group_peaks <- function(xset,
                         operator = foreach::"%do%",
                         pb_fct = NULL) {
     peaks <- xset@peaks
+    if (nrow(peaks) == 0) {
+        sample_names <- rownames(xset@phenoData)
+        xset@groups <- matrix(, nrow = 0, ncol = 7 + length(sample_names),
+                              dimnames = list(c(), c("mzmed", "mzmin", "mzmax",
+                                                     "rtmed", "rtmin", "rtmax",
+                                                     "npeaks",
+                                                     seq(length(sample_names)))
+                              )
+        )
+        xset@groupidx <- list()
+        return(xset)
+    }
 
     sample_groups <- as.character(pd_params@sampleGroups)
     sample_group_table <- table(sample_groups)
@@ -59,13 +71,15 @@ group_peaks <- function(xset,
         foreach::foreach(
             i = seq_len(length(mass) - 2),
             .combine = rbind,
-            .options.snow = if (is.null(pb_fct)) {
-                NULL
-            } else {
-                list(progress = function(n) {
-                    pb_fct(n, length(mass) - 2, "Group")
+            .options.snow = list(
+                progress = if (is.null(pb_fct)) {
+                    NULL
+                } else {
+                    function(n) {
+                        pb_fct(n, length(mass) - 2, "Group")
+                    }
                 }
-            )}
+            )
         ), {
             start_idx <- masspos[i]
             end_idx <- masspos[i + 2] - 1

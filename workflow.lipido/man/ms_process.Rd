@@ -2,86 +2,101 @@
 % Please edit documentation in R/process.R
 \name{ms_process}
 \alias{ms_process}
-\title{Execute The step "Process"}
+\title{Launch workflow}
 \usage{
 ms_process(
-  mzxml_files,
+  raw_files,
+  sqlite_path,
+  converter,
   filter_params,
   cwt_params,
   obw_params,
   pd_params,
   ann_params,
   cores = parallel::detectCores(),
-  show_pb = TRUE
+  show_txt_pb = TRUE,
+  pb_fct = NULL
 )
 }
 \arguments{
-\item{mzxml_files}{vector of filepaths to the files}
+\item{raw_files}{`character vector` filepaths to the raw files}
 
-\item{filter_params}{FilterParam object}
+\item{sqlite_path}{`character(1)` filepath to the database to create}
 
-\item{cwt_params}{CentWaveParam object created by xcms}
+\item{converter}{`character(1)` filepath to the msconvert.exe}
 
-\item{obw_params}{ObiwarpParam object created by xcms}
+\item{filter_params}{`FilterParam` object}
 
-\item{pd_params}{PeakDensityParam object created by xcms}
+\item{cwt_params}{`CentwaveParam` object}
 
-\item{ann_params}{AnnotationParam object}
+\item{obw_params}{`ObiwarpParam` object}
 
-\item{cores}{numeric number of cores to use for the peakpicking 
-(one core = one file peakpicked)}
+\item{pd_params}{`PeakdensityParam` object}
 
-\item{show_pb}{boolean print a progress bar or not}
-}
-\value{
-XCMSnExp object
+\item{ann_params}{`AnnotationParam` object}
+
+\item{cores}{`integer(1)` number of cores to use to parallelize process}
+
+\item{show_txt_pb}{`boolean` should print a progress bar on the console ?}
+
+\item{pb_fct}{`function` used to update the progress bar. Only give if you
+intend to use a specific progress bar you created !!!}
 }
 \description{
-Execute the step "Process" of the workflow.
-it launch the substeps: 
+Launch the workflow on the raw files, which consist of the steps :
 \itemize{
-     \item peakpicking
-     \item rT correction
-     \item alignment
-     \item annotation
-}
-Some parameters have a default parameter. This is the case for : 
-\itemize{
-     \item verboseColumns is TRUE cause we want all the infos 
-         exported by XCMS
-     \item binSize is 1 cause i find it sufficient & 
-         1 is too high to perform a well alignment of the spectras
-     \item sampleGroups is equal to the length of the provided files
-         I prefer to apply some rules to filter later & that will allow
-         the possibility to change this anytime instead of re-run 
-         the entire process
-     \item minFraction is the minimum integer possible for the same 
-         reason than `sampleGroups`
-     \item minSamples is at 1, same reason than `sampleGroups`
-     \item maxFeatures is at 500 cause the workflow will probably 
-         need to deal with some huge datasets
-}
-}
-\examples{
-\dontrun{
-    mzxml_files <- c(
-        system.file("testdata", "200204PLF_QC01_pos_filtered.mzML", 
-             package = "workflow.lipido"), 
-        system.file("testdata", "200204PLF_QC02_pos_filtered.mzML", 
-             package = "workflow.lipido"))
-    cwt_params <- xcms::CentWaveParam(
-        ppm = 30, 
-        peakwidth = c(4, 39), 
-        snthresh = 6.5, 
-        prefilter = c(2, 815), 
-        mzdiff = .041, 
-        noise = 0, 
-        firstBaselineCheck = FALSE)
-    obw_params <- xcms::ObiwarpParam() 
-    pd_params <- xcms::PeakDensityParam(
-         bw = 5, 
-         binSize = .010
-    )
-    ms_process(mzxml_files, cwt_params, obw_params, pd_params)
+    \item check the parameters given + creation of the sqlite database where
+    the result will be recorded
+    \item convert each raw file in "positive" & "negative" mode with
+    msConvert. It also trim the file according the rt range and m/z range
+    specified in the filter_params with msconvert. Check with XCMS package
+    if the file can be converted. If the file is a CDF it will copy the file
+    instead. If the conversion failed & the file is a mzML or mzXML it will
+    copy the file instead and try to trim only the rt range. Record then a
+    `xcmsRaw` file and its corresponding profile matrix in the database, this
+     two object are compress into a blob object before inserting in the
+     database. These object are recorded in their corresponding "polarity"
+     column (a sample could contain a `xcmsRaw` in positive AND a `xcmsRaw`
+     in negative !).
+     \item launch workflow foreach polarity, this workflow consist of the
+     steps:
+     \itemize{
+        \item peak peacking with CentWave algorithm (it will create a list of
+        `xcmsSet` objects with the `xcmsRaw` loaded in the database)
+        \item alignment with obiwarp which is based on the complete mz-rt
+        data
+        \item group peaklists from a `xcmsSet` object using the density
+        method
+        \item annotate peaklists from a `xcmsSet`
+        it loop through the peaks grouped dataframe
+        if the peak match with one of the theoretical monoisotopic from
+            database it will search all isotopologue grouped in the rt window
+             of the peak +/- fwhm
+        it compare then the spectra obtained against the theoretical spectra
+            & compute an isotopic score
+        The scoring algorithm will search each corresponding observed peak
+        with theoreticals. Therefore it contains some important rules :
+        \itemize{
+             \item an observed peak can only correspond to ONE theoretical
+             peak and vice versa
+             \item the relative abundance peak must not be under a tolerance
+             compared to the theoretical
+             but it can be higher since a peak can hide another
+             \item the A+x is not searched if the A+x-1 is not found
+             (the loop search is stopped)
+        }
+    }
+    \item merge the `xcmsSet` in positive polarity & the `xcmsSet` in
+    negative polarity. For that it will bind all the annotation results from
+    both & assign new IDs to distingate if the feature, the group or the
+    spectra was detected in positive or negative mode. Then it will filtrate
+    the annotation `DataFrame`. Foreach compound annotation it will check if
+    the same annotations fall in the same rT. For that it will choose a
+    referenced spectra (the one which as the most isotopologue & the best
+    isotopic score & the less retention time difference). It will calculate
+    a retention time window which correspond to the rT of the referenced
+    spectra +/- fwhm. It will also regroup lines which correspond to the
+    same annotations but were not grouped by XCMS
+    \item record all results in the sqlite database
 }
 }

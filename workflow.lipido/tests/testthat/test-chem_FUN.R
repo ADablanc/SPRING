@@ -39,6 +39,17 @@ testthat::test_that("get_ions", {
 testthat::test_that("load_db", {
     testthat::expect_equal(
         load_db(
+            c(),
+            "QTOF_XevoG2-S_R25000@200",
+            c("LPE 13:0", "CE 16:0")
+        ),
+        data.frame(matrix(, nrow = 0, ncol = 10, dimnames = list(
+            c(), c("formula", "name", "rt", "ion_id", "adduct", "ion_formula",
+                   "charge", "mz", "abd", "iso")
+        )))
+    )
+    testthat::expect_equal(
+        load_db(
             c("[2M+H]+", "[M-H]-"),
             "QTOF_XevoG2-S_R25000@200",
             c("LPE 13:0", "CE 16:0")

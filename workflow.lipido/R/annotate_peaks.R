@@ -22,7 +22,6 @@
 #' }
 #'
 #' @param xset `xcmsSet`
-#' @param samples `character vector` sample names
 #' @param ann_params `AnnotationParameter`
 #' @param pb_fct `function` used to update the progress bar
 #' @param sigma `numeric(1)` ignore
@@ -82,7 +81,6 @@
 #'     }
 #' }
 annotate_peaklists <- function(xset,
-                               samples,
                                ann_params,
                                pb_fct = NULL,
                                sigma = 6,
@@ -94,7 +92,34 @@ annotate_peaklists <- function(xset,
                     c("name", "formula", "adduct", "ion_formula",
                       "mz", "rt", "ion_id")])
 
+    spectra_id <- 0
+    samples <- rownames(xset@phenoData)
+    spectras <- data.frame(matrix(, nrow = 0, ncol = 9, dimnames = list(
+        c(), c("spectra_id", "feature_id", "mz", "int", "abd", "ion_id_theo",
+               "mz_theo", "abd_theo", "iso_theo")
+    )))
+    spectra_infos <- data.frame(matrix(, nrow = 0, ncol = 8, dimnames = list(
+        c(), c("spectra_id", "score", "deviation_mz", "npeak", "basepeak_int",
+               "sum_int", "sample", "rt")
+    )))
+    ann <- data.frame(
+        matrix(, nrow = 0, ncol = 13 + length(samples), dimnames = list(
+            c(), c("group_id", "name", "formula", "adduct", "ion_formula",
+                   "rtdiff", "rt", "rtmin", "rtmax", "nsamples", "best_score",
+                   "best_deviation_mz", "best_npeak", samples))
+        ),
+        check.names = FALSE
+    )
+    sample_matrix <- matrix(, nrow = 1, ncol = length(samples),
+                            dimnames = list(c(), samples))
+
     peaks <- data.frame(xset@peaks)
+    if (nrow(peaks) == 0) {
+        attributes(xset)$ann <- ann
+        attributes(xset)$spectra_infos <- spectra_infos
+        attributes(xset)$spectras <- spectras
+        return(xset)
+    }
     peaks <- cbind(feature_id = seq(nrow(peaks)), peaks)
     colnames(peaks)[which(colnames(peaks) == "into")] <- "int"
     # replace the value in peak_groups by the feature id
@@ -103,12 +128,6 @@ annotate_peaklists <- function(xset,
     peak_groups[, 8:ncol(peak_groups)] <- xcms::groupval(xset)
     colnames(peak_groups)[8:ncol(peak_groups)] <- samples
 
-    spectra_id <- 0
-    spectras <- data.frame()
-    spectra_infos <- data.frame()
-    ann <- data.frame()
-    sample_matrix <- matrix(, nrow = 1, ncol = length(samples),
-                            dimnames = list(c(), samples))
     # i represent a group of peaks
     for (i in seq(nrow(peak_groups))) {
         if (!is.null(pb_fct)) {
@@ -285,6 +304,9 @@ annotate_peaklists <- function(xset,
 #'
 #' @return the annotation dataframe filtered & regrouped
 filtrate_ann <- function(ann, spectra_infos, sigma = 6, perfwhm = .6) {
+    if (nrow(ann) == 0) {
+        return(ann)
+    }
     do.call(
         rbind,
         lapply(split(ann, ann$name), function(x) {

@@ -96,8 +96,8 @@ testthat::test_that("db record samples", {
         ms_file_negative = NA,
         profile_positive = NA,
         profile_negative = NA,
-        xsets_positive = NA,
-        xsets_negative = NA
+        xset_positive = NA,
+        xset_negative = NA
     )
     db_record_samples(db, samples$sample)
     testthat::expect_identical(
@@ -235,7 +235,7 @@ testthat::test_that("import ms file", {
     RSQLite::dbDisconnect(db)
 })
 
-testthat::test_that("record xsets", {
+testthat::test_that("record xset", {
     filepath <- system.file(
         "testdata",
         "small_pos-neg.mzXML",
@@ -246,18 +246,18 @@ testthat::test_that("record xsets", {
     ))
     db <- db_connect(":memory:")
     db_record_samples(db, "small")
-    db_record_xsets(db, xset, xset, "small")
+    db_record_xset(db, xset, xset, "small")
     testthat::expect_identical(
         decompress(dbGetQuery(
             db,
-            "SELECT xsets_positive FROM sample LIMIT 1"
+            "SELECT xset_positive FROM sample LIMIT 1"
         )[1, 1]),
         xset
     )
     testthat::expect_identical(
         decompress(dbGetQuery(
             db,
-            "SELECT xsets_negative FROM sample LIMIT 1"
+            "SELECT xset_negative FROM sample LIMIT 1"
         )[1, 1]),
         xset
     )
@@ -466,7 +466,7 @@ testthat::test_that("db record ann", {
 
 testthat::test_that("record params", {
     filter_params <- FilterParam(
-        mz_range = c(300, 1000),
+        mz_range = c(200, 1000),
         rt_range = c(.7 * 60, 6.3 * 60)
     )
     cwt_params <- xcms::CentWaveParam(
@@ -1285,7 +1285,7 @@ testthat::test_that("get spectra", {
 
 testthat::test_that("get params", {
     filter_params <- FilterParam(
-        mz_range = c(300, 1000),
+        mz_range = c(200, 1000),
         rt_range = c(.7 * 60, 6.3 * 60)
     )
     cwt_params <- xcms::CentWaveParam(

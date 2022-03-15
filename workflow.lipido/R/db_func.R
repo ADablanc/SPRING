@@ -170,8 +170,8 @@ db_record_samples <- function(db, sample_names) {
             ms_file_negative = NA,
             profile_positive = NA,
             profile_negative = NA,
-            xsets_positive = NA,
-            xsets_negative = NA
+            xset_positive = NA,
+            xset_negative = NA
         ),
         overwrite = TRUE
     )
@@ -364,27 +364,27 @@ import_ms_file <- function(db,
 #' some peaks were not annotated
 #'
 #' @param db `SQLiteConnection`
-#' @param xsets_pos `xcmsSet` object with only the positive result, can be NULL
-#' @param xsets_neg `xcmsSet` object with only the negative result, can be NULL
+#' @param xset_pos `xcmsSet` object with only the positive result, can be NULL
+#' @param xset_neg `xcmsSet` object with only the negative result, can be NULL
 #' @param sample_name `character(1)` sample name
-db_record_xsets <- function(db, xsets_pos, xsets_neg, sample_name) {
-    if (!is.null(xsets_pos)) {
+db_record_xset <- function(db, xset_pos, xset_neg, sample_name) {
+    if (!is.null(xset_pos)) {
         query <- sprintf(
             "UPDATE sample
-            SET xsets_positive = :a
+            SET xset_positive = :a
             WHERE sample == \"%s\";",
             sample_name
         )
-        dbExecute(db, query, params = list(a = compress(xsets_pos)))
+        dbExecute(db, query, params = list(a = compress(xset_pos)))
     }
-    if (!is.null(xsets_neg)) {
+    if (!is.null(xset_neg)) {
         query <- sprintf(
             "UPDATE sample
-            SET xsets_negative = :a
+            SET xset_negative = :a
             WHERE sample == \"%s\";",
             sample_name
         )
-        dbExecute(db, query, params = list(a = compress(xsets_neg)))
+        dbExecute(db, query, params = list(a = compress(xset_neg)))
     }
 }
 

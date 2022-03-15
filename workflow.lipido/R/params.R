@@ -58,7 +58,6 @@ check_ms_process_args <- function(raw_files,
             )
         ))
     }
-    raw_files <- normalizePath(raw_files)
 
     if (class(sqlite_path) != "character") {
         stop("sqlite path must be a filepath")
@@ -75,7 +74,6 @@ check_ms_process_args <- function(raw_files,
     } else if (!file.exists(converter)) {
         stop(sprintf("converter is not found at %s", converter))
     }
-    converter <- normalizePath(converter)
 
     if (class(filter_params) != "FilterParam") {
         stop("filter_params argument must be a FilterParam object")

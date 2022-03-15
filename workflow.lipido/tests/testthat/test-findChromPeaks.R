@@ -1,8 +1,10 @@
 testthat::test_that("peak picking", {
-    ms_file <- xcms::xcmsRaw(
-        system.file("testdata", "small.mzXML", package = "workflow.lipido"),
-        profstep = 0
-    )
+    empty_peaklist <- matrix(, nrow = 0, ncol = 23, dimnames = list(
+        c(), c("mz", "mzmin", "mzmax", "rt", "rtmin", "rtmax", "into",
+               "intb", "maxo", "sn", "egauss", "mu", "sigma", "h", "f",
+               "dppm", "scale", "scpos", "scmin", "scmax", "lmin", "lmax",
+               "sample")
+    ))
     cwt_params <- xcms::CentWaveParam(
         ppm = 30,
         peakwidth = c(4, 39),
@@ -16,14 +18,24 @@ testthat::test_that("peak picking", {
         verboseColumns = TRUE,
         firstBaselineCheck = FALSE
     )
+
+    # 1st test with no file
     testthat::expect_identical(
-        find_chrompeaks(NULL, cwt_params),
-        NULL
+        find_chrompeaks(NULL, cwt_params, "small")@peaks,
+        empty_peaklist
+    )
+
+    # 2nd test with no peaks
+    ms_file <- xcms::xcmsRaw(
+        system.file("testdata", "small.mzXML", package = "workflow.lipido"),
+        profstep = 0
     )
     testthat::expect_identical(
-        find_chrompeaks(ms_file, cwt_params),
-        NULL
+        find_chrompeaks(ms_file, cwt_params, "small")@peaks,
+        empty_peaklist
     )
+
+    # 3rd test with peaks
     ms_file <- xcms::xcmsRaw(
         system.file(
             "testdata",
@@ -33,7 +45,11 @@ testthat::test_that("peak picking", {
         profstep = 0
     )
     testthat::expect_equal(
-        data.frame(find_chrompeaks(ms_file, cwt_params)@peaks),
+        data.frame(find_chrompeaks(
+            ms_file,
+            cwt_params,
+            "220221CCM_global_POS_01_ssleu_filtered"
+        )@peaks),
         peaks <- data.frame(
             mz = c(464.447304014051, 504.440032161331, 505.443534603,
                    427.265397484755, 426.261908233279),
