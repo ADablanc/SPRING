@@ -1,5 +1,4 @@
 testthat::test_that("get_ions", {
-    adduct <- adducts[which(adducts$Name == "[M-H]-"), ]
     instrument <- "QTOF_XevoG2-S_R25000@200"
     empty_df_ions <- data.frame(matrix(, nrow = 0, ncol = 6, dimnames = list(
         c(), c("formula", "adduct", "ion_formula", "charge", "mz", "abd")
@@ -7,46 +6,77 @@ testthat::test_that("get_ions", {
 
     # should return nothing cause the formula C2N2 don't contain any H
     testthat::expect_identical(
-        get_ions("C2N2", adduct, instrument),
+        get_ions(
+            "C2N2",
+            adducts[which(adducts$Name == "[M-H]-"), ],
+            instrument
+        ),
         empty_df_ions
     )
     # should return nothing cause the m/z ion is out of the resolution list
     # of the instrument obtained from enviPat
     testthat::expect_identical(
-        get_ions("C1H1", adduct, instrument),
+        get_ions(
+            "C1H1",
+            adducts[which(adducts$Name == "[M-H]-"), ],
+            instrument
+        ),
         empty_df_ions
     )
 
+    # should return only the C18H38N1O7P1 with [2M+H]+
     testthat::expect_identical(
         get_ions(
-            c("C2N2", "C1H1", "C18H38N1O7P1", "C43H76O2"),
-            adduct,
+            c("C1H1", "C18H38N1O7P1"),
+            adducts[which(adducts$Name == "[2M+H]+"), ],
             instrument
         ),
         data.frame(
-            formula = c(rep("C18H38N1O7P1", 4), rep("C43H76O2", 5)),
-            adduct = rep("[M-H]-", 9),
-            ion_formula = c(rep("C18H37N1O7P1", 4), rep("C43H75O2", 5)),
-            charge = rep(-1, 9),
-            mz = c(410.23131, 411.23463, 412.23692, 413.23958, 623.57726,
-                   624.58066, 625.58398, 626.58705, 627.59067),
-           abd = c(100, 20.58, 3.24, 0.39, 100, 47.45, 11.41, 1.76, 0.17),
-           iso = c("M", "M+1", "M+2", "M+3", "M", "M+1", "M+2", "M+3", "M+4")
+            formula = c("C18H38N1O7P1", "C18H38N1O7P1", "C18H38N1O7P1",
+                        "C18H38N1O7P1", "C18H38N1O7P1"),
+            adduct = c("[2M+H]+", "[2M+H]+", "[2M+H]+", "[2M+H]+", "[2M+H]+"),
+            ion_formula = c("C36H77N2O14P2", "C36H77N2O14P2", "C36H77N2O14P2",
+                            "C36H77N2O14P2", "C36H77N2O14P2"),
+            charge = c(1, 1, 1, 1, 1),
+            mz = c(823.48445, 824.48777, 825.49047, 826.49316, 827.49541),
+            abd = c(100, 41.14, 11.11, 2.03, 0.21),
+            iso = c("M", "M+1", "M+2", "M+3", "M+4")
+        )
+    )
+
+    # should return only the C18H38N1O7P1 with [M-H]-
+    testthat::expect_identical(
+        get_ions(
+            c("C2N2", "C18H38N1O7P1"),
+            adducts[which(adducts$Name == "[2M+H]+"), ],
+            instrument
+        ),
+        data.frame(
+            formula = c("C18H38N1O7P1", "C18H38N1O7P1", "C18H38N1O7P1",
+                        "C18H38N1O7P1", "C18H38N1O7P1"),
+            adduct = c("[2M+H]+", "[2M+H]+", "[2M+H]+", "[2M+H]+", "[2M+H]+"),
+            ion_formula = c("C36H77N2O14P2", "C36H77N2O14P2", "C36H77N2O14P2",
+                            "C36H77N2O14P2", "C36H77N2O14P2"),
+            charge = c(1, 1, 1, 1, 1),
+            mz = c(823.48445, 824.48777, 825.49047, 826.49316, 827.49541),
+            abd = c(100, 41.14, 11.11, 2.03, 0.21),
+            iso = c("M", "M+1", "M+2", "M+3", "M+4")
         )
     )
 })
 
 testthat::test_that("load_db", {
+    empty_db <- data.frame(matrix(, nrow = 0, ncol = 10, dimnames = list(
+        c(), c("formula", "name", "rt", "ion_id", "adduct", "ion_formula",
+               "charge", "mz", "abd", "iso")
+    )))
     testthat::expect_equal(
-        load_db(
-            c(),
-            "QTOF_XevoG2-S_R25000@200",
-            c("LPE 13:0", "CE 16:0")
-        ),
-        data.frame(matrix(, nrow = 0, ncol = 10, dimnames = list(
-            c(), c("formula", "name", "rt", "ion_id", "adduct", "ion_formula",
-                   "charge", "mz", "abd", "iso")
-        )))
+        load_db(c("[2M+H]+", "[M-H]-"), "QTOF_XevoG2-S_R25000@200", "toto"),
+        empty_db
+    )
+    testthat::expect_equal(
+        load_db(c(), "QTOF_XevoG2-S_R25000@200", c("LPE 13:0", "CE 16:0")),
+        empty_db
     )
     testthat::expect_equal(
         load_db(

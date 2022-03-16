@@ -114,7 +114,7 @@ annotate_peaklists <- function(xset,
                             dimnames = list(c(), samples))
 
     peaks <- data.frame(xset@peaks)
-    if (nrow(peaks) == 0) {
+    if (nrow(peaks) == 0 || nrow(db) == 0) {
         attributes(xset)$ann <- ann
         attributes(xset)$spectra_infos <- spectra_infos
         attributes(xset)$spectras <- spectras
@@ -245,6 +245,8 @@ annotate_peaklists <- function(xset,
         ann <- rbind(ann, tmp_ann)
     }
 
+    rownames(ann) <- NULL
+    rownames(spectras) <- NULL
     attributes(xset)$ann <- ann
     attributes(xset)$spectra_infos <- spectra_infos
     attributes(xset)$spectras <- spectras
@@ -307,62 +309,61 @@ filtrate_ann <- function(ann, spectra_infos, sigma = 6, perfwhm = .6) {
     if (nrow(ann) == 0) {
         return(ann)
     }
-    do.call(
-        rbind,
-        lapply(split(ann, ann$name), function(x) {
-            if (nrow(x) == 1) {
-                return(x)
-            }
-            x <- x[order(
-                -x$best_npeak,
-                -x$best_score,
-                x$rtdiff,
-                x$best_deviation_mz), ]
-            best_peak <- x[1, ]
-            # eject the annotations where the same compound is
-            # not at the same rT
-            fwhm <- (abs(best_peak$rtmax - best_peak$rtmin) /
-                         sigma * 2.35 * perfwhm)
-            x <- x[x$rt >= best_peak$rt - fwhm &
-                       x$rt <= best_peak$rt + fwhm, , drop = FALSE]
-            # merge rows where the peak picking or the alignment fail
-            if (any(duplicated(x$adduct))) {
-                do.call(
-                    rbind,
-                    lapply(split(x, x$adduct), function(y) {
-                        if (nrow(y) == 1) {
-                            return(y)
+    ann <- do.call(rbind, lapply(split(ann, ann$name), function(x) {
+        if (nrow(x) == 1) {
+            return(x)
+        }
+        x <- x[order(
+            -x$best_npeak,
+            -x$best_score,
+            x$rtdiff,
+            x$best_deviation_mz), ]
+        best_peak <- x[1, ]
+        # eject the annotations where the same compound is
+        # not at the same rT
+        fwhm <- (abs(best_peak$rtmax - best_peak$rtmin) /
+                     sigma * 2.35 * perfwhm)
+        x <- x[x$rt >= best_peak$rt - fwhm &
+                   x$rt <= best_peak$rt + fwhm, , drop = FALSE]
+        # merge rows where the peak picking or the alignment fail
+        if (any(duplicated(x$adduct))) {
+            do.call(
+                rbind,
+                lapply(split(x, x$adduct), function(y) {
+                    if (nrow(y) == 1) {
+                        return(y)
+                    }
+                    new_y <- y[1, , drop = FALSE]
+                    new_y[, c("best_score", "best_npeak")] <- apply(
+                        y[, c("best_score", "best_npeak"),
+                              drop = FALSE], 2, max
+                    )
+                    new_y$best_deviation_mz <- y[which.min(
+                        abs(y$best_deviation_mz)), "best_deviation_mz"]
+                    # for each sample select the spectra which is not
+                    # missing (if there is multiple it will select the
+                    # one with the best score)
+                    new_y[, 14:ncol(y)] <- apply(y[, 14:ncol(y),
+                           drop = FALSE], 2, function(z) {
+                        if (length(which(!is.na(z))) == 1) {
+                            z[!is.na(z)]
+                        } else {
+                            # select the spectra with the best score
+                            z[!is.na(z)][which.max(spectra_infos[
+                                spectra_infos$spectra_id %in%
+                                    z[!is.na(z)], "score"])]
                         }
-                        new_y <- y[1, , drop = FALSE]
-                        new_y[, c("best_score", "best_npeak")] <- apply(
-                            y[, c("best_score", "best_npeak"),
-                                  drop = FALSE], 2, max
-                        )
-                        new_y$best_deviation_mz <- y[which.min(
-                            abs(y$best_deviation_mz)), "best_deviation_mz"]
-                        # for each sample select the spectra which is not
-                        # missing (if there is multiple it will select the
-                        # one with the best score)
-                        new_y[, 14:ncol(y)] <- apply(y[, 14:ncol(y),
-                               drop = FALSE], 2, function(z) {
-                            if (length(which(!is.na(z))) == 1) {
-                                z[!is.na(z)]
-                            } else {
-                                # select the spectra with the best score
-                                z[!is.na(z)][which.max(spectra_infos[
-                                    spectra_infos$spectra_id %in%
-                                        z[!is.na(z)], "score"])]
-                            }
-                        })
-                        new_y$nsamples <- sum(!is.na(new_y[, 14:ncol(new_y)]))
-                        new_y
                     })
-                )
-            } else {
-                x
-            }
-        })
-    )
+                    new_y$nsamples <- sum(!is.na(new_y[, 14:ncol(new_y)]))
+                    new_y
+                })
+            )
+        } else {
+            x
+        }
+    }))
+    rownames(ann) <- NULL
+    ann
 }
 
 #' @title Get conflicts
@@ -395,12 +396,13 @@ filtrate_ann <- function(ann, spectra_infos, sigma = 6, perfwhm = .6) {
 #' }
 split_conflicts <- function(ann) {
     conflicts <- split(ann, ann$group_id)
-    conflicts_nrow <- sapply(conflicts, nrow)
+    names(conflicts) <- NULL
+    conflicts_nrow <- sapply(conflicts, nrow, USE.NAMES = FALSE)
     list(
-        no_conflicts = do.call(
-                rbind,
-                conflicts[which(conflicts_nrow == 1)]
-            ),
+        no_conflicts = if (any(conflicts_nrow == 1)) do.call(
+            rbind,
+            conflicts[which(conflicts_nrow == 1)]
+        ) else ann[0, ],
         conflicts = conflicts[which(conflicts_nrow > 1)]
     )
 }
@@ -473,42 +475,40 @@ summarise_ann <- function(ann, spectra_infos) {
                   "nSamples", "Most intense ion", "Best score (%)",
                   "Best m/z dev (mDa)", "Max iso", "X"))), check.names = FALSE))
     }
-    data <- do.call(
-        rbind,
-        lapply(split(int_ann, int_ann$name), function(x) {
-            cbind.data.frame(
-                name = x[1, "name"],
-                `rT (min)` = round(mean(x[, "rT (min)"]), 2),
-                `Diff rT (sec)` = min(x[, "Diff rT (sec)"]),
-                Adducts = paste(x$Adduct, collapse = " "),
-                nSamples = sum(
-                    sapply(
-                        x[, 9:ncol(x), drop = FALSE],
-                        function(y)
-                            any(!is.na(y))
-                    )
-                ),
-                `Most intense ion` = as.factor(x[which.max(
-                    apply(
-                        x[, 9:ncol(x), drop = FALSE],
-                        1,
-                        max,
-                        na.rm = TRUE
-                    )), "Adduct"]
-                ),
-                `Best score (%)` = max(x[, "Best score (%)"]),
-                `Best m/z dev (mDa)` = min(x[, "Best m/z dev (mDa)"]),
-                `Max iso` = max(x[, "Max iso"]),
-                lapply(
+    int_ann <- split(int_ann, int_ann$name)
+    names(int_ann) <- NULL
+    do.call(rbind, lapply(int_ann, function(x) {
+        data.frame(
+            name = x[1, "name"],
+            `rT (min)` = round(mean(x[, "rT (min)"]), 2),
+            `Diff rT (sec)` = min(x[, "Diff rT (sec)"]),
+            Adducts = paste(x$Adduct, collapse = " "),
+            nSamples = sum(
+                sapply(
                     x[, 9:ncol(x), drop = FALSE],
-                    sum,
-                    na.rm = TRUE
+                    function(y)
+                        any(!is.na(y))
                 )
-            )
-        })
-    )
-    colnames(data)[10:ncol(data)] <- colnames(int_ann[9:ncol(int_ann)])
-    data
+            ),
+            `Most intense ion` = as.factor(x[which.max(
+                apply(
+                    x[, 9:ncol(x), drop = FALSE],
+                    1,
+                    max,
+                    na.rm = TRUE
+                )), "Adduct"]
+            ),
+            `Best score (%)` = max(x[, "Best score (%)"]),
+            `Best m/z dev (mDa)` = min(x[, "Best m/z dev (mDa)"]),
+            `Max iso` = max(x[, "Max iso"]),
+            lapply(
+                x[, 9:ncol(x), drop = FALSE],
+                sum,
+                na.rm = TRUE
+            ),
+            check.names = FALSE
+        )
+    }))
 }
 
 #' @title Get annotations with intensity
@@ -578,7 +578,7 @@ get_int_ann <- function(ann, spectra_infos) {
         ), check.names = FALSE))
     }
     # extract intensity of basepeaks
-    cbind.data.frame(
+    data.frame(
         name = ann$name,
         `rT (min)` = round(ann$rt / 60, 2),
         `Diff rT (sec)` = round(ann$rtdiff),
@@ -589,6 +589,7 @@ get_int_ann <- function(ann, spectra_infos) {
         `Max iso` = ann$best_npeak,
         apply(ann[, 14:ncol(ann), drop = FALSE], c(1, 2), function(x) {
             if (is.na(x)) NA else spectra_infos[as.numeric(x), "basepeak_int"]
-        })
+        }),
+        check.names = FALSE
     )
 }

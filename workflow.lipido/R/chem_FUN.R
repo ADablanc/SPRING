@@ -33,7 +33,7 @@ load_db <- function(adduct_names,
     if (!is.null(cpd_names)) {
         db <- db[db$name %in% cpd_names, , drop = FALSE]
     }
-    if (length(adduct_names) == 0) {
+    if (nrow(db) == 0 || length(adduct_names) == 0) {
         return(data.frame(matrix(, nrow = 0, ncol = 10, dimnames = list(
             c(), c("formula", "name", "rt", "ion_id", "adduct", "ion_formula",
                    "charge", "mz", "abd", "iso")

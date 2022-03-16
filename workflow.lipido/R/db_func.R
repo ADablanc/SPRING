@@ -537,86 +537,6 @@ db_record_params <- function(db,
     dbWriteTable(db, "ann_params", ann_params, overwrite = TRUE)
 }
 
-#' @title Get all spectras
-#'
-#' @description
-#' Get all spectras in database
-#'
-#' @param db `SQLiteConnection`
-#'
-#' @return `DataFrame`, each line correspond to a peak annotated with
-#' its corresponding theoretical peak or the theoretical peak missed,
-#' with the columns :
-#' \itemize{
-#'     \item spectra_id `integer` spectra ID
-#'     \item feature_id `integer` feature ID
-#'     \item mz `numeric` m/z
-#'     \item int `numeric` area integrated
-#'     \item abd `numeric` relative abundance
-#'     \item ion_id_theo `integer` ignore
-#'     \item mz_theo `numeric` theoretical m/z
-#'     \item abd_theo `numeric` theoretical relative abundance
-#'     \item iso_theo `character` theoretical isotopologue annotation
-#' }
-db_get_spectras <- function(db) {
-    dbReadTable(db, "spectras")
-}
-
-#' @title Get all spectra informations
-#'
-#' @description
-#' Get all spectra informations in database
-#'
-#' @param db `SQLiteConnection`
-#'
-#' @return `DataFrame`, each line correspond to a spectra
-#' annotated, with the columns :
-#' \itemize{
-#'     \item spectra_id `integer` spectra ID
-#'     \item score `numeric` isotopic score observed
-#'     \item deviation_mz `numeric` m/z deviation observed
-#'     \item npeak `integer` number of isotopologue annotated
-#'     \item basepeak_int `numeric` area of the basepeak annotated
-#'     \item sum_int `numeric` cumulative sum off all the area of the
-#'     isotopologues annotated
-#'     \item rt `numeric` retention time
-#' }
-db_get_spectra_infos <- function(db) {
-    dbReadTable(db, "spectra_infos")
-}
-
-#' @title Get all annotations
-#'
-#' @description
-#' Get all annotations in database
-#'
-#' @param db `SQLiteConnection`
-#'
-#' @return `DataFrame` each line correspond to a compound found
-#' with the columns:
-#' \itemize{
-#'     \item group_id `integer` group ID
-#'     \item name `character` name
-#'     \item formula `character` chemical formula
-#'     \item adduct `character` adduct form
-#'     \item ion_formula `character` ion chemical formula
-#'     \item rtdiff `numeric` retention time difference between the measured &
-#'     the expected
-#'     \item rt `numeric` retention time measured meanned accross the samples
-#'     \item rtmin `numeric` born min of retention time measured accross the
-#'     samples
-#'     \item rtmax `numeric` born max of the retention time measured accross the
-#'      samples
-#'     \item nsamples `integer` number of samples where the compound was found
-#'     \item best_score `numeric` best isotopic score seen
-#'     \item best_deviation_mz `numeric` best m/z deviation seen
-#'     \item best_npeak `integer` best number of isotopologues found
-#'     \item ... `integer` a column for each sample which contain the spectra ID
-#' }
-db_get_ann <- function(db) {
-    dbReadTable(db, "ann")
-}
-
 #' @title Get spectras
 #'
 #' @description
@@ -639,16 +559,20 @@ db_get_ann <- function(db) {
 #'     \item abd_theo `numeric` theoretical relative abundance
 #'     \item iso_theo `character` theoretical isotopologue annotation
 #' }
-db_get_spectra <- function(db, spectra_ids) {
-    dbGetQuery(
-        db,
-        sprintf(
-            "SELECT *
-            FROM spectras
-            WHERE spectra_id IN (%s);",
-            paste(spectra_ids, collapse = ", ")
+db_get_spectras <- function(db, spectra_ids = NULL) {
+    if (is.null(spectra_ids)) {
+        dbReadTable(db, "spectras")
+    } else {
+        dbGetQuery(
+            db,
+            sprintf(
+                "SELECT *
+                FROM spectras
+                WHERE spectra_id IN (%s);",
+                paste(spectra_ids, collapse = ", ")
+            )
         )
-    )
+    }
 }
 
 #' @title Get all parameters

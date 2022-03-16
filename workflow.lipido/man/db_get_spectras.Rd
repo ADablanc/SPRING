@@ -2,12 +2,14 @@
 % Please edit documentation in R/db_func.R
 \name{db_get_spectras}
 \alias{db_get_spectras}
-\title{Get all spectras}
+\title{Get spectras}
 \usage{
-db_get_spectras(db)
+db_get_spectras(db, spectra_ids = NULL)
 }
 \arguments{
 \item{db}{`SQLiteConnection`}
+
+\item{spectra_ids}{`integer vector` the spectra IDs}
 }
 \value{
 `DataFrame`, each line correspond to a peak annotated with
@@ -26,5 +28,5 @@ with the columns :
 }
 }
 \description{
-Get all spectras in database
+Get spectras from database
 }

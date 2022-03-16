@@ -120,10 +120,6 @@ ms_process <- function(raw_files,
                      "decompress", "find_chrompeaks", "db_get_profile"),
                 envir = pryr::where("sqlite_path")
             )
-            parallel::clusterEvalQ(
-                cl,
-                methods::getClass("xcmsSet", where = "xcms")
-            )
             doSNOW::registerDoSNOW(cl)
             operator <- foreach::"%dopar%"
         } else {
@@ -254,7 +250,7 @@ ms_process <- function(raw_files,
         }
     }, error = function(e) {
         suppressWarnings(file.remove(sqlite_path))
-        if (show_txt_pb) {
+        if (exists("pb")) {
             close(pb)
         }
         if (exists("cl")) {
@@ -634,6 +630,8 @@ merge_xsets <- function(xset_pos, xset_neg) {
     peak_groups <- rbind(peak_groups, peak_groups_neg)
 
     ann <- filtrate_ann(ann, spectra_infos)
+    ann <- ann[order(ann$group_id), ]
+    rownames(ann) <- NULL
     list(
         ann = ann,
         spectras = spectras,

@@ -11,10 +11,12 @@ testthat::test_that("obiwarp", {
             "220221CCM_global_POS_02_ssleu_filtered.mzML",
             package = "workflow.lipido"
         ),
-        system.file(
-            "testdata",
-            "220221CCM_global_POS_03_ssleu_filtered.mzML",
-            package = "workflow.lipido"
+        file.path(
+            system.file(
+                "testdata",
+                package = "workflow.lipido"
+            ),
+            "220221CCM_global_POS_03_ssleu_filtered.mzML"
         )
     )
     sqlite_path <- tempfile(fileext = ".sqlite")
@@ -24,19 +26,6 @@ testthat::test_that("obiwarp", {
     filter_params <- FilterParam(
         mz_range = c(200, 1000),
         rt_range = c(.7 * 60, 6.3 * 60)
-    )
-    cwt_params_zero_peaks <- xcms::CentWaveParam(
-        ppm = .01,
-        peakwidth = c(4, 39),
-        snthresh = 1,
-        prefilter = c(2, 815),
-        mzCenterFun = "wMean",
-        integrate = 1,
-        mzdiff = .041,
-        fitgauss = FALSE,
-        noise = 0,
-        verboseColumns = TRUE,
-        firstBaselineCheck = FALSE
     )
     cwt_params <- xcms::CentWaveParam(
         ppm = 30,
@@ -67,7 +56,6 @@ testthat::test_that("obiwarp", {
     # record files
     db <- db_connect(sqlite_path)
     sample_names <- tools::file_path_sans_ext(basename(raw_files))
-    sample_names[3] <- "220221CCM_global_POS_03_ssleu_filtered"
     db_record_samples(db, sample_names)
     a <- lapply(raw_files, function(raw_file)
         import_ms_file(
@@ -79,15 +67,25 @@ testthat::test_that("obiwarp", {
             filter_params
         )
     )
-
-    # 1st test: with no file
     xsets <- lapply(sample_names, function(sample_name)
         find_chrompeaks(
             db_read_ms_file(db, sample_name, "positive"),
-            cwt_params_zero_peaks,
+            cwt_params,
             sample_name
         )
     )
+    empty_peaklist <- matrix(, nrow = 0, ncol = 23, dimnames = list(
+        c(), c("mz", "mzmin", "mzmax", "rt", "rtmin", "rtmax", "into",
+               "intb", "maxo", "sn", "egauss", "mu", "sigma", "h", "f",
+               "dppm", "scale", "scpos", "scmin", "scmax", "lmin", "lmax",
+               "sample")
+    ))
+    peaks1 <- xsets[[1]]@peaks
+    peaks2 <- xsets[[2]]@peaks
+    xsets[[1]]@peaks <- empty_peaklist
+    xsets[[2]]@peaks <- empty_peaklist
+
+    # 1st test: with no file
     xset <- obiwarp(
         sqlite_path,
         sample_names[3],
@@ -143,11 +141,7 @@ testthat::test_that("obiwarp", {
     )
 
     # 4th test: with only peak for the second sample (no rT correction)
-    xsets[[2]] <- find_chrompeaks(
-            db_read_ms_file(db, sample_names[2], "positive"),
-            cwt_params,
-            sample_names[2]
-    )
+    xsets[[2]]@peaks <- peaks2
     xset <- obiwarp(
         sqlite_path,
         sample_names[1:2],
@@ -167,11 +161,7 @@ testthat::test_that("obiwarp", {
     )
 
     # 5th test : normal
-    xsets[[1]] <- find_chrompeaks(
-        db_read_ms_file(db, sample_names[1], "positive"),
-        cwt_params,
-        sample_names[1]
-    )
+    xsets[[1]]@peaks <- peaks1
     xset <- obiwarp(
         sqlite_path,
         sample_names[1:2],
@@ -211,6 +201,5 @@ testthat::test_that("obiwarp", {
             numeric(0)
         )
     )
-
     RSQLite::dbDisconnect(db)
 })
