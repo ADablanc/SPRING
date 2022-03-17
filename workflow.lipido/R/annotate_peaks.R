@@ -140,6 +140,7 @@ annotate_peaklists <- function(xset,
                 db$rt >= peak_groups[i, "rtmed"] - ann_params@rt_tol &
                 db$rt <= peak_groups[i, "rtmed"] + ann_params@rt_tol),
             , drop = FALSE]
+        if (i == 54195) browser()
         if (nrow(db_match) == 0) {
             next
         }
@@ -159,8 +160,8 @@ annotate_peaklists <- function(xset,
             db_match[, c("name", "formula", "adduct", "ion_formula")],
             rtdiff = abs(peak_groups[i, "rtmed"] - db_match$rt),
             rt = peak_groups[i, "rtmed"],
-            rtmin = stats::median(basepeaks$rtmin),
-            rtmax = stats::median(basepeaks$rtmax),
+            rtmin = min(basepeaks$rtmin),
+            rtmax = max(basepeaks$rtmax),
             nsamples = sum(!is.na(peak_groups[i, 8:ncol(peak_groups)])),
             best_score = 0,
             best_deviation_mz = Inf,
@@ -260,8 +261,9 @@ annotate_peaklists <- function(xset,
 #' Foreach compound annotation it will check if
 #'      the same annotations fall in the same rT
 #' For that it will choose a referenced spectra
-#'      (the one which as the most isotopologue &
-#'          the best isotopic score & the less retention time difference)
+#'      (the one which as the most adduct forms, then the number of samples
+#'      where founded, then the number of isotopologues, then the less
+#'      retention time difference & the best isotopic)
 #' It will calculate a retention time window which correspond to
 #'      the rT of the referenced spectra +/- fwhm
 #' It will also regroup lines which correspond
@@ -313,10 +315,19 @@ filtrate_ann <- function(ann, spectra_infos, sigma = 6, perfwhm = .6) {
         if (nrow(x) == 1) {
             return(x)
         }
+        # compute nadducts if we apply fwhm on each line
+        nadducts <- apply(x[, c("rt", "rtmin", "rtmax")], 1, function(y) {
+            fwhm <- (y["rtmax"] - y["rtmin"]) / sigma * 2.35 * perfwhm
+            length(unique(x[x$rt >= y["rt"] - fwhm &
+                               x$rt <= y["rt"] + fwhm, "adduct"]
+            ))
+        })
         x <- x[order(
+            -nadducts,
+            -x$nsamples,
             -x$best_npeak,
-            -x$best_score,
             x$rtdiff,
+            -x$best_score,
             x$best_deviation_mz), ]
         best_peak <- x[1, ]
         # eject the annotations where the same compound is
@@ -334,8 +345,9 @@ filtrate_ann <- function(ann, spectra_infos, sigma = 6, perfwhm = .6) {
                         return(y)
                     }
                     new_y <- y[1, , drop = FALSE]
-                    new_y[, c("best_score", "best_npeak")] <- apply(
-                        y[, c("best_score", "best_npeak"),
+                    new_y$rtmin <- min(x$rtmin)
+                    new_y[, c("rtmax", "best_score", "best_npeak")] <- apply(
+                        y[, c("rtmax", "best_score", "best_npeak"),
                               drop = FALSE], 2, max
                     )
                     new_y$best_deviation_mz <- y[which.min(

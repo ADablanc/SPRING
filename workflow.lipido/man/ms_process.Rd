@@ -92,11 +92,12 @@ Launch the workflow on the raw files, which consist of the steps :
     spectra was detected in positive or negative mode. Then it will filtrate
     the annotation `DataFrame`. Foreach compound annotation it will check if
     the same annotations fall in the same rT. For that it will choose a
-    referenced spectra (the one which as the most isotopologue & the best
-    isotopic score & the less retention time difference). It will calculate
-    a retention time window which correspond to the rT of the referenced
-    spectra +/- fwhm. It will also regroup lines which correspond to the
-    same annotations but were not grouped by XCMS
+    referenced spectra (the one which as the most adduct forms, then the
+    number of samples where founded, then the number of isotopologues, then
+    the less retention time difference & the best isotopic). It will
+    calculate a retention time window which correspond to the rT of the
+    referenced spectra +/- fwhm. It will also regroup lines which correspond
+    to the same annotations but were not grouped by XCMS
     \item record all results in the sqlite database
 }
 }

@@ -54,8 +54,9 @@ Filtrate annotation dataframe
 Foreach compound annotation it will check if
      the same annotations fall in the same rT
 For that it will choose a referenced spectra
-     (the one which as the most isotopologue &
-         the best isotopic score & the less retention time difference)
+     (the one which as the most adduct forms, then the number of samples
+     where founded, then the number of isotopologues, then the less
+     retention time difference & the best isotopic)
 It will calculate a retention time window which correspond to
      the rT of the referenced spectra +/- fwhm
 It will also regroup lines which correspond
