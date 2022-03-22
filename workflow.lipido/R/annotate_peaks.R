@@ -85,6 +85,9 @@ annotate_peaklists <- function(xset,
                                pb_fct = NULL,
                                sigma = 6,
                                perfwhm = .6) {
+    if (!is.null(pb_fct)) {
+        pb_fct(n = 0, total = 1, title = "Annotate")
+    }
     db <- load_db(ann_params@adduct_names, ann_params@instrument)
     l_spectras <- unique(db[, c("ion_id", "mz", "abd", "iso")])
     l_spectras <- split(l_spectras, l_spectras$ion_id)
@@ -131,7 +134,10 @@ annotate_peaklists <- function(xset,
     # i represent a group of peaks
     for (i in seq(nrow(peak_groups))) {
         if (!is.null(pb_fct)) {
-            pb_fct(i, nrow(peak_groups), "Annotate")
+            # update the progress bar only every 1%
+            if (i %% ceiling(nrow(peak_groups) / 100) == 0) {
+                pb_fct(i, nrow(peak_groups), "Annotate")
+            }
         }
         # check if we have a match in the database with basepeaks
         db_match <- db[which(
@@ -244,6 +250,9 @@ annotate_peaklists <- function(xset,
             }
         }
         ann <- rbind(ann, tmp_ann)
+    }
+    if (!is.null(pb_fct)) {
+        pb_fct(n = 1, total = 1, title = "Annotate")
     }
 
     rownames(ann) <- NULL

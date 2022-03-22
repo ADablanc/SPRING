@@ -31,6 +31,9 @@ obiwarp <- function(sqlite_path,
                     obw_params,
                     operator = foreach::"%do%",
                     pb_fct = NULL) {
+    if (!is.null(pb_fct)) {
+        pb_fct(n = 0, total = 1, title = "Correct rT")
+    }
     rtcor <- lapply(xsets, function(xset) xset@rt[[1]])
     mzranges <- lapply(xsets, function(xset) xset@mzrange)
     peakmat <- do.call(rbind, lapply(seq(xsets), function(i)
@@ -195,10 +198,10 @@ obiwarp <- function(sqlite_path,
                 obw_params@distFun,
                 obw_params@gapInit,
                 obw_params@gapExtend,
-                obw_params@factorDiag,
-                obw_params@factorGap,
+                as.numeric(obw_params@factorDiag),
+                as.numeric(obw_params@factorGap),
                 obw_params@localAlignment,
-                obw_params@initPenalty,
+                as.numeric(obw_params@initPenalty),
                 PACKAGE = "xcms"
             )
 
@@ -215,6 +218,9 @@ obiwarp <- function(sqlite_path,
             list(tmp)
         }
     )
+    if (!is.null(pb_fct)) {
+        pb_fct(n = 1, total = 1, title = "Correct rT")
+    }
 
     # don't forget to add the rtcor of the center sample
     rtimecor <- append(rtimecor, rtcor[center], after = center - 1)

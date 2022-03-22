@@ -19,6 +19,9 @@ group_peaks <- function(xset,
                         pd_params,
                         operator = foreach::"%do%",
                         pb_fct = NULL) {
+    if (!is.null(pb_fct)) {
+        pb_fct(n = 0, total = 1, title = "Group")
+    }
     peaks <- xset@peaks
     if (nrow(peaks) == 0) {
         sample_names <- rownames(xset@phenoData)
@@ -76,7 +79,10 @@ group_peaks <- function(xset,
                     NULL
                 } else {
                     function(n) {
-                        pb_fct(n, length(mass) - 2, "Group")
+                        # update the progress bar only every 1%
+                        if (n %% ceiling((length(mass) - 2) / 100) == 0) {
+                            pb_fct(n, length(mass) - 2, "Group")
+                        }
                     }
                 }
             )
@@ -102,6 +108,9 @@ group_peaks <- function(xset,
             }
         }
     )
+    if (!is.null(pb_fct)) {
+        pb_fct(n = 1, total = 1, title = "Group")
+    }
     if (nrow(groups) > 0) {
         # Remove groups that overlap with more "well-behaved" groups
         numsamp <- rowSums(as.matrix(

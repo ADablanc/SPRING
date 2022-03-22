@@ -149,6 +149,9 @@ ms_process <- function(raw_files,
             }
         }
         raw_file <- NULL # just to get rid of the NOTE
+        if (!is.null(pb_fct)) {
+            pb_fct(n = 0, total = length(raw_files), title = "Conversion")
+        }
         infos <- operator(
             foreach::foreach(
                 raw_file = iterators::iter(raw_files),
@@ -194,11 +197,19 @@ ms_process <- function(raw_files,
                 msg
             }
         )
+        if (!is.null(pb_fct)) {
+            pb_fct(n = 1, total = 1, title = "Conversion")
+        }
         if (!any(c(infos[, c("positive", "negative")]) == "success")) {
             print(infos)
             stop("none of the file was imported correctly")
         }
 
+        if (!is.null(pb_fct)) {
+            pb_fct_pos <- function(n, total, title) {
+                pb_fct(n = n, total = total, title = paste(title, "positive"))
+            }
+        }
         xset_pos <- ms_process_polarity(
             sqlite_path,
             sample_names,
@@ -208,9 +219,14 @@ ms_process <- function(raw_files,
             pd_params,
             ann_params,
             operator,
-            pb_fct
+            pb_fct_pos
         )
 
+        if (!is.null(pb_fct)) {
+            pb_fct_neg <- function(n, total, title) {
+                pb_fct(n = n, total = total, title = paste(title, "negative"))
+            }
+        }
         xset_neg <- ms_process_polarity(
             sqlite_path,
             sample_names,
@@ -220,9 +236,12 @@ ms_process <- function(raw_files,
             pd_params,
             ann_params,
             operator,
-            pb_fct
+            pb_fct_neg
         )
 
+        if (!is.null(pb_fct)) {
+            pb_fct(n = 1, total = 1, title = "Record results")
+        }
         merged_results <- merge_xsets(xset_pos, xset_neg)
         db <- db_connect(sqlite_path)
         db_record_xset(db, xset_pos, xset_neg, infos[1, "sample"])
@@ -249,6 +268,7 @@ ms_process <- function(raw_files,
         if (exists("cl")) {
             parallel::stopCluster(cl)
         }
+        NULL
     }, error = function(e) {
         try(suppressWarnings(file.remove(sqlite_path)))
         if (exists("pb")) {
@@ -366,6 +386,9 @@ ms_process_polarity <- function(sqlite_path,
                                 ann_params,
                                 operator = foreach::"%do%",
                                 pb_fct = NULL) {
+    if (!is.null(pb_fct)) {
+        pb_fct(n = 0, total = 1, title = "PeakPicking")
+    }
     xsets <- operator(
         foreach::foreach(
             sample = iterators::iter(samples),
@@ -389,6 +412,9 @@ ms_process_polarity <- function(sqlite_path,
             e$message
         })
     )
+    if (!is.null(pb_fct)) {
+        pb_fct(n = 1, total = 1, title = "PeakPicking")
+    }
     test_error <- which(sapply(xsets, class) != "xcmsSet")
     if (length(test_error) > 0) {
         stop(paste(unlist(xsets[test_error]), collapse = "\n"))
