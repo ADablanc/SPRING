@@ -1,0 +1,26 @@
+{
+  "input": {
+    "introjs": 0,
+    "project_create": 1,
+    "project_create_cancel": 0,
+    "project_create_name": "test",
+    "project_create_path": {
+      "path": [
+        ""
+      ],
+      "roots": "home"
+    },
+    "project_create_valid": 4,
+    "project_load": 0,
+    "sidebarCollapsed": false,
+    "sidebarItemExpanded": null,
+    "tabs": "process"
+  },
+  "output": {
+    "project_create_path_display": "C:/Users/sebastien.hutinet/Documents",
+    "project_name": "test"
+  },
+  "export": {
+
+  }
+}

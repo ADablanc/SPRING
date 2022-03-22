@@ -250,7 +250,7 @@ ms_process <- function(raw_files,
             parallel::stopCluster(cl)
         }
     }, error = function(e) {
-        suppressWarnings(file.remove(sqlite_path))
+        try(suppressWarnings(file.remove(sqlite_path)))
         if (exists("pb")) {
             close(pb)
         }

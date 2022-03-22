@@ -1,6 +1,4 @@
 server <- function(input, output, session) {
-    source("server/reactiveVal.R", local = TRUE)$value
-
     #' @title Clean the RAM
     #'
     #' @description
@@ -16,31 +14,41 @@ server <- function(input, output, session) {
     #' At session end it remove all object in environnement &
     #'      call garbage collector
     session$onSessionEnded(function() {
-        if (!is.null(isolate(db()))) RSQLite::dbDisconnect(isolate(db()))
+        if (!is.null(isolate(db()))) {
+            RSQLite::dbDisconnect(isolate(db()))
+        }
         gc()
         shiny::stopApp()
     })
 
     volumes <- c(home = tools::file_path_as_absolute("~"),
-        shinyFiles::getVolumes()())
+                 shinyFiles::getVolumes()())
+
+    # only used when testing the app
+    if (isTRUE(getOption("shiny.testmode"))) {
+        pkgload::load_all("../..", compile = FALSE)
+    }
 
     source("server/func.R", local = TRUE)$value
 
+    source("server/reactiveVal.R", local = TRUE)$value
+
     source("server/project.R", local = TRUE)$value
 
-    source("server/plots.R", local = TRUE)$value
-
-    source("server/process.R", local = TRUE)$value
-
-    source("server/conflicts.R", local = TRUE)$value
-
-    source("server/check_data.R", local = TRUE)$value
-
-    source("server/summary.R", local = TRUE)$value
-
-    source("server/database.R", local = TRUE)$value
+    # source("server/plots.R", local = TRUE)$value
+    #
+    # source("server/process.R", local = TRUE)$value
+    #
+    # source("server/conflicts.R", local = TRUE)$value
+    #
+    # source("server/check_data.R", local = TRUE)$value
+    #
+    # source("server/summary.R", local = TRUE)$value
+    #
+    # source("server/database.R", local = TRUE)$value
 
     # hide loader & show app div
     shinyjs::hide(id = "loader", anim = TRUE, animType = "fade")
     shinyjs::show("app-content")
+    shiny::showModal(project_modal())
 }

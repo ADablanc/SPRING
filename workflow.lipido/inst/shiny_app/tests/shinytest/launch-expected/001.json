@@ -1,0 +1,16 @@
+{
+  "input": {
+    "introjs": 0,
+    "project_create": 0,
+    "project_load": 0,
+    "sidebarCollapsed": false,
+    "sidebarItemExpanded": null,
+    "tabs": "process"
+  },
+  "output": {
+    "project_name": ""
+  },
+  "export": {
+
+  }
+}

@@ -7,11 +7,13 @@
 run_shiny_app(log_file_path = NULL, converter = "pwiz/msconvert.exe")
 }
 \arguments{
-\item{log_file_path}{path to the file were to write the stderr & stdout}
+\item{log_file_path}{`character(1)` path to the file were to write the stderr
+& stdout}
+
+\item{converter}{`character(1)` path to msconvert.exe}
 }
 \description{
 Run a shiny application in the default web browser
-All outputs are redirect to a file by default in the home directory
 }
 \examples{
 \dontrun{

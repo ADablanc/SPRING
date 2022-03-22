@@ -1,0 +1,31 @@
+{
+  "input": {
+    "introjs": 0,
+    "project_create": 0,
+    "project_load": {
+      "files": {
+        "0": [
+          "Users",
+          "sebastien.hutinet",
+          "Documents",
+          "GitHub",
+          "workflow.lipido",
+          "workflow.lipido",
+          "inst",
+          "testdata",
+          "220221CCM_global.sqlite"
+        ]
+      },
+      "roots": "Windows (C:)"
+    },
+    "sidebarCollapsed": false,
+    "sidebarItemExpanded": null,
+    "tabs": "process"
+  },
+  "output": {
+    "project_name": "220221CCM_global"
+  },
+  "export": {
+
+  }
+}

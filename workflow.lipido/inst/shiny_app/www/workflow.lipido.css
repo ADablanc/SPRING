@@ -28,9 +28,6 @@
     transform: rotate(360deg);
   }
 }
-.modal-content {
-	margin: 0px 40px 0px 40px;
-}
 .bttn-no-fill {
   margin: 0;
   padding: 8px 15px;
@@ -125,3 +122,21 @@
     float: right !important;
     background: none !important;
 }
+.modal {
+    display:flex!important;
+    flex-direction:column;
+    justify-content:center;
+    align-content:center;
+    align-items: flex-start;
+}
+#project_bttn {
+    text-align: center;
+}
+#project_create_path_div {
+    display: flex;
+}
+#project_create_path {
+    color: black;
+    margin-bottom: 5px;
+}
+

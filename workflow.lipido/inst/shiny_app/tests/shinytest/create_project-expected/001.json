@@ -1,0 +1,21 @@
+{
+  "input": {
+    "introjs": 0,
+    "project_create": 1,
+    "project_create_cancel": 0,
+    "project_create_name": "",
+    "project_create_path": 0,
+    "project_create_valid": 0,
+    "project_load": 0,
+    "sidebarCollapsed": false,
+    "sidebarItemExpanded": null,
+    "tabs": "process"
+  },
+  "output": {
+    "project_create_path_display": "No directory selected",
+    "project_name": ""
+  },
+  "export": {
+
+  }
+}

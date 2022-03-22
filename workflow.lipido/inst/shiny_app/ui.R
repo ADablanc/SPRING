@@ -6,81 +6,109 @@ header <- shiny::tags$header(
     shinyjs::useShinyjs(),
     shinyjs::extendShinyjs(
         text = "shinyjs.collapse = function(boxId) {
-        $('#' + boxId).closest('.box').find('[data-widget=collapse]').click();
-        }", functions = "collapse"),
+            $('#' + boxId)
+                .closest('.box')
+                .find('[data-widget=collapse]')
+                .click();
+            }",
+        functions = "collapse"
+    ),
     shinyFeedback::useShinyFeedback(),
     shinyWidgets::useSweetAlert(),
     bsplus::use_bs_tooltip(),
-    # bsplus::use_bs_popover(),
     rintrojs::introjsUI(),
     shiny::includeCSS("www/workflow.lipido.css"),
     shiny::includeScript("www/workflow.lipido.js"),
 
-    shiny::tags$nav(class = "navbar navbar-static-top", role = "navigation",
-        shiny::tags$form(class = "form-inline",
-            shiny::tags$div(class = "form-group", style = "float:left",
-                shiny::tags$span(id = "titleApp", class = "logo", appname)
+    shiny::tags$nav(
+        class = "navbar navbar-static-top",
+        role = "navigation",
+        shiny::tags$form(
+            class = "form-inline",
+            shiny::tags$div(
+                class = "form-group",
+                style = "float:left",
+                shiny::tags$span(
+                    id = "titleApp",
+                    class = "logo",
+                    appname
+                )
             ),
-            shiny::tags$div(class = "form-group", style = "float:right;",
-                shiny::tags$a(`data-toggle` = "tooltip",
+            shiny::tags$div(
+                class = "form-group",
+                style = "float:right;",
+                shiny::tags$a(
+                    `data-toggle` = "tooltip",
                     `data-placement` = "left",
                     title = "Information on the different areas
                         of the active window",
-                    shiny::actionButton("introjs", "", icon = icon("question"))
+                    shiny::actionButton(
+                        "introjs",
+                        "",
+                        icon = icon("question")
+                    )
                 )
             ),
-            shiny::tags$span(id = "project_name", class = "logo project_logo"),
-            shinyFiles::shinyFilesButton(
-                id = "project_load2",
-                title = "select file(s)",
-                class = "shinyjs-resettable",
-                multiple = FALSE,
-                label = "",
-                style = "display: none;"
-            ),
-            shinyFiles::shinyDirButton(
-                id = "project_create_path2",
-                label = "",
-                title = "select directory",
-                style = "display: none"
+            shiny::tags$span(
+                class = "logo project_logo",
+                shiny::textOutput(
+                    outputId = "project_name",
+                    inline = TRUE
+                )
             )
-
         )
     )
 )
 
-sidebar <- shinydashboard::dashboardSidebar(collapsed = TRUE, disable = TRUE,
-    shinydashboard::sidebarMenu(id = "tabs",
-        shinydashboard::menuItem("Process", icon = shiny::icon("cog"),
-            tabName = "process"),
-        shinydashboard::menuItem(text = "Explore data",
-                                 icon = shiny::icon("table"),
-             shinydashboard::menuSubItem("Resolve conflicts",
-                                         tabName = "conflicts"),
-             shinydashboard::menuSubItem("Check data",
-                                         tabName = "check_data"),
-             shinydashboard::menuSubItem("Summary",
-                                         tabName = "summary")
+sidebar <- shinydashboard::dashboardSidebar(
+    collapsed = TRUE,
+    disable = TRUE,
+    shinydashboard::sidebarMenu(
+        id = "tabs",
+        shinydashboard::menuItem(
+            "Process",
+            icon = shiny::icon("cog"),
+            tabName = "process"
         ),
-        shinydashboard::menuItem("Database", icon = shiny::icon("database"),
-                                 tabName = "database")
+        shinydashboard::menuItem(
+            text = "Explore data",
+            icon = shiny::icon("table"),
+            shinydashboard::menuSubItem(
+                "Resolve conflicts",
+                tabName = "conflicts"
+            ),
+            shinydashboard::menuSubItem(
+                "Check data",
+                tabName = "check_data"
+            ),
+            shinydashboard::menuSubItem(
+                "Summary",
+                tabName = "summary"
+            )
+        ),
+        shinydashboard::menuItem(
+            "Database",
+            icon = shiny::icon("database"),
+            tabName = "database"
+        )
     )
 )
 
 body <- shinydashboard::dashboardBody(
     shiny::fluidPage(
-        tags$div(id = "loader", class = "lds-dual-ring"),
+        tags$div(
+            id = "loader",
+            class = "lds-dual-ring"
+        ),
         shinyjs::hidden(
-            shiny::div(id = "app-content",
+            shiny::div(
+                id = "app-content",
                 shinydashboard::tabItems(
-                    source("ui/process.R", local = TRUE)$value,
-                    source("ui/conflicts.R", local = TRUE)$value,
-                    source("ui/check_data.R", local = TRUE)$value,
-                    source("ui/summary.R", local = TRUE)$value,
-                    source("ui/database.R", local = TRUE)$value
-                ),
-
-                list(
+                    # source("ui/process.R", local = TRUE)$value,
+                    # source("ui/conflicts.R", local = TRUE)$value,
+                    # source("ui/check_data.R", local = TRUE)$value,
+                    # source("ui/summary.R", local = TRUE)$value,
+                    # source("ui/database.R", local = TRUE)$value
                 )
             )
         )

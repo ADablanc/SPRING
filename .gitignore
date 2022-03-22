@@ -4,3 +4,4 @@ R-Portable/library/*
 *.log
 *.Rproj
 .Rproj.user
+workflow.lipido/inst/shiny_app/tests/shinytest/*-current/*
