@@ -59,12 +59,12 @@ server <- function(input, output, session) {
     source("server/process.R", local = TRUE)$value
 
     # source("server/conflicts.R", local = TRUE)$value
-    #
+
     # source("server/check_data.R", local = TRUE)$value
-    #
+
     # source("server/summary.R", local = TRUE)$value
-    #
-    # source("server/database.R", local = TRUE)$value
+
+    source("server/database.R", local = TRUE)$value
 
     # hide loader & show app div
     shinyjs::hide(id = "loader", anim = TRUE, animType = "fade")

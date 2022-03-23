@@ -1,5 +1,14 @@
-output$database_table <- DT::renderDataTable(utils::read.csv(
-  system.file("extdata", "database.csv", package = "workflow.lipido")),
+#' @title Database table
+#'
+#' @description
+#' Display the database in a datatable
+output$database_table <- DT::renderDataTable({
+  utils::read.csv(system.file(
+    "extdata",
+    "database.csv",
+    package = "workflow.lipido"
+  ))
+}, server = isFALSE(getOption("shiny.testmode")),
   rownames = FALSE,
   selection = "none",
   filter = "top",
@@ -23,7 +32,7 @@ output$database_table <- DT::renderDataTable(utils::read.csv(
       emptyTable = "no lipids in database"
     ),
     initComplete = htmlwidgets::JS("
-            function(settings, json){
+            function(settings, json) {
                 settings.oInstance.api().columns.adjust();
             }
         ")
