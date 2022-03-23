@@ -21,7 +21,8 @@ output$process_dt_files_imported <- DT::renderDataTable({
             input$process_files
         )$name)
     }
-}, selection = "none",
+}, server = isFALSE(getOption("shiny.testmode")),
+    selection = "none",
     rownames = FALSE,
     extensions = "Scroller",
     options = list(
