@@ -1,3 +1,9 @@
+#' @title Options for summary table
+#'
+#' @description
+#' List of options for the summary table
+#' This was written in this form in order to use the function
+#' DT::formatCurrency which need the option list to work
 summary_table_options <- list(
     rownames = FALSE,
     selection = "none",
@@ -42,42 +48,56 @@ summary_table_options <- list(
             emptyTable = "no lipids found"
         ),
         initComplete = htmlwidgets::JS("
-            function(settings, json){
+            function(settings, json) {
                 settings.oInstance.api().columns.adjust();
             }
         ")
     )
 )
+
+#' @title Summary table
+#'
+#' @description
+#' Summary datatable: annotations regrouped by compound instead by ion
+#' it will return in the column samples the sum of intensity of ALL basepeaks
+#' It use the function DT::formatCurrency in order to sort the intensities
+#' even if the thousand separator is " " and not ","
 output$summary_table <- DT::renderDataTable({
     # to invalidate the summary table
     ann <- summarise_ann(ann()$no_conflicts, spectra_infos())
-    ann[ann == 0] <- NA
+    ann[ann[, 10:ncol(ann)] == 0, 10:ncol(ann)] <- NA
     DT::formatCurrency(
-        table = do.call(DT::datatable,
-                        c(list(data = ann), summary_table_options)),
+        table = do.call(
+            DT::datatable,
+            c(list(data = ann), summary_table_options)
+        ),
         columns = 10:ncol(ann),
         mark = " ",
         digits = 0,
         currency = ""
     )
-})
+}, server = isFALSE(getOption("shiny.testmode")))
 
+#' @title Summary export
+#'
+#' @description
+#' Export all annotations in a excel file
+#' First sheet will have the annotations regroup by compound
+#' Second will have annotations regroup by ions
+#'
+#' Warning ! It export only the annotations with no conflicts !
+#' (Conflicts are when for a group of peaks multiple annotations are possible
+#' (it happens often when for an ion formula refers to multiple compounds))
 output$summary_export <- shiny::downloadHandler(
     filename = function() {
-        if (is.null(sqlite_path())) "*.xlsx"
-        else paste0(tools::file_path_sans_ext(basename(sqlite_path())), ".xlsx")
+        if (is.null(sqlite_path())) {
+            "*.xlsx"
+        } else {
+            paste0(tools::file_path_sans_ext(basename(sqlite_path())), ".xlsx")
+        }
     },
-    content = function(file) {
-        wb <- openxlsx::createWorkbook()
-        openxlsx::addWorksheet(wb, "Summary")
-        openxlsx::addWorksheet(wb, "Details")
-        openxlsx::writeDataTable(wb, "Summary",
-                                 summarise_ann(ann()$no_conflicts,
-                                               spectra_infos()))
-        openxlsx::writeDataTable(wb, "Details",
-                                 get_int_ann(ann()$no_conflicts,
-                                               spectra_infos()))
-        openxlsx::saveWorkbook(wb, file, overwrite = TRUE)
-        return(file)
+    content = function(excel_path) {
+        export_annotations(sqlite_path(), excel_path)
+        excel_path
     }
 )
