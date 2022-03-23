@@ -1389,7 +1389,7 @@
           "language": {
             "emptyTable": "no lipids in database"
           },
-          "initComplete": "\n            function(settings, json){\n                settings.oInstance.api().columns.adjust();\n            }\n        ",
+          "initComplete": "\n            function(settings, json) {\n                settings.oInstance.api().columns.adjust();\n            }\n        ",
           "order": [
 
           ],

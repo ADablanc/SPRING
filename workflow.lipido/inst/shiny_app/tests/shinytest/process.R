@@ -15,16 +15,19 @@ empty_ann <- app$waitForValue(
 
 # access to the process tab by creation of a project
 app$setInputs(project_create = "click")
-app$setInputs(project_create_name = "test2")
-app$executeScript("
+app$setInputs(project_create_name = "test")
+app$executeScript(sprintf("
     Shiny.setInputValue(
         \"project_create_path\",
         {
-            path: [\"\"],
-            roots: \"home\"
+            path: [\"%s\"],
+            roots: \"Windows (C:)\"
         }
-    )
-")
+    )",
+    # create the project in a temp dir
+    gsub("C:/", "", gsub("\\\\", "/", tempdir()))
+))
+
 app$setInputs(project_create_valid = "click")
 app$waitForValue(
     "project_name",

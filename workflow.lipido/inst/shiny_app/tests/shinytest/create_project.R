@@ -40,23 +40,21 @@ app$setInputs(project_create_valid = "click")
 app$snapshot(items = list(output = c("project_name")), screenshot = TRUE)
 
 # test if we give a directory path
-app$executeScript("
+app$executeScript(sprintf("
     Shiny.setInputValue(
         \"project_create_path\",
         {
-            path: [\"\"],
-            roots: \"home\"
+            path: [\"%s\"],
+            roots: \"Windows (C:)\"
         }
-    )
-")
+    )",
+    # create the project in a temp dir
+    gsub("C:/", "", gsub("\\\\", "/", tempdir()))
+))
 app$waitForValue(
     "project_create_path_display",
     iotype = "output",
     ignore = list(empty_path)
-)
-app$snapshot(
-    items = list(output = c("project_create_path_display")),
-    screenshot = TRUE
 )
 
 # test if we forgot to give a name
