@@ -24,21 +24,40 @@ server <- function(input, output, session) {
     volumes <- c(home = tools::file_path_as_absolute("~"),
                  shinyFiles::getVolumes()())
 
-    # only used when testing the app
-    if (isTRUE(getOption("shiny.testmode"))) {
-        pkgload::load_all("../..", compile = FALSE)
-    }
-
     source("server/func.R", local = TRUE)$value
 
     source("server/reactiveVal.R", local = TRUE)$value
 
+    # only used when testing the app
+    if (isTRUE(getOption("shiny.testmode"))) {
+        pkgload::load_all("../..", compile = FALSE)
+        assign(
+            "converter",
+            normalizePath(file.path(
+                system.file(package = "workflow.lipido"),
+                "../../pwiz/msconvert.exe"
+            )),
+            envir = .workflow_lipido_env
+        )
+        shiny::exportTestValues(
+            sqlite_path = sqlite_path(),
+            ann = ann(),
+            spectra_infos = spectra_infos(),
+            conflict_id = conflict_id()
+        )
+        shiny::snapshotPreprocessInput(
+            "process_dt_files_imported_state",
+            function(value) {
+            }
+        )
+    }
+
     source("server/project.R", local = TRUE)$value
 
     # source("server/plots.R", local = TRUE)$value
-    #
-    # source("server/process.R", local = TRUE)$value
-    #
+
+    source("server/process.R", local = TRUE)$value
+
     # source("server/conflicts.R", local = TRUE)$value
     #
     # source("server/check_data.R", local = TRUE)$value

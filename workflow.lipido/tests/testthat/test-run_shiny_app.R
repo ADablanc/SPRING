@@ -3,7 +3,6 @@ testthat::test_that("shiny app", {
     shinytest::expect_pass(
         shinytest::testApp(
             shiny_app_dir,
-            quiet = TRUE,
             interactive = FALSE,
             compareImages = FALSE
         )

@@ -1,16 +1,27 @@
 # Declaration of shinyFilesChoose button
-shinyFiles::shinyFileChoose(input, 'process_files', roots = volumes,
-	filetypes = c('mzML', 'mzXML', 'CDF', 'RAW', 'd', 'YEP', 'BAF',
-        'FID', 'WIFF', 'MGF'))
+shinyFiles::shinyFileChoose(
+    input,
+    "process_files",
+    roots = volumes,
+    filetypes = c("mzML", "mzXML", "CDF", "RAW", "d", "YEP", "BAF", "FID",
+                  "WIFF", "MGF")
+)
 
-output$process_dt_files_imported <- DT::renderDataTable(
-    if (is.integer(input$process_files)) data.frame(matrix(,
-        nrow = 0, ncol = 1, dimnames = list(
+#' @title Table of the files to process
+#'
+#' @description
+#' Table with all the files selected by the user to process
+output$process_dt_files_imported <- DT::renderDataTable({
+    if (is.integer(input$process_files)) {
+        data.frame(matrix(, nrow = 0, ncol = 1, dimnames = list(
             c(), c("File"))), check.names = FALSE)
-    else data.frame(File = shinyFiles::parseFilePaths(
-        volumes, input$process_files)$name)
-,
-    selection = "none",
+    } else {
+        data.frame(File = shinyFiles::parseFilePaths(
+            volumes,
+            input$process_files
+        )$name)
+    }
+}, selection = "none",
     rownames = FALSE,
     extensions = "Scroller",
     options = list(
@@ -24,18 +35,36 @@ output$process_dt_files_imported <- DT::renderDataTable(
     )
 )
 
-shinyWidgets::updatePickerInput(session, inputId = "process_adducts",
-                                label = "Adducts", choices = adducts$Name,
-                                selected = c("[M+Na]+", "[M+NH4]+", "[M+H-H2O]+", "[M-H]-", "[M+H]+"))
+shinyWidgets::updatePickerInput(
+    session,
+    inputId = "process_adducts",
+    label = "Adducts",
+    choices = adducts$Name,
+    selected = c("[M+Na]+", "[M+NH4]+", "[M+H-H2O]+", "[M-H]-", "[M+H]+")
+)
 
-shiny::updateSelectInput(session, inputId = "process_instrument",
-                         label = "Instrument", choices = names(resolution_list),
-                         selected = "QTOF_XevoG2-S_R25000@200")
+shiny::updateSelectInput(
+    session,
+    inputId = "process_instrument",
+    label = "Instrument",
+    choices = names(resolution_list),
+    selected = "QTOF_XevoG2-S_R25000@200"
+)
 
-shiny::updateNumericInput(session, inputId = "process_cores",
-                          label = "Cores", value = parallel::detectCores(), min = 1,
-                          max = parallel::detectCores(), step = 1)
+shiny::updateNumericInput(
+    session,
+    inputId = "process_cores",
+    label = "Cores",
+    value = parallel::detectCores(),
+    min = 1,
+    max = parallel::detectCores(),
+    step = 1
+)
 
+#' @title Launch process event
+#'
+#' @description
+#' Launch the process event. See the `function` process for more info
 shiny::observeEvent(input$process_launch, {
     params <- list(
         process_files = input$process_files
@@ -43,15 +72,19 @@ shiny::observeEvent(input$process_launch, {
     tryCatch({
 
         # check specifically the files parameter
-        if (is.integer(input$process_files)) custom_stop("invalid_2", "No files selected")
+        if (is.integer(input$process_files)) {
+            custom_stop("invalid_2", "No files selected")
+        }
 
         params <- list(
             sqlite_path = sqlite_path(),
             Cores = input$process_cores,
-            Files = shinyFiles::parseFilePaths(volumes,
-                input$process_files)$datapath,
+            Files = shinyFiles::parseFilePaths(
+                volumes,
+                input$process_files
+            )$datapath,
             `m/z min` = input$process_filter_mz_min,
-            `m/z max`= input$process_filter_mz_max,
+            `m/z max` = input$process_filter_mz_max,
             `rT min` = input$process_filter_rt_min,
             `rT max` = input$process_filter_rt_max,
             `m/z tolerance (peakpicking)` = input$process_ppm,
@@ -87,8 +120,8 @@ shiny::observeEvent(input$process_launch, {
             "prefilter_level", "mz_center_fun", "integrate", "mzdiff", "noise",
             "first_baseline_check", "response", "dist_fun",
             "gap_init", "gap_extend", "factor_diag", "factor_gap",
-            "local_alignment", "init_penalty", "bw", "mzwid", "mda_tol", "rt_tol",
-            "abd_tol", "adducts", "instrument"), sep = "_")
+            "local_alignment", "init_penalty", "bw", "mzwid", "mda_tol",
+            "rt_tol", "abd_tol", "adducts", "instrument"), sep = "_")
 
         # check which are missing
         conditions <- !is.na(params) & lengths(params) > 0
@@ -116,7 +149,8 @@ shiny::observeEvent(input$process_launch, {
             split(names(params[idx]), ceiling(seq(length(idx)) / 2)),
                 function(x) c(
                     paste(x[1], "cannot be over than", x[2]),
-                    paste(x[2], "cannot be under than", x[1]))))
+                    paste(x[2], "cannot be under than", x[1]))
+            ))
         check_inputs(inputs[idx], conditions, msgs)
 
         # create the parameters objects
@@ -126,10 +160,12 @@ shiny::observeEvent(input$process_launch, {
         )
         cwt_params <- xcms::CentWaveParam(
             ppm = params[["m/z tolerance (peakpicking)"]],
-            peakwidth = c(params[["Peakwidth min"]],
+            peakwidth = c(
+                params[["Peakwidth min"]],
                 params[["Peakwidth max"]]),
             snthresh = params[["s/n"]],
-            prefilter = c(params[["Prefilter step"]],
+            prefilter = c(
+                params[["Prefilter step"]],
                 params[["Prefilter level"]]),
             mzCenterFun = params[["m/z center function"]],
             integrate = params[["Integration by CWT"]],
@@ -140,7 +176,7 @@ shiny::observeEvent(input$process_launch, {
             firstBaselineCheck = params[["Baseline check"]]
         )
         obw_params <- xcms::ObiwarpParam(
-            binSize = 1,
+            binSize = .1,
             centerSample = integer(),
             response = params[["Response"]],
             distFun = params[["Distance function"]],
@@ -167,30 +203,46 @@ shiny::observeEvent(input$process_launch, {
             instrument = params[["Instrument"]]
         )
 
-        shinyWidgets::progressSweetAlert(session, 'pb',
-            title = '', value = 0)
-        infos <- ms_process(params$Files, params$sqlite_path,
-                            .workflow_lipido_env$converter, filter_params,
-                            cwt_params, obw_params, pd_params, ann_params,
-                            cores = params$Cores, show_txt_pb = FALSE,
-                            pb_fct = function(n, total, title)
-                                shinyWidgets::updateProgressBar(
-                                    session,
-                                    id = "pb",
-                                    value = (n - 1) * 100 / total,
-                                    title = title))
+        shinyWidgets::progressSweetAlert(
+            session,
+            "pb",
+            title = "",
+            value = 0
+        )
+        infos <- ms_process(
+            params$Files,
+            params$sqlite_path,
+            .workflow_lipido_env$converter,
+            filter_params,
+            cwt_params,
+            obw_params,
+            pd_params,
+            ann_params,
+            cores = params$Cores,
+            show_txt_pb = FALSE,
+            pb_fct = function(n, total, title) {
+                shinyWidgets::updateProgressBar(
+                    session,
+                    id = "pb",
+                    value = (n - 1) * 100 / total,
+                    title = title
+                )
+            }
+        )
 
         shinyWidgets::closeSweetAlert()
-        if (class(infos) != "character") stop(infos)
+        if (any(class(infos) == "error")) {
+            stop(infos)
+        }
 
         db(db_connect(sqlite_path()))
-        ann <- db_get_ann(db())
+        ann <- dbReadTable(db(), "ann")
         if (nrow(ann) > 0) {
             ann <- split_conflicts(ann)
             ann(ann)
             if (length(ann$conflicts) > 0) conflict_id(1)
             else conflict_id(0)
-            spectra_infos(db_get_spectra_infos(db()))
+            spectra_infos(dbReadTable(db(), "spectra_infos"))
         } else {
             ann(list())
             conflict_id(0)

@@ -3,10 +3,10 @@ shinydashboard::tabItem(
     shinydashboard::box(
         width = 3,
         shinyWidgets::actionBttn(
-            inputId = 'process_launch',
-            label = 'Launch deconvolution process',
-            style = 'minimal',
-            color = 'primary'
+            inputId = "process_launch",
+            label = "Launch deconvolution process",
+            style = "minimal",
+            color = "primary"
         ),
         shiny::tabsetPanel(
             shiny::tabPanel(

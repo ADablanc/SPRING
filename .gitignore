@@ -5,3 +5,4 @@ R-Portable/library/*
 *.Rproj
 .Rproj.user
 workflow.lipido/inst/shiny_app/tests/shinytest/*-current/*
+workflow.lipido/inst/testdata/*.sqlite-*

@@ -112,7 +112,6 @@ observeEvent(input$project_load, {
             input$project_load
         )$datapath
     )
-    browser()
     tryCatch({
         if (length(params$sqlite_path) == 0) {
             custom_stop("invalid", "no project file loaded")
