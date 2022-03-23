@@ -1652,3 +1652,112 @@ testthat::test_that("workflow", {
     )
     RSQLite::dbDisconnect(db)
 })
+
+testthat::test_that("export annotations", {
+    ann <- data.frame(
+        group_id = c(1, 2, 9, 10, 11, 13),
+        name = c("LPC 11:0", "LPC 11:0", "LPC 11:0", "Cer (d18:1/C12:0)",
+                 "Cer (d18:1/C12:0)", "FA 17:0"),
+        formula = c("C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
+                    "C30H59N1O3", "C30H59N1O3", "C17H34O2"),
+        adduct = c("[M+H-H2O]+", "[M+H]+", "[M+Na]+", "[M+H-H2O]+", "[M+Na]+",
+                   "[M-H]-"),
+        ion_formula = c("C19H39N1O6P1", "C19H41N1O7P1", "C19H40N1O7P1Na1",
+                        "C30H58N1O2", "C30H59N1O3Na1", "C17H33O2"),
+        rtdiff = c(9.52199999999993, 8.99149999999997, 8.99299999999994,
+                   5.97300000000001, 5.70849999999999, 2.18899999999999),
+        rt = c(286.278, 286.8085, 286.807, 201.573, 201.3085, 178.411),
+        rtmin = c(284.692, 284.6920, 282.048, 196.3860, 178.1780, 175.0360),
+        rtmax = c(287.864, 292.0980, 292.095, 206.7290, 215.0380, 181.5860),
+        nsamples = c(1, 2, 1, 2, 2, 2),
+        best_score = c(79.8211975097656, 95.1391906738281, 79.6432037353516,
+                       71.3979721069336, 89.4345550537109, 99.5300903320312),
+        best_deviation_mz = c(0.0003662109375, 0.0008544921875,
+                              0.000701904296875, 0.0010986328125,
+                              0.00140380859375, -0.000111897788883653),
+        best_npeak = c(1, 2, 1, 1, 2, 3),
+        `220221CCM_global__01_ssleu_filtered` = c(NA, 2, NA, 5, 7, 9),
+        `220221CCM_global__02_ssleu_filtered` = c(1, 3, 4, 6, 8, 10),
+        check.names = FALSE
+    )
+    spectra_infos <- data.frame(
+        spectra_id = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
+        score = c(79.8211975097656, 94.9317855834961, 95.1391906738281,
+                  79.6432037353516, 71.3979721069336, 71.3979721069336,
+                  89.4345550537109, 88.4888916015625, 82.740364074707,
+                  99.5300903320312),
+        deviation_mz = c(0.0003662109375, 0.000457763671875,
+                         0.0008544921875, 0.000701904296875,
+                         0.0010986328125, 0.001251220703125,
+                         0.00140380859375, 0.0017852783203125,
+                         -0.001068115234375, -0.000111897788883653),
+        npeak = c(1, 2, 2, 1, 1, 1, 2, 2, 1, 3),
+        basepeak_int = c(88824.635233072, 6214416.44108707,
+                         6201250.27168528, 288290.748778874,
+                         4945601.93026269, 5689144.27927454,
+                         1448292.29379181, 1662831.19267642,
+                         8927664.85468527, 4593482.66518999),
+        sum_int = c(88824.635233072, 7385056.39979801, 7388017.8361341,
+                    288290.748778874, 4945601.93026269, 5689144.27927454,
+                    1849363.52087931, 2106914.27998355, 8927664.85468527,
+                    5580653.54818653),
+        sample = c("220221CCM_global__02_ssleu_filtered",
+                   "220221CCM_global__01_ssleu_filtered",
+                   "220221CCM_global__02_ssleu_filtered",
+                   "220221CCM_global__02_ssleu_filtered",
+                   "220221CCM_global__01_ssleu_filtered",
+                   "220221CCM_global__02_ssleu_filtered",
+                   "220221CCM_global__01_ssleu_filtered",
+                   "220221CCM_global__02_ssleu_filtered",
+                   "220221CCM_global__01_ssleu_filtered",
+                   "220221CCM_global__02_ssleu_filtered"),
+        rt = c(286.278, 286.81, 286.807, 286.807, 197.973, 205.173, 197.444,
+               205.173, 178.504, 178.318)
+    )
+
+    excel_file <- tempfile(fileext = ".xlsx")
+    sqlite_path <- system.file(
+        "testdata",
+        "220221CCM_global.sqlite",
+        package = "workflow.lipido"
+    )
+    ann <- split_conflicts(ann)
+
+    # 1st : test with a wrong sqlite path
+    testthat::expect_error(
+        export_annotations(2, NULL),
+        "sqlite file arg must be a filepath to a database file"
+    )
+
+    # 2nd : test with a missing excel file
+    testthat::expect_error(
+        export_annotations("test.sqlite", NULL),
+        "the path in the sqlite file arg doesn't exist"
+    )
+
+    # 3rd : test with a wrong excel file
+    testthat::expect_error(
+        export_annotations(sqlite_path, 2),
+        "excel file arg must be a filepath to a database file"
+    )
+
+    # 4th : test with a missing direcory for the excel file
+    testthat::expect_error(
+        export_annotations(sqlite_path, "a/a.xlsx"),
+        "the directory path to the excel file arg doesn't exist"
+    )
+
+    export_annotations(sqlite_path, excel_file)
+    ann_summarised <- summarise_ann(ann$no_conflicts, spectra_infos)
+    ann_summarised$nSamples <- as.numeric(ann_summarised$nSamples)
+    ann_summarised[, "Most intense ion"] <- as.character(
+        ann_summarised[, "Most intense ion"])
+    testthat::expect_equal(
+        openxlsx::read.xlsx(excel_file, 1, sep.names = " "),
+        ann_summarised
+    )
+    testthat::expect_equal(
+        openxlsx::read.xlsx(excel_file, 2, sep.names = " "),
+        data.frame(int_ann, row.names = seq(nrow(int_ann)), check.names = FALSE)
+    )
+})

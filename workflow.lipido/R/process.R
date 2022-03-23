@@ -668,3 +668,48 @@ merge_xsets <- function(xset_pos, xset_neg) {
         peak_groups = peak_groups
     )
 }
+
+#' @title Export annotations
+#'
+#' @description
+#' Export all annotations in a excel file
+#' First sheet will have the annotations regroup by compound
+#' Second will have annotations regroup by ions
+#'
+#' Warning ! It export only the annotations with no conflicts !
+#' (Conflicts are when for a group of peaks multiple annotations are possible
+#' (it happens often when for an ion formula refers to multiple compounds))
+#'
+#' @param sqlite_path `character(1)` sqlite path to the annotation results
+#' @param excel_file `character(1)` path to the excel file to create
+export_annotations <- function(sqlite_path, excel_path) {
+    if (class(sqlite_path) != "character") {
+        stop("sqlite file arg must be a filepath to a database file")
+    } else if (!file.exists(sqlite_path)) {
+        stop("the path in the sqlite file arg doesn't exist")
+    } else if (class(excel_path) != "character") {
+        stop("excel file arg must be a filepath to a database file")
+    } else if (!dir.exists(dirname(excel_path))) {
+        stop("the directory path to the excel file arg doesn't exist")
+    }
+
+    db <- db_connect(sqlite_path)
+    ann <- dbReadTable(db, "ann")
+    ann <- split_conflicts(ann)
+    spectra_infos <- dbReadTable(db, "spectra_infos")
+
+    wb <- openxlsx::createWorkbook()
+    openxlsx::addWorksheet(wb, "Summary")
+    openxlsx::addWorksheet(wb, "Details")
+    openxlsx::writeDataTable(
+        wb,
+        "Summary",
+        summarise_ann(ann$no_conflicts, spectra_infos)
+    )
+    openxlsx::writeDataTable(
+        wb,
+        "Details",
+        get_int_ann(ann$no_conflicts, spectra_infos)
+    )
+    openxlsx::saveWorkbook(wb, excel_path, overwrite = TRUE)
+}
