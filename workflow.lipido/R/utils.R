@@ -4,10 +4,11 @@
 #' Escape all special characters
 #' special characters are : .|()^{}+$*?[]
 #'
-#' @param string a character vector
+#' @param string `character`
 #'
-#' @return the character vector with the special characters escaped
+#' @return `character`
 #' @examples
 #' \dontrun{escapeRegex("C:/msconvert?xcms.exe")}
-escape_regex <- function(string) gsub(
-    "([.|()\\^{}+$*?]|\\[|\\])", "\\\\\\1", string)
+escape_regex <- function(string) {
+    gsub("([.|()\\^{}+$*?]|\\[|\\])", "\\\\\\1", string)
+}

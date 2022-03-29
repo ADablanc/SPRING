@@ -1,5 +1,5 @@
-app <- ShinyDriver$new("../../")
-# app <- ShinyDriver$new("workflow.lipido/inst/shiny_app")
+app <- shinytest::ShinyDriver$new("../../")
+# app <- shinytest::ShinyDriver$new("workflow.lipido/inst/shiny_app")
 app$snapshotInit("process")
 app$waitForValue("project_create", ignore = list(NULL))
 empty_project_name <- app$waitForValue(
@@ -475,6 +475,11 @@ app$snapshot(
 app$setInputs(process_adducts = c("[M+H]+", "[M+NH4]+", "[M+Na]+", "[M-H]-",
                                   "[M+H-H2O]+"))
 app$setInputs(process_launch = "click", wait_ = FALSE, values_ = FALSE)
+app$waitForValue(
+    "ann",
+    iotype = "export",
+    ignore = list(empty_ann)
+)
 app$snapshot(
     items = list(export = c("ann", "spectra_infos")),
     screenshot = TRUE

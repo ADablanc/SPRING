@@ -1,4 +1,4 @@
-app <- ShinyDriver$new("../../")
+app <- shinytest::ShinyDriver$new("../../")
 app$snapshotInit("create_project")
 app$waitForValue("project_create", ignore = list(NULL))
 empty_project_name <- app$waitForValue(

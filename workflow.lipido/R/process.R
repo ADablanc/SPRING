@@ -71,6 +71,8 @@
 #' @param show_txt_pb `boolean` should print a progress bar on the console ?
 #' @param pb_fct `function` used to update the progress bar. Only give if you
 #' intend to use a specific progress bar you created !!!
+#'
+#' @export
 ms_process <- function(raw_files,
                        sqlite_path,
                        converter,
@@ -682,6 +684,8 @@ merge_xsets <- function(xset_pos, xset_neg) {
 #'
 #' @param sqlite_path `character(1)` sqlite path to the annotation results
 #' @param excel_file `character(1)` path to the excel file to create
+#'
+#' @export
 export_annotations <- function(sqlite_path, excel_path) {
     if (class(sqlite_path) != "character") {
         stop("sqlite file arg must be a filepath to a database file")
@@ -695,8 +699,14 @@ export_annotations <- function(sqlite_path, excel_path) {
 
     db <- db_connect(sqlite_path)
     ann <- dbReadTable(db, "ann")
+    if (nrow(ann) == 0) {
+        stop("no annotations in database")
+    }
     ann <- split_conflicts(ann)
     spectra_infos <- dbReadTable(db, "spectra_infos")
+    if (nrow(spectra_infos) == 0) {
+        stop("no spectras in database")
+    }
 
     wb <- openxlsx::createWorkbook()
     openxlsx::addWorksheet(wb, "Summary")

@@ -5,14 +5,12 @@ shinydashboard::tabItem(
         shiny::actionButton(
             inputId = "conflicts_left",
             label = "",
-            icon = shiny::icon("arrow-left")#,
-            #style = "float: left;"
+            icon = shiny::icon("arrow-left")
         ),
         shiny::actionButton(
             inputId = "conflicts_right",
             label = "",
-            icon = shiny::icon("arrow-right")#,
-            #style = "float: right;"
+            icon = shiny::icon("arrow-right")
         ),
         shiny::tags$span(
             class = "logo",

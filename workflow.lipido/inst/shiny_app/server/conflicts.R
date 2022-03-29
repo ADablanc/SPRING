@@ -1,18 +1,38 @@
-shiny::observeEvent(input$conflicts_left, conflict_id(conflict_id() - 1))
-shiny::observeEvent(input$conflicts_right, conflict_id(conflict_id() + 1))
+# update the conflict_id() reactive value when user click on the left arrow
+shiny::observeEvent(input$conflicts_left, {
+    conflict_id(conflict_id() - 1)
+})
+# update the conflict_id() reactive value when user click on the right arrow
+shiny::observeEvent(input$conflicts_right, {
+    conflict_id(conflict_id() + 1)
+})
+# depending on the value od conflict_id it will enable or disable the arrows
 shiny::observeEvent(conflict_id(), {
-    if (conflict_id() <= 1) shinyjs::disable("conflicts_left")
-    else shinyjs::enable("conflicts_left")
-    if (conflict_id() >= length(ann()$conflicts)) shinyjs::disable(
-        "conflicts_right")
-    else shinyjs::enable("conflicts_right")
+    if (conflict_id() <= 1) {
+        shinyjs::disable("conflicts_left")
+    } else {
+        shinyjs::enable("conflicts_left")
+    }
+    if (conflict_id() >= length(ann()$conflicts)) {
+        shinyjs::disable("conflicts_right")
+    } else {
+        shinyjs::enable("conflicts_right")
+    }
 })
 
-output$conflicts_info <- shiny::renderText(
-    sprintf("%s / %s", conflict_id(),
-            if (length(ann()) > 0) length(ann()$conflicts)
-            else 0))
+# print the actual index of the conflicts
+output$conflicts_info <- shiny::renderText({
+    if (length(ann()$conflicts) > 0) {
+        sprintf("%s / %s", conflict_id(), length(ann()$conflicts))
+    } else {
+        ""
+    }
+})
 
+#' @title Conflicts table
+#'
+#' @description
+#' Show the conflicts table
 output$conflicts_table <- DT::renderDataTable({
     default_table <- data.frame(matrix(, nrow = 0, ncol = 9, dimnames = list(
         c(), c("name", "Already seen with", "Already seen in nSamples",
@@ -23,16 +43,21 @@ output$conflicts_table <- DT::renderDataTable({
     conflicts <- ann()$conflicts
     ann <- ann()$no_conflicts
     params <- list(
-        nrow_ann = nrow(ann),
         length_conflicts = length(conflicts),
         conflict_id = conflict_id()
     )
     tryCatch({
-        if (length(conflicts) == 0) custom_stop("invalid", "no conflicts")
-        if (params$conflict_id > length(conflicts) |
-            params$conflict_id < 1) stop("something wrongs with conflict_id")
+        if (length(conflicts) == 0) {
+            custom_stop("invalid", "no conflicts")
+        } else if (
+            params$conflict_id > length(conflicts) |
+            params$conflict_id < 1
+        ) {
+            stop("something wrongs with conflict_id")
+        }
 
         conflict <- conflicts[[params$conflict_id]]
+        params$conflict <- conflict
         conflict <- conflict[, c("name", "rtdiff", "adduct", "nsamples",
                                  "best_score", "best_deviation_mz",
                                  "best_npeak")]
@@ -40,7 +65,7 @@ output$conflicts_table <- DT::renderDataTable({
             conflict[, c("rtdiff", "best_score")])
         conflict$best_deviation_mz <- round(conflict$best_deviation_mz, 2)
         colnames(conflict) <- c("name", "Diff rT (sec)", "Adduct", "nSamples",
-                                "Best score (%)","Best m/z dev (mDa)",
+                                "Best score (%)", "Best m/z dev (mDa)",
                                 "Max iso")
 
         info_conflict <- summarise_ann(ann[ann$name %in% conflict$name, ,
@@ -77,7 +102,7 @@ output$conflicts_table <- DT::renderDataTable({
         sweet_alert_error(e$message)
         default_table
     })
-},
+}, server = isFALSE(getOption("shiny.testmode")),
     escape = FALSE,
     selection = "none",
     options = list(
@@ -96,7 +121,7 @@ output$conflicts_table <- DT::renderDataTable({
             emptyTable = "no conflicts found"
         ),
         initComplete = htmlwidgets::JS('
-                function(settings, json){
+                function(settings, json) {
                     var table = settings.oInstance.api();
                     table.columns.adjust();
                     if (table.data().length > 0) {
@@ -131,48 +156,24 @@ output$conflicts_table <- DT::renderDataTable({
 
 output$conflicts_ms <- plotly::renderPlotly({
     conflicts <- ann()$conflicts
-    ann <- ann()$no_conflicts
-    spectra_infos <- spectra_infos()
 
     params <- list(
-        nrow_ann = nrow(ann),
         length_conflicts = length(conflicts),
         conflict_id = conflict_id(),
         conflict_row_selected = input$conflict_row_selected
     )
     tryCatch({
-        if (length(params$conflict_row_selected) == 0) custom_stop("invalid",
-            "no row selected")
-        else if (params$conflict_row_selected == "0") custom_stop("invalid",
-            "no rows in the table")
+        if (length(params$conflict_row_selected) == 0) {
+            custom_stop("invalid", "no row selected")
+        } else if (params$conflict_row_selected == "0") {
+            custom_stop("invalid", "no rows in the table")
+        }
         conflict <- conflicts[[params$conflict_id]]
+        params$conflict <- conflict
         # get all ions for the lipid selected
         i <- params$conflict_row_selected
 
-        annotation <- rbind(
-            ann[ann$name == conflict[i, "name"], , drop = FALSE],
-            conflict[i, , drop = FALSE]
-        )
-        # select a referent sample, the one where all the adducts were founded
-        annotation_int <- get_int_ann(annotation, spectra_infos)
-        j <- which(sapply(annotation_int[, 9:ncol(annotation_int)], function(x)
-            all(!is.na(x))))
-        # now the sample where the intensity was the highest
-            # dont forget that the index begin at +8 for annotation_int !!!
-        if (length(j) == 0) {
-            toastr_warning("cannot find a sample where all ions were founded")
-            j <- which.max(apply(annotation_int[, 9:ncol(annotation_int),
-                                                drop = FALSE], 2, sum,
-                                 na.rm = TRUE))
-        } else if (length(j) > 1) j <- j[which.max(
-                sapply(annotation_int[, j + 8], sum))]
-
-        spectras <- lapply(annotation[, j + 13], function(spectra_id)
-            if (is.na(spectra_id)) NULL
-            else db_get_spectra(db(), spectra_id))
-        names(spectras) <- annotation$adduct
-        spectras <- spectras[lengths(spectras) > 0]
-        plot_composite_ms(spectras)
+        plot_annotation_ms(db(), conflict[i, "name"])
     }, invalid = function(i) {
         print("########## conflicts_ms")
         print(params)
@@ -189,7 +190,6 @@ output$conflicts_ms <- plotly::renderPlotly({
 
 observeEvent(input$conflicts_table_valid, {
     conflicts <- ann()$conflicts
-    ann <- ann()$no_conflicts
     params <- list(
         length_conflicts = length(conflicts),
         conflict_id = conflict_id(),
@@ -197,16 +197,22 @@ observeEvent(input$conflicts_table_valid, {
     )
     tryCatch({
         conflict <- conflicts[[params$conflict_id]]
+        params$conflict <- conflict
         i <- as.numeric(params$conflicts_table_valid$value)
-        db_resolve_conflict(db(), conflict, i)
-        ann <- rbind(ann, conflict[i, , drop = FALSE])
-        conflicts <- conflicts[-params$conflict_id]
+        db_resolve_conflict(db(), conflict[i, "group_id"], conflict[i, "name"])
+        conflict_id(conflict_id() - 1)
         ann(list(
-            no_conflicts = ann,
-            conflicts = conflicts
+            no_conflicts = rbind(
+                ann()$no_conflicts,
+                conflict[i, , drop = FALSE]
+            ),
+            conflicts = conflicts[-params$conflict_id]
         ))
-        toastr_success(sprintf("%s %s annotated",
-                               conflict[i, "name"], conflict[i, "adduct"]))
+        toastr_success(sprintf(
+            "%s %s annotated",
+            conflict[i, "name"],
+            conflict[i, "adduct"]
+        ))
     }, error = function(e) {
         print("########## conflicts_table_valid")
         print(params)
@@ -214,4 +220,3 @@ observeEvent(input$conflicts_table_valid, {
         sweet_alert_error(e$message)
     })
 })
-

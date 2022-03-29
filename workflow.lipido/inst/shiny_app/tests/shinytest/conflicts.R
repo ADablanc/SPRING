@@ -1,0 +1,208 @@
+app <- shinytest::ShinyDriver$new("../../")
+# app <- shinytest::ShinyDriver$new("workflow.lipido/inst/shiny_app")
+app$snapshotInit("conflicts")
+
+# init
+app$executeScript("$(\"a[href=\\\"#shiny-tab-conflicts\\\"]\").click()")
+conflicts_table <- app$waitForValue(
+    "conflicts_table",
+    iotype = "output",
+    ignore = list(NULL)
+)
+conflicts_ms <- app$waitForValue(
+    "conflicts_ms",
+    iotype = "output",
+    ignore = list(NULL)
+)
+
+# 1st : check that we cant update conflict_id by clicking on the left arrow
+app$setInputs(
+    conflicts_left_disabled = grepl(
+        "disabled",
+        app$findWidget("conflicts_left")$getHtml()
+    ),
+    allowInputNoBinding_ = TRUE,
+    wait_ = FALSE,
+    values_ = FALSE
+)
+app$setInputs(
+    conflicts_right_disabled = grepl(
+        "disabled",
+        app$findWidget("conflicts_right")$getHtml()
+    ),
+    allowInputNoBinding_ = TRUE,
+    wait_ = FALSE,
+    values_ = FALSE
+)
+app$snapshot(
+    items = list(
+        input = c("conflicts_left_disabled", "conflicts_right_disabled"),
+        output = c("conflicts_info", "conflicts_table", "conflicts_ms")
+    ),
+    screenshot = TRUE
+)
+
+# 2nd give a project file
+sqlite_file <- system.file(
+    "testdata",
+    "220221CCM_global.sqlite",
+    package = "workflow.lipido"
+)
+sqlite_file2 <- gsub("\\\\", "/", tempfile(fileext = ".sqlite"))
+invisible(file.copy(sqlite_file, sqlite_file2))
+app$executeScript(sprintf(
+    "Shiny.setInputValue(
+        \"project_load\",
+        {
+            files: {
+                0: [%s]
+            },
+            roots: \"Windows (C:)\"
+        }
+    )",
+    paste(
+        "\"",
+        strsplit(sqlite_file2, "/")[[1]][-1],
+        "\"",
+        sep = "",
+        collapse = ", "
+    )
+))
+app$waitForValue(
+    "conflict_id",
+    iotype = "export",
+    ignore = list(0)
+)
+conflicts_table <- app$waitForValue(
+    "conflicts_table",
+    iotype = "output",
+    ignore = list(conflicts_table)
+)
+conflicts_ms <- app$waitForValue(
+    "conflicts_ms",
+    iotype = "output",
+    ignore = list(conflicts_ms)
+)
+app$setInputs(
+    conflicts_left_disabled = grepl(
+        "disabled",
+        app$findWidget("conflicts_left")$getHtml()
+    ),
+    allowInputNoBinding_ = TRUE,
+    wait_ = FALSE,
+    values_ = FALSE
+)
+app$setInputs(
+    conflicts_right_disabled = grepl(
+        "disabled",
+        app$findWidget("conflicts_right")$getHtml()
+    ),
+    allowInputNoBinding_ = TRUE,
+    wait_ = FALSE,
+    values_ = FALSE
+)
+app$snapshot(
+    items = list(
+        input = c("conflicts_left_disabled", "conflicts_right_disabled"),
+        output = c("conflicts_info", "conflicts_table", "conflicts_ms"),
+        export = c("confict_id")
+    ),
+    screenshot = TRUE
+)
+
+# 3rd test click two times on the right arrow
+app$setInputs(conflicts_right = "click")
+app$setInputs(conflicts_right = "click")
+app$waitForValue(
+    "conflict_id",
+    iotype = "export",
+    ignore = list(1)
+)
+app$waitForValue(
+    "conflicts_info",
+    iotype = "output",
+    ignore = list("1 / 3")
+)
+conflicts_table <- app$waitForValue(
+    "conflicts_table",
+    iotype = "output",
+    ignore = list(conflicts_table)
+)
+app$setInputs(
+    conflicts_left_disabled = grepl(
+        "disabled",
+        app$findWidget("conflicts_left")$getHtml()
+    ),
+    allowInputNoBinding_ = TRUE,
+    wait_ = FALSE,
+    values_ = FALSE
+)
+app$setInputs(
+    conflicts_right_disabled = grepl(
+        "disabled",
+        app$findWidget("conflicts_right")$getHtml()
+    ),
+    allowInputNoBinding_ = TRUE,
+    wait_ = FALSE,
+    values_ = FALSE
+)
+app$snapshot(
+    items = list(
+        input = c("conflicts_left_disabled", "conflicts_right_disabled"),
+        output = c("conflicts_info", "conflicts_table", "conflicts_ms"),
+        export = c("confict_id")
+    ),
+    screenshot = TRUE
+)
+
+# 4th test : click on the first line
+app$executeScript("$(\"#conflicts_table button\").get(0).click()")
+app$waitForValue(
+    "conflicts_info",
+    iotype = "output",
+    ignore = list("1 / 3")
+)
+app$waitForValue(
+    "conflicts_table",
+    iotype = "output",
+    ignore = list(conflicts_table)
+)
+app$setInputs(
+    conflicts_left_disabled = grepl(
+        "disabled",
+        app$findWidget("conflicts_left")$getHtml()
+    ),
+    allowInputNoBinding_ = TRUE,
+    wait_ = FALSE,
+    values_ = FALSE
+)
+app$setInputs(
+    conflicts_right_disabled = grepl(
+        "disabled",
+        app$findWidget("conflicts_right")$getHtml()
+    ),
+    allowInputNoBinding_ = TRUE,
+    wait_ = FALSE,
+    values_ = FALSE
+)
+app$snapshot(
+    items = list(
+        input = c("conflicts_left_disabled", "conflicts_right_disabled"),
+        output = c("conflicts_info", "conflicts_table", "conflicts_ms"),
+        export = c("confict_id")
+    ),
+    screenshot = TRUE
+)
+
+# 5th test : click on the second line (the ms plot should change)
+app$executeScript(paste0("$($(\"#conflicts_table\").data(\"datatable\").row(1)",
+                         ".node()).click()"))
+app$waitForValue("conflicts_ms", iotype = "output", ignore = list(conflicts_ms))
+app$snapshot(
+    items = list(
+        input = c("conflicts_left_disabled", "conflicts_right_disabled"),
+        output = c("conflicts_info", "conflicts_table", "conflicts_ms"),
+        export = c("confict_id")
+    ),
+    screenshot = TRUE
+)

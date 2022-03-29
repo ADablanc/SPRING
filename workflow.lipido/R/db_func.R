@@ -1,4 +1,4 @@
-#' @title Create sqlite file
+ #' @title Create sqlite file
 #'
 #' @description
 #' Create an sqlite file and optimize it via PRAGMA queries
@@ -537,6 +537,81 @@ db_record_params <- function(db,
     dbWriteTable(db, "ann_params", ann_params, overwrite = TRUE)
 }
 
+#' @title Get Annotations
+#'
+#' @description
+#' Get annotations from database
+#'
+#' @param db `SQLiteConnection`
+#' @param names `character vector` the compound names
+#'
+#' @return `DataFrame` each line correspond to a compound found
+#' with the columns:
+#' \itemize{
+#'     \item group_id `integer` group ID
+#'     \item name `character` name
+#'     \item formula `character` chemical formula
+#'     \item adduct `character` adduct form
+#'     \item ion_formula `character` ion chemical formula
+#'     \item rtdiff `numeric` retention time difference between the measured &
+#'     the expected
+#'     \item rt `numeric` retention time measured meanned accross the samples
+#'     \item rtmin `numeric` born min of retention time measured accross the
+#'     samples
+#'     \item rtmax `numeric` born max of the retention time measured accross the
+#'      samples
+#'     \item nsamples `integer` number of samples where the compound was found
+#'     \item best_score `numeric` best isotopic score seen
+#'     \item best_deviation_mz `numeric` best m/z deviation seen
+#'     \item best_npeak `integer` best number of isotopologues found
+#'     \item ... `integer` a column for each sample which contain the spectra ID
+#' }
+db_get_annotations <- function(db, names = NULL) {
+    if (is.null(names)) {
+        dbReadTable(db, "ann")
+    } else {
+        dbGetQuery(db, sprintf(
+            "SELECT *
+            FROM ann
+            WHERE name IN (%s)",
+            paste("\"", names, "\"", sep = "", collapse = ", ")
+        ))
+    }
+}
+
+#' @title Get spectra infos
+#'
+#' @description
+#' Get spectra infos from database
+#'
+#' @param db `SQLiteConnection`
+#' @param spectra_ids `integer vector` the spectra ids
+#'
+#' @return `DataFrame`, each line correspond to a spectra
+#' annotated, with the columns :
+#' \itemize{
+#'     \item spectra_id `integer` spectra ID
+#'     \item score `numeric` isotopic score observed
+#'     \item deviation_mz `numeric` m/z deviation observed
+#'     \item npeak `integer` number of isotopologue annotated
+#'     \item basepeak_int `numeric` area of the basepeak annotated
+#'     \item sum_int `numeric` cumulative sum off all the area of the
+#'     isotopologues annotated
+#'     \item rt `numeric` retention time
+#' }
+db_get_spectra_infos <- function(db, spectra_ids = NULL) {
+    if (is.null(spectra_ids)) {
+        dbReadTable(db, "spectra_infos")
+    } else {
+        dbGetQuery(db, sprintf(
+            "SELECT *
+            FROM spectra_infos
+            WHERE spectra_id IN (%s)",
+            paste(spectra_ids, collapse = ", ")
+        ))
+    }
+}
+
 #' @title Get spectras
 #'
 #' @description
@@ -749,37 +824,12 @@ db_get_peaks <- function(db, feature_ids = NULL) {
 #' @description
 #' Resolve an annotation conflict: it will remove all conflicts for a group of
 #' annotations and only keep one
-#'
-#' @param db `SQLiteConnection`
-#' @param conflict `DataFrame` each line correspond to a compound found in the
-#' same group ID with the columns:
-#' \itemize{
-#'     \item group_id `integer` group ID
-#'     \item name `character` name
-#'     \item formula `character` chemical formula
-#'     \item adduct `character` adduct form
-#'     \item ion_formula `character` ion chemical formula
-#'     \item rtdiff `numeric` retention time difference between the measured &
-#'     the expected
-#'     \item rt `numeric` retention time measured meanned accross the samples
-#'     \item rtmin `numeric` born min of retention time measured accross the
-#'     samples
-#'     \item rtmax `numeric` born max of the retention time measured accross the
-#'      samples
-#'     \item nsamples `integer` number of samples where the compound was found
-#'     \item best_score `numeric` best isotopic score seen
-#'     \item best_deviation_mz `numeric` best m/z deviation seen
-#'     \item best_npeak `integer` best number of isotopologues found
-#'     \item ... `integer` a column for each sample which contain the spectra ID
-#' }
-#' @param i `integer(1)` row ID of the conflict parameter which represent the
-#' annotation to keep
-db_resolve_conflict <- function(db, conflict, i) {
-    query <- sprintf(
+db_resolve_conflict <- function(db, group_id, name) {
+    dbExecute(db, sprintf(
         "DELETE FROM ann
-            WHERE group_id == %s;",
-        conflict[1, "group_id"]
-    )
-    dbExecute(db, query)
-    dbWriteTable(db, "ann", conflict[i, , drop = FALSE], append = TRUE)
+            WHERE group_id == %s
+                AND name != \"%s\";",
+        group_id,
+        name
+    ))
 }

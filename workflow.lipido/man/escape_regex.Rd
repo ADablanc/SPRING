@@ -7,10 +7,10 @@
 escape_regex(string)
 }
 \arguments{
-\item{string}{a character vector}
+\item{string}{`character`}
 }
 \value{
-the character vector with the special characters escaped
+`character`
 }
 \description{
 Escape all special characters

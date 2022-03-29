@@ -685,6 +685,94 @@ testthat::test_that("record params", {
     RSQLite::dbDisconnect(db)
 })
 
+testthat::test_that("get annotations", {
+    ann <- data.frame(
+        group_id = c(11, 10, 13, 2, 1, 9),
+        name = c("Cer (d18:1/C12:0)", "Cer (d18:1/C12:0)", "FA 17:0",
+                 "LPC 11:0", "LPC 11:0", "LPC 11:0"),
+        formula = c("C30H59N1O3", "C30H59N1O3", "C17H34O2", "C19H40N1O7P1",
+                    "C19H40N1O7P1", "C19H40N1O7P1"),
+        adduct = c("[M+Na]+", "[M+H-H2O]+", "[M-H]-", "[M+H]+",
+                   "[M+H-H2O]+", "[M+Na]+"),
+        ion_formula = c("C30H59N1O3Na1", "C30H58N1O2", "C17H33O2",
+                        "C19H41N1O7P1", "C19H39N1O6P1", "C19H40N1O7P1Na1"),
+        rtdiff = c(5.70849999999999, 5.97300000000001, 2.18899999999999,
+                   8.99149999999997, 9.52199999999993, 8.99299999999994),
+        rt = c(201.3085, 201.573, 178.411, 286.8085, 286.278, 286.807),
+        rtmin = c(186.2245, 199.712, 175.3665, 284.6935, 284.692, 282.048),
+        rtmax = c(207.034, 203.673, 180.985, 292.0965, 287.864, 292.095),
+        nsamples = c(2, 2, 2, 2, 1, 1),
+        best_score = c(89.4345550537109, 71.3979721069336, 99.5300903320312,
+                       95.1391906738281, 79.8211975097656,
+                       79.6432037353516),
+        best_deviation_mz = c(0.00140380859375, 0.0010986328125,
+                              -0.000111897788883653, 0.0008544921875,
+                              0.0003662109375, 0.000701904296875),
+        best_npeak = c(2, 1, 3, 2, 1, 1),
+        `220221CCM_global__01_ssleu_filtered` = c(7, 5, 9, 2, NA, NA),
+        `220221CCM_global__02_ssleu_filtered` = c(8, 6, 10, 3, 1, 4)
+    )
+    db <- db_connect(":memory:")
+    dbWriteTable(db, "ann", ann)
+    testthat::expect_identical(
+        db_get_annotations(db, "Cer (d18:1/C12:0)"),
+        ann[ann$name == "Cer (d18:1/C12:0)", ]
+    )
+    testthat::expect_identical(
+        db_get_annotations(db),
+        ann
+    )
+    RSQLite::dbDisconnect(db)
+})
+
+testthat::test_that("get spectra infos", {
+    spectra_infos <- data.frame(
+        spectra_id = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
+        score = c(79.8211975097656, 94.9317855834961, 95.1391906738281,
+                  79.6432037353516, 71.3979721069336, 71.3979721069336,
+                  89.4345550537109, 88.4888916015625, 82.740364074707,
+                  99.5300903320312),
+        deviation_mz = c(0.0003662109375, 0.000457763671875,
+                         0.0008544921875, 0.000701904296875,
+                         0.0010986328125, 0.001251220703125,
+                         0.00140380859375, 0.0017852783203125,
+                         -0.001068115234375, -0.000111897788883653),
+        npeak = c(1, 2, 2, 1, 1, 1, 2, 2, 1, 3),
+        basepeak_int = c(88824.635233072, 6214416.44108707,
+                         6201250.27168528, 288290.748778874,
+                         4945601.93026269, 5689144.27927454,
+                         1448292.29379181, 1662831.19267642,
+                         8927664.85468527, 4593482.66518999),
+        sum_int = c(88824.635233072, 7385056.39979801, 7388017.8361341,
+                    288290.748778874, 4945601.93026269, 5689144.27927454,
+                    1849363.52087931, 2106914.27998355, 8927664.85468527,
+                    5580653.54818653),
+        sample = c("220221CCM_global__02_ssleu_filtered",
+                   "220221CCM_global__01_ssleu_filtered",
+                   "220221CCM_global__02_ssleu_filtered",
+                   "220221CCM_global__02_ssleu_filtered",
+                   "220221CCM_global__01_ssleu_filtered",
+                   "220221CCM_global__02_ssleu_filtered",
+                   "220221CCM_global__01_ssleu_filtered",
+                   "220221CCM_global__02_ssleu_filtered",
+                   "220221CCM_global__01_ssleu_filtered",
+                   "220221CCM_global__02_ssleu_filtered"),
+        rt = c(286.278, 286.81, 286.807, 286.807, 197.973, 205.173, 197.444,
+               205.173, 178.504, 178.318)
+    )
+    db <- db_connect(":memory:")
+    dbWriteTable(db, "spectra_infos", spectra_infos)
+    testthat::expect_identical(
+        db_get_spectra_infos(db, c(1, 2)),
+        spectra_infos[1:2, ]
+    )
+    testthat::expect_identical(
+        db_get_spectra_infos(db),
+        spectra_infos
+    )
+    RSQLite::dbDisconnect(db)
+})
+
 testthat::test_that("get spectras", {
     spectras <- data.frame(
         spectra_id = c(1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5,
@@ -1022,8 +1110,8 @@ testthat::test_that("resolve conflict", {
     )
     db <- db_connect(":memory:")
     dbWriteTable(db, "ann", ann)
-    db_resolve_conflict(db, ann[1:2, ], 2)
-    ann2 <- rbind(ann[-c(1, 2), ], ann[2, ])
+    db_resolve_conflict(db, ann[2, "group_id"], ann[2, "name"])
+    ann2 <- ann[-1, ]
     rownames(ann2) <- seq(nrow(ann2))
     testthat::expect_identical(
         dbReadTable(db, "ann"),
