@@ -683,7 +683,7 @@ merge_xsets <- function(xset_pos, xset_neg) {
 #' (it happens often when for an ion formula refers to multiple compounds))
 #'
 #' @param sqlite_path `character(1)` sqlite path to the annotation results
-#' @param excel_file `character(1)` path to the excel file to create
+#' @param excel_path `character(1)` path to the excel file to create
 #'
 #' @export
 export_annotations <- function(sqlite_path, excel_path) {

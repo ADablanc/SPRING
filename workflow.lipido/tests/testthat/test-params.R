@@ -126,7 +126,7 @@ testthat::test_that("annotation_param", {
             adduct_names = "[M+H]+",
             instrument = "orbitrap"
         ),
-        escape_regex("orbitrap doesn't exists in the instrument list")
+        "orbitrap doesn't exists in the instrument list"
     )
     obj <- AnnotationParam(
         da_tol = 0.015,

@@ -42,4 +42,6 @@ Imports:
     methods,
     RSQLite,
     blob,
-    pryr
+    pryr,
+    openxlsx,
+    htmlwidgets

@@ -76,6 +76,8 @@ create_project_modal <- function() {
 #' select a sqlite file or create a new one
 #'
 #' @param sqlite_path `reactiveValue` contains the path to the sqlite file
+#'
+#' @return `character(1)`
 output$project_name <- shiny::renderText({
     if (!is.null(sqlite_path())) {
         tools::file_path_sans_ext(basename(sqlite_path()))
@@ -104,7 +106,7 @@ shinyFiles::shinyFileChoose(
 #'     the annotation `dataframe` & the spectra_infos `dataframe`
 #' It split the annotation `dataframe` with the split_conflicts `function`
 #'
-#' @param sqlite_path `character(1)` path to the sqlite file
+#' @param input$project_load `character(1)` path to the sqlite file
 observeEvent(input$project_load, {
     params <- list(
         sqlite_path = shinyFiles::parseFilePaths(
@@ -159,6 +161,8 @@ shinyFiles::shinyDirChoose(input, "project_create_path", roots = volumes)
 #' Show the project directory choosen by the user in a span
 #'
 #' @param input$project_create_path `character(1)` directory path
+#'
+#' @return `character(1)` path of the directory
 output$project_create_path_display <- shiny::renderText({
     if (!is.integer(input$project_create_path)) {
         shinyFiles::parseDirPath(volumes, input$project_create_path)
@@ -182,8 +186,8 @@ shiny::observeEvent(input$project_create_cancel, {
 #' Valid the creation of a project. It will create the sqlite path with the
 #' name given by the user in the directory selected
 #'
-#' @param name `character(1)` name of the project
-#' @param path `character(1)` directory path
+#' @param input$project_create_name `character(1)` name of the project
+#' @param input$project_create_path `character(1)` directory path
 shiny::observeEvent(input$project_create_valid, {
     params <- list(
         name = input$project_create_name,

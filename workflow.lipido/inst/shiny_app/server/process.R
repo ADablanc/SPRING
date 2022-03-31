@@ -11,6 +11,8 @@ shinyFiles::shinyFileChoose(
 #'
 #' @description
 #' Table with all the files selected by the user to process
+#'
+#' @param input$process_files `character` filepath to the files
 output$process_dt_files_imported <- DT::renderDataTable({
     if (is.integer(input$process_files)) {
         data.frame(matrix(, nrow = 0, ncol = 1, dimnames = list(
@@ -66,6 +68,75 @@ shiny::updateNumericInput(
 #'
 #' @description
 #' Launch the process event. See the `function` process for more info
+#'
+#' @param sqlite_path,
+#' @param input$process_cores `numeric(1)` number of cores to use
+#' @param input$process_files `character` filepath to the files
+#' @param input$process_filter_mz_min `numeric(1)` m/z range min
+#' @param input$process_filter_mz_max `numeric(1)` m/z range max
+#' @param input$process_filter_rt_min `numeric(1)` rT range min
+#' @param input$process_filter_rt_max `numeric(1)` rT range max
+#' @param input$process_ppm `numeric(1)` Maximal tolerated m/z deviation in
+#' consecutive scans in parts sper million (ppm)
+#' @param input$process_peakwidth_min `numeric(1)` Expected approximate peak
+#' width min in chromatographic space
+#' @param input$process_peakwidth_max `numeric(1)` Expected approximate peak
+#' width max in chromatographic space
+#' @param input$process_snthresh `numeric(1)` Signal to noise ratio cutoff
+#' @param input$process_prefilter_step `numeric(1)` Mass traces are only
+#' retained if they contain at least k peaks with intensity >= I
+#' @param input$process_prefilter_level `numeric(1)` Mass traces are only
+#' retained if they contain at least k peaks with intensity >= I
+#' @param input$process_mz_center_fun `character(1)`Name of the function to
+#' calculate the m/z center of the chromatographic peak
+#' @param input$process_integrate `logical(1)` Integration method. If unchecked
+#' the descent is done on the real data, if checked peak limits are found
+#'  through descent on the mexican hat filtered data. Method 1 is very accurate
+#'  prone to noise, while method 2 is more robust to noise but less exact
+#' @param input$process_mzdiff `numeric(1)` Minimum difference in m/z for peaks
+#'  with overlapping retention times, can be negative to allow overlap
+#' @param input$process_noise `numeric(1)` Optional argument which is useful for
+#'  data that was centroided without any intensity threshold, centroids with
+#'   intensity < noise are omitted from ROI detection
+#' @param input$process_first_baseline_check Continuous data within regions of
+#' interest is checked to be above the first baseline
+#' @param input$process_response `numeric(1)` Defining the responsiveness of
+#'  warping with response = 0 giving linear warping on start and end points and
+#'  response = 100 warping using all bijective anchors
+#' @param input$process_dist_fun `character(1)` Distance function to be used.
+#' Allowed values are :
+#' \itemize{
+#'     \item cor : Pearson's correlation
+#'     \item cor_opt : calculate only 10% diagonal band of distance matrix(
+#'     better runtime)
+#'     \item cov : covariance
+#'     \item prd : product
+#'     \item euc : Euclidian distance
+#' }
+#' @param input$process_gap_init `numeric(1)` Defining the penalty for gap
+#' opening
+#' @param input$process_gap_extend `numeric(1)` Defining the penalty for gap
+#' enlargement
+#' @param input$process_factor_diag `numeric(1)` Defining the local weight
+#'  applied to diagonal moves in the alignment
+#' @param input$process_factor_gap `numeric(1)` Defining the local weight for
+#'  gap moves in the alignment
+#' @param input$process_local_alignment `logical(1)` Whether a local alignment
+#'  should be performed instead of the default global alignment
+#' @param input$process_init_penalty `numeric(1)` Defining the penalty for
+#'  initiating an alignment (for local alignment only)
+#' @param input$process_bw `numeric(1)` retention time standard deviation (s)
+#'  allowed
+#' @param input$process_mzwid `numeric(1)` slice of overlapping m/z groups (mda)
+#' @param input$process_mda_tol `numeric(1)` m/z tolerance (mda)
+#' @param input$process_rt_tol `numeric(1)` rT tolerance in sec
+#' @param input$process_abd_tol `numeric(1)` relative abundance tolerance, each
+#'  peak which have an higher difference of relative abundance with its
+#'  corresponding theoretical peak will be discarded
+#' @param input$process_adducts `character(1)` adduct names from the enviPat
+#'  package
+#' @param input$process_instrument `character(1)` instrument names from the
+#'  enviPat package
 shiny::observeEvent(input$process_launch, {
     params <- list(
         process_files = input$process_files
