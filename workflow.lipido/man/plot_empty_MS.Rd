@@ -12,7 +12,7 @@ plot_empty_MS(title = "Mass Spectra", yTitle = "Intensity")
 \item{yTitle}{`character(1)` title of the Y axis}
 }
 \value{
-plotly object
+`plotly` object
 }
 \description{
 Construct an empty MS

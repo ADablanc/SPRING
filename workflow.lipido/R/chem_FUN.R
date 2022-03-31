@@ -212,6 +212,8 @@ compare_spectras <- function(q_spectra,
 #' Get EIC data for an xcmsRaw object
 #' It override the rawEIC function from XCMS in order to return rt instead of
 #' scans.
+#' If the m/z range or rT range is outside from the one from the file it will
+#' return a dataframe with intensities at 0
 #'
 #' @param ms_file xcmsRaw object
 #' @param mz_range numeric(2) containing the m/z range to look for
@@ -223,9 +225,34 @@ compare_spectras <- function(q_spectra,
 #'     \item int intensity measured
 #' }
 get_eic <- function(ms_file, mz_range, rt_range) {
+    if (is.null(ms_file)) {
+        return(data.frame(rt = 0, int = 0))
+    }
+    if (
+            mz_range[1] >= ms_file@mzrange[2] ||
+            mz_range[2] <= ms_file@mzrange[1] ||
+            rt_range[1] >= range(ms_file@scantime)[2] ||
+            rt_range[2] <= ms_file@scantime[1]
+        ) {
+        return(data.frame(rt = seq(rt_range[1], rt_range[2]), int = 0))
+    }
     eic <- xcms::rawEIC(ms_file, mzrange = mz_range, rtrange = rt_range)
     data.frame(
         rt = ms_file@scantime[eic$scan],
         int = eic$intensity
     )
+}
+
+#' @title Get m/z range
+#'
+#' @description
+#' Get m/z range with a ppm tolerance
+#'
+#' @param mz `numeric(1)` m/z
+#' @param ppm `numeric(1)` ppm tolerance
+#'
+#' @return `numeric(2)` m/z range
+get_mz_range <- function(mz, ppm) {
+    da <- mz * ppm * 10**-6
+    mz + c(-da, da)
 }

@@ -24,4 +24,6 @@ dataframe with the columns:
 Get EIC data for an xcmsRaw object
 It override the rawEIC function from XCMS in order to return rt instead of
 scans.
+If the m/z range or rT range is outside from the one from the file it will
+return a dataframe with intensities at 0
 }

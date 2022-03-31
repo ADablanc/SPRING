@@ -19,6 +19,9 @@ peak missed, with the columns :
     \item iso_theo `character` theoretical isotopologue annotation
 }}
 }
+\value{
+`plotly`
+}
 \description{
 Plot multiple mass spectras on the same plot.
 It have in positive the observed ions & in mirror (in negative) the

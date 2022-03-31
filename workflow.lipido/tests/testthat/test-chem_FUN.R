@@ -271,9 +271,41 @@ testthat::test_that("get eic", {
         ),
         profstep = 0
     )
+
     # test the LPC 11:0 in [M+H]+ at 4.81 min
     mz_range <- 426.2615156 + c(-.001, .001)
     rt_range <- 4.81 * 60 + c(-5, 5)
+
+    # 1st test : with no file
+    testthat::expect_equal(
+        get_eic(NULL, mz_range, rt_range),
+        data.frame(rt = 0, int = 0)
+    )
+
+    # 2nd test : with the mzmin upper than the mzrange of the file
+    testthat::expect_equal(
+        get_eic(ms_file, c(1000, 2000), rt_range),
+        data.frame(rt = seq(rt_range[1], rt_range[2]), int = 0)
+    )
+
+    # 3rd test : with the mzmax lower than the mzrange of the file
+    testthat::expect_equal(
+        get_eic(ms_file, c(-1, 0), rt_range),
+        data.frame(rt = seq(rt_range[1], rt_range[2]), int = 0)
+    )
+
+    # 4th test : with the rtmin upper than the rtrange of the file
+    testthat::expect_equal(
+        get_eic(ms_file, mz_range, c(500, 501)),
+        data.frame(rt = c(500, 501), int = 0)
+    )
+
+    # 5th test : with the rtmax lower than the rtrange of the file
+    testthat::expect_equal(
+        get_eic(ms_file, mz_range, c(0, 1)),
+        data.frame(rt = c(0, 1), int = 0)
+    )
+
     testthat::expect_equal(
         get_eic(ms_file, mz_range, rt_range),
         data.frame(
@@ -286,5 +318,12 @@ testthat::test_that("get eic", {
                     124145.0625, 83991.9375, 57429.65625, 39043.34375,
                     28808.65625)
         )
+    )
+})
+
+testthat::test_that("get_mz_range", {
+    testthat::expect_equal(
+        get_mz_range(464.447304014051, 5),
+        c(464.4449818, 464.4496263)
     )
 })

@@ -267,7 +267,9 @@ db_read_ms_file <- function(db, sample_name, polarity) {
         sample_name
     )
     ms_file <- dbGetQuery(db, query)[1, 1]
-    if (is.na(ms_file[1])) {
+    if (is.null(ms_file)) {
+        NULL
+    } else if (is.na(ms_file[1])) {
         NULL
     } else {
         decompress(ms_file)
@@ -824,6 +826,10 @@ db_get_peaks <- function(db, feature_ids = NULL) {
 #' @description
 #' Resolve an annotation conflict: it will remove all conflicts for a group of
 #' annotations and only keep one
+#'
+#' @param db `SQLiteConnection`
+#' @param group_id `numeric(1)` ID of the peak groups
+#' @param name `character(1)` name of the annotation to keep instead of others
 db_resolve_conflict <- function(db, group_id, name) {
     dbExecute(db, sprintf(
         "DELETE FROM ann

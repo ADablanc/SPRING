@@ -1,20 +1,69 @@
-shinyWidgets::updatePickerInput(session, inputId = "check_data_cpd",
-                                label = "Choose compound", choices = utils::read.csv(
-                                  system.file("extdata", "database.csv",
-                                              package = "workflow.lipido"))$name)
+shinyWidgets::updatePickerInput(
+    session,
+    inputId = "check_data_cpd",
+    label = "Choose compound(s)",
+    choices = utils::read.csv(
+        system.file("extdata", "database.csv", package = "workflow.lipido")
+    )$name
+)
 
+#' @title Adduct picklist
+#'
+#' @description
+#' Adduct picklist which contains only the adducts used during the
+#'  identification step of the process
+#'
+#' @param db `reactive value` pointer to the sqlite db connection
+#'
+#' @return pick list with adducts
+output$ui_check_data_adduct <- shiny::renderUI({
+    ann_params <- db_get_params(db())$ann
+    if (length(ann_params) == 0) {
+        return(NULL)
+    }
+    shinyWidgets::radioGroupButtons(
+        "check_data_adduct",
+        label = NULL,
+        choices = strsplit(ann_params$adduct_names, ";")[[1]]
+    )
+})
+
+#' @title Compound heatmap
+#'
+#' @description
+#' Plot a heamap with in x compounds, in y samples and in z their cumulated
+#' intensities of their basepeaks
+#' It contains an event on JS where when the user click on a case it will return
+#'  in the input$check_data_heatmap_click the list :
+#' \itemize{
+#'     \item sample `character` sample name
+#'     \item cpd_name `character` name of the compound
+#' }
+#'
+#' @param db `reactive value` pointer to the sqlite connection
+#' @param input$check_data_cpd `character vector` all the compound selected
+#'
+#' @return `plotly`
 output$check_data_heatmap <- plotly::renderPlotly({
-    ann <- ann()$no_conflicts
     params <- list(
-        cpd_names = input$check_data_cpd,
-        nrow_ann = nrow(ann)
+        db = db(),
+        cpd_names = input$check_data_cpd
     )
     tryCatch({
-        if (nrow(ann) == 0) custom_stop("invalid", "no annotation data")
-        else if (length(params$cpd_names) == 0) custom_stop(
-            "invalid", "no compound selected")
-        ann <- summarise_ann(ann, spectra_infos())
-        plot_heatmap(ann, params$cpd_names)
+        if (length(params$cpd_names) == 0) {
+            custom_stop("invalid", "no compound selected")
+        }
+        htmlwidgets::onRender(
+            plot_heatmap(db(), params$cpd_names),
+            "function(el, x) {
+                el.on(\"plotly_click\", function(data) {
+                    Shiny.onInputChange(\"check_data_heatmap_click\", {
+                        sample: data.points[0].x,
+                        cpd_name: data.points[0].y
+                    })
+                })
+            }"
+        )
     }, invalid = function(i) {
         print("########## check_data_heatmap")
         print(params)
@@ -29,78 +78,105 @@ output$check_data_heatmap <- plotly::renderPlotly({
     })
 })
 
+#' @title Plot EIC
+#'
+#' @description
+#' Plot the EIC for a sample and a compound. It will trace all the EIC in the
+#' same  plot for all possible adducts used in the processing workflow.
+#' The line dashed correspond to the area not integrated & the line colored the
+#' retention time range where integrated by XCMS. The two line dashed which
+#' surround the trace correspond to the retention time tolerance used for the
+#' identification
+#' This special EIC help to distinguate if this is the peakpicking which turn
+#' wrong or the identification (if it is the rT tolerance or the FWHM window)
+#' It contains a special behavior when the mouse hover a trace : it will display
+#'  all the hovertext of all traces in a unique textbox allowing the user to
+#'   differentiate all the y coordinates of the traces in one shot
+#' It draw also annotation to better view to which adduct correspond the trace
+#' (the annotation is placed at the most intense point for the trace)
+#' A JS function is added to hide the annotation when the trace is hidden
+#'
+#' @param db `reactive value` pointter to the sqlite connection
+#' @param input$check_data_heatmap_click `character list` contains :
+#' \itemize{
+#'     \item sample `character` sample name of the case clicked on the heatmap
+#'     \item cpd_name `character` compound name of the case clicked on the
+#'     heatmap
+#' }
+#'
+#' @return `plotly`
 output$check_data_eic <- plotly::renderPlotly({
     params <- list(
+        db = db(),
         sample = input$check_data_heatmap_click$sample,
         cpd_name = input$check_data_heatmap_click$cpd_name
     )
 
     tryCatch({
-        if (is.null(params$cpd_name)) custom_stop("invalid",
-                                                  "no compound selected")
-        else if (is.null(params$sample)) custom_stop("invalid",
-                                                     "no sample selected")
-
-        # search compound formula in database
-        process_params <- db_get_params(db())
-        adduct_names <- strsplit(process_params$ann$adduct_names, ";")[[1]]
-        instrument <- process_params$ann$instrument
-        ppm <- process_params$cwt$ppm
-        rt_tol <- process_params$cwt$peakwidth_max + process_params$ann$rt_tol
-        ions <- load_db(adduct_names, instrument, params$cpd_name)
-        basepeaks <- ions[ions$iso == "M", , drop = FALSE]
-        basepeaks$mz_tol <- basepeaks$mz * ppm * 10**-6
-
-        # get eics
-        ann <- ann()$no_conflicts
-        ann <- ann[ann$name == params$cpd_name, , drop = FALSE]
-        #p<- lapply(colnames(ann)[14:ncol(ann)], function(sample_name) {
-        sample_name <- params$sample
-            ms_file_pos <- db_read_ms_file(db(), sample_name,
-                                           polarity ="positive")
-            ms_file_neg <- db_read_ms_file(db(), sample_name,
-                                           polarity = "negative")
-            eics <- lapply(seq(nrow(basepeaks)), function(i)
-                get_eic(
-                    ms_file = if (basepeaks[i, "charge"] > 0) ms_file_pos
-                              else ms_file_neg,
-                    mz_range = basepeaks[i, "mz"] + c(-basepeaks[i, "mz_tol"],
-                                                      basepeaks[i, "mz_tol"]),
-                    rt_range = basepeaks[i, "rt"] + c(-rt_tol, rt_tol)
-                )
-            )
-            names(eics) <- basepeaks$adduct
-
-            # get peaks
-            sub_ann <- ann[, c(4, which(colnames(ann) == sample_name))]
-            colnames(sub_ann)[2] <- "spectra_id"
-            sub_ann <- sub_ann[!is.na(sub_ann$spectra_id), , drop = FALSE]
-            if (nrow(sub_ann) > 0) {
-                spectras <- db_get_spectra(db(), sub_ann$spectra_id)
-		spectras <- spectras[which(spectras$iso_theo == "M"), 
-                                     c("spectra_id", "feature_id")]
-		peaks <- db_get_peaks(db(), spectras$feature_id)
-                peaks <- merge(sub_ann, 
-                               merge(spectras, 
-                                     peaks[, c("feature_id", "rtmin", "rtmax")], 
-				     by = "feature_id"
-                               ), 
-                               by = "spectra_id"
-                )
-            } else peaks <- data.frame()
-
-            plot_eic(eics, peaks)
-        #})
-        }, invalid = function(i) {
+        if (is.null(params$cpd_name)) {
+            custom_stop("invalid", "no compound selected")
+        } else if (is.null(params$sample)) {
+            custom_stop("invalid", "no sample selected")
+        }
+        plot_eic(db(), params$sample, params$cpd_name)
+    }, invalid = function(i) {
         print("########## check_data_eic")
         print(params)
         print(i)
         plot_empty_chromato(title = "EIC")
-        }, error = function(e) {
+    }, error = function(e) {
         print("########## check_data_eic")
         print(params)
         print(e)
         sweet_alert_error(e$message)
         plot_empty_chromato(title = "EIC")
+    })
+})
+
+#' @title Plot m/z deviation
+#'
+#' @description
+#' Plot the m/z deviation of all the m/z in the file compared to the theoretical
+#'  compound with adduct (only basepeak)
+#' It will trace also a box which represent the m/z tolerance and rT tolernace
+#' used for the identification step
+#'
+#' @param db `reactive value` pointter to the sqlite connection
+#' @param input$check_data_heatmap_click `character list` contains :
+#' \itemize{
+#'     \item sample `character` sample name of the case clicked on the heatmap
+#'     \item cpd_name `character` compound name of the case clicked on the
+#'     heatmap
+#' }
+#' @param input$check_data_adduct `character(1)` name of the adduct
+#'
+#' @return `plotly`
+output$check_data_mzdev <- plotly::renderPlotly({
+    params <- list(
+        sample = input$check_data_heatmap_click$sample,
+        cpd_name = input$check_data_heatmap_click$cpd_name,
+        adduct_name = input$check_data_adduct
+    )
+
+    tryCatch({
+        if (is.null(params$cpd_name)) {
+            custom_stop("invalid", "no compound selected")
+        } else if (is.null(params$sample)) {
+            custom_stop("invalid", "no sample selected")
+        } else if (is.null(params$adduct_name)) {
+            custom_stop("invalid", "no adduct selected")
+        }
+        plot_mzdev(db(), params$sample, params$cpd_name, params$adduct_name)
+    }, invalid = function(i) {
+        print("########## check_data_mzdev")
+        print(params)
+        print(i)
+        plot_empty_mzdev()
+    }, error = function(e) {
+        print("########## check_data_mzdev")
+        print(params)
+        print(e)
+        sweet_alert_error(e$message)
+        plot_empty_mzdev()
     })
 })

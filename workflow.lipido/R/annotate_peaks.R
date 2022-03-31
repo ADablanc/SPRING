@@ -146,7 +146,6 @@ annotate_peaklists <- function(xset,
                 db$rt >= peak_groups[i, "rtmed"] - ann_params@rt_tol &
                 db$rt <= peak_groups[i, "rtmed"] + ann_params@rt_tol),
             , drop = FALSE]
-        if (i == 54195) browser()
         if (nrow(db_match) == 0) {
             next
         }
@@ -415,6 +414,59 @@ filtrate_ann <- function(ann, spectra_infos, sigma = 6, perfwhm = .6) {
 #'     \item best_npeak `integer` best number of isotopologues found
 #'     \item ... `integer` a column for each sample which contain the spectra ID
 #' }
+#'
+#' @return `list` of two items :
+#' \itemize{
+#'     \item no_conflicts : `DataFrame` each line correspond to a compound found
+#'     with the columns:
+#'     \itemize{
+#'         \item group_id `integer` group ID
+#'         \item name `character` name
+#'         \item formula `character` chemical formula
+#'         \item adduct `character` adduct form
+#'         \item ion_formula `character` ion chemical formula
+#'         \item rtdiff `numeric` retention time difference between the measured
+#'          & the expected
+#'         \item rt `numeric` retention time measured meanned accross the
+#'         samples
+#'         \item rtmin `numeric` born min of retention time measured accross the
+#'         samples
+#'         \item rtmax `numeric` born max of the retention time measured accross
+#'          the samples
+#'         \item nsamples `integer` number of samples where the compound was
+#'         found
+#'         \item best_score `numeric` best isotopic score seen
+#'         \item best_deviation_mz `numeric` best m/z deviation seen
+#'         \item best_npeak `integer` best number of isotopologues found
+#'         \item ... `integer` a column for each sample which contain the
+#'         spectra ID
+#'     }
+#'     \item conflicts : `DataFrame list` each item correspond to the same group
+#'      of peaks where multiple annotations is possible. each dataframe has the
+#'     columns :
+#'     \itemize{
+#'         \item group_id `integer` group ID
+#'         \item name `character` name
+#'         \item formula `character` chemical formula
+#'         \item adduct `character` adduct form
+#'         \item ion_formula `character` ion chemical formula
+#'         \item rtdiff `numeric` retention time difference between the measured
+#'          & the expected
+#'         \item rt `numeric` retention time measured meanned accross the
+#'         samples
+#'         \item rtmin `numeric` born min of retention time measured accross the
+#'         samples
+#'         \item rtmax `numeric` born max of the retention time measured accross
+#'          the samples
+#'         \item nsamples `integer` number of samples where the compound was
+#'         found
+#'         \item best_score `numeric` best isotopic score seen
+#'         \item best_deviation_mz `numeric` best m/z deviation seen
+#'         \item best_npeak `integer` best number of isotopologues found
+#'         \item ... `integer` a column for each sample which contain the
+#'         spectra ID
+#'     }
+#' }
 split_conflicts <- function(ann) {
     conflicts <- split(ann, ann$group_id)
     names(conflicts) <- NULL
@@ -609,7 +661,12 @@ get_int_ann <- function(ann, spectra_infos) {
         `Best m/z dev (mDa)` = round(ann$best_deviation_mz),
         `Max iso` = ann$best_npeak,
         apply(ann[, 14:ncol(ann), drop = FALSE], c(1, 2), function(x) {
-            if (is.na(x)) NA else spectra_infos[as.numeric(x), "basepeak_int"]
+            if (is.na(x)) {
+                NA
+            } else {
+                spectra_infos[spectra_infos$spectra_id == as.numeric(x),
+                              "basepeak_int"]
+            }
         }),
         check.names = FALSE
     )
