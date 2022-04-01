@@ -5,7 +5,7 @@ app <- shinytest::ShinyDriver$new("../../", loadTimeout = 10000)
 # )
 app$snapshotInit("load_project")
 
-Sys.sleep(2)
+Sys.sleep(3)
 app$executeScript(paste0("Shiny.setInputValue(\"project_modal_visible\", $(\"#",
                          "project_modal\").length !=  0)"))
 app$snapshot(

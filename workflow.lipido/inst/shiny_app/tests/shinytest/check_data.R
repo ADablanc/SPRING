@@ -121,6 +121,7 @@ app$executeScript(
             cpd_name: \"LPC 11:0\"
         })"
 )
+Sys.sleep(1)
 app$snapshot(
     items = list(
         output = c("check_data_heatmap", "check_data_eic", "check_data_mzdev")

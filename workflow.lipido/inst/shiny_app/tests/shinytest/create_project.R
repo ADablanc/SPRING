@@ -74,7 +74,7 @@ app$executeScript(sprintf("
         }
     )",
     # create the project in a temp dir
-    gsub("C:/", "", gsub("\\\\", "/", tempdir()))
+    gsub("C:/", "", gsub("\\\\", "/", dirname(tempdir())))
 ))
 app$snapshot(
     items = list(input = "project_create_path"),
