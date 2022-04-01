@@ -187,10 +187,7 @@ db_record_samples <- function(db, sample_names) {
 #' @return `blob` object
 compress <- function(obj) {
     blob::blob(
-        # fst::compress_fst(
-            serialize(obj, NULL)#,
-            # compression = 100
-        # )
+        serialize(obj, NULL)
     )
 }
 
@@ -204,9 +201,7 @@ compress <- function(obj) {
 #' @return the initial R object
 decompress <- function(obj) {
     unserialize(
-        # fst::decompress_fst(
-            obj[[1]]
-        # )
+        obj[[1]]
     )
 }
 
@@ -546,6 +541,7 @@ db_record_params <- function(db,
 #'
 #' @param db `SQLiteConnection`
 #' @param names `character vector` the compound names
+#' @param group_ids `numeric vector` the group IDs
 #'
 #' @return `DataFrame` each line correspond to a compound found
 #' with the columns:
@@ -568,16 +564,23 @@ db_record_params <- function(db,
 #'     \item best_npeak `integer` best number of isotopologues found
 #'     \item ... `integer` a column for each sample which contain the spectra ID
 #' }
-db_get_annotations <- function(db, names = NULL) {
-    if (is.null(names)) {
-        dbReadTable(db, "ann")
-    } else {
+db_get_annotations <- function(db, names = NULL, group_ids = NULL) {
+    if (!is.null(group_ids)) {
+        dbGetQuery(db, sprintf(
+            "SELECT *
+            FROM ann
+            WHERE group_id IN (%s)",
+            paste(group_ids, sep = "", collapse = ", ")
+        ))
+    } else if (!is.null(names)) {
         dbGetQuery(db, sprintf(
             "SELECT *
             FROM ann
             WHERE name IN (%s)",
             paste("\"", names, "\"", sep = "", collapse = ", ")
         ))
+    } else {
+        dbReadTable(db, "ann")
     }
 }
 

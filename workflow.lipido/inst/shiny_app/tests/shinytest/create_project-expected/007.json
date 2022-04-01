@@ -1,9 +1,9 @@
 {
   "input": {
     "project_create_modal_visible": false,
-    "project_modal_visible": true
+    "project_modal_visible": false
   },
   "output": {
-    "project_name": ""
+    "project_name": "test"
   }
 }

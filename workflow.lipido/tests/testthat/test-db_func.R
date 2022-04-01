@@ -715,7 +715,11 @@ testthat::test_that("get annotations", {
     db <- db_connect(":memory:")
     dbWriteTable(db, "ann", ann)
     testthat::expect_identical(
-        db_get_annotations(db, "Cer (d18:1/C12:0)"),
+        db_get_annotations(db, group_ids = 11),
+        ann[ann$group_id == 11, ]
+    )
+    testthat::expect_identical(
+        db_get_annotations(db, names = "Cer (d18:1/C12:0)"),
         ann[ann$name == "Cer (d18:1/C12:0)", ]
     )
     testthat::expect_identical(

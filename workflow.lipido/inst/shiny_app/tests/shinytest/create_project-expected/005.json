@@ -1,5 +1,10 @@
 {
-  "output": {
-    "project_name": ""
+  "input": {
+    "project_create_path": {
+      "path": [
+        "Users/SEBAST~1.HUT/AppData/Local/Temp/RtmpOUkZUz"
+      ],
+      "roots": "Windows (C:)"
+    }
   }
 }

@@ -310,15 +310,13 @@ shiny::observeEvent(input$process_launch, {
         db(db_connect(sqlite_path()))
         ann <- dbReadTable(db(), "ann")
         if (nrow(ann) > 0) {
-            ann <- split_conflicts(ann)
-            ann(ann)
-            if (length(ann$conflicts) > 0) conflict_id(1)
+            conflicts <- split_conflicts(ann)$conflicts
+            conflicts(sapply(conflicts, function(x) x[1, "group_id"]))
+            if (length(conflicts) > 0) conflict_id(1)
             else conflict_id(0)
-            spectra_infos(dbReadTable(db(), "spectra_infos"))
         } else {
-            ann(list())
+            conflicts(c())
             conflict_id(0)
-            spectra_infos(data.frame())
         }
     }, invalid = function(i) NULL
     , invalid_2 = function(i) {

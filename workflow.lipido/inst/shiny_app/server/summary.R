@@ -63,70 +63,8 @@ summary_table_options <- list(
 #' It use the function DT::formatCurrency in order to sort the intensities
 #' even if the thousand separator is " " and not ","
 #'
-#' @param ann `reactiveValue` `list` of two items :
-#' \itemize{
-#'     \item no_conflicts : `DataFrame` each line correspond to a compound found
-#'     with the columns:
-#'     \itemize{
-#'         \item group_id `integer` group ID
-#'         \item name `character` name
-#'         \item formula `character` chemical formula
-#'         \item adduct `character` adduct form
-#'         \item ion_formula `character` ion chemical formula
-#'         \item rtdiff `numeric` retention time difference between the measured
-#'          & the expected
-#'         \item rt `numeric` retention time measured meanned accross the
-#'         samples
-#'         \item rtmin `numeric` born min of retention time measured accross the
-#'         samples
-#'         \item rtmax `numeric` born max of the retention time measured accross
-#'          the samples
-#'         \item nsamples `integer` number of samples where the compound was
-#'         found
-#'         \item best_score `numeric` best isotopic score seen
-#'         \item best_deviation_mz `numeric` best m/z deviation seen
-#'         \item best_npeak `integer` best number of isotopologues found
-#'         \item ... `integer` a column for each sample which contain the
-#'         spectra ID
-#'     }
-#'     \item conflicts : `DataFrame list` each item correspond to the same group
-#'      of peaks where multiple annotations is possible. each dataframe has the
-#'     columns :
-#'     \itemize{
-#'         \item group_id `integer` group ID
-#'         \item name `character` name
-#'         \item formula `character` chemical formula
-#'         \item adduct `character` adduct form
-#'         \item ion_formula `character` ion chemical formula
-#'         \item rtdiff `numeric` retention time difference between the measured
-#'          & the expected
-#'         \item rt `numeric` retention time measured meanned accross the
-#'         samples
-#'         \item rtmin `numeric` born min of retention time measured accross the
-#'         samples
-#'         \item rtmax `numeric` born max of the retention time measured accross
-#'          the samples
-#'         \item nsamples `integer` number of samples where the compound was
-#'         found
-#'         \item best_score `numeric` best isotopic score seen
-#'         \item best_deviation_mz `numeric` best m/z deviation seen
-#'         \item best_npeak `integer` best number of isotopologues found
-#'         \item ... `integer` a column for each sample which contain the
-#'         spectra ID
-#'     }
-#' }
-#' @param spectra_infos `reactiveValue` : `DataFrame` where each line correspond
-#'  to a spectra annotated, with the columns :
-#' \itemize{
-#'     \item spectra_id `integer` spectra ID
-#'     \item score `numeric` isotopic score observed
-#'     \item deviation_mz `numeric` m/z deviation observed
-#'     \item npeak `integer` number of isotopologue annotated
-#'     \item basepeak_int `numeric` area of the basepeak annotated
-#'     \item sum_int `numeric` cumulative sum off all the area of the
-#'     isotopologues annotated
-#'     \item rt `numeric` retention time
-#' }
+#' @param db `reactive value` pointer to the sqlite connection
+#' @param conflicts `reactive value` group IDs where a conflict was detected
 #'
 #' @return `DataTable` with columns :
 #' \itemize{
@@ -148,9 +86,32 @@ summary_table_options <- list(
 #'     intensity of ALL basepeaks
 #' }
 output$summary_table <- DT::renderDataTable({
+    ann <- tryCatch({
     # to invalidate the summary table
-    ann <- summarise_ann(ann()$no_conflicts, spectra_infos())
-    ann[ann[, 10:ncol(ann)] == 0, 10:ncol(ann)] <- NA
+        ann <- db_get_annotations(db())
+        if (ncol(ann) == 0) {
+            custom_stop("invalid", "no annotations results")
+        }
+        ann <- ann[!ann$group_id %in% conflicts(), , drop = FALSE]
+        spectra_ids <- without_na(unlist(ann[, 14:ncol(ann)]))
+        spectra_infos <- db_get_spectra_infos(db(), spectra_ids)
+        ann <- summarise_ann(ann, spectra_infos)
+        ann[ann[, 10:ncol(ann)] == 0, 10:ncol(ann)] <- NA
+        ann
+    }, invalid = function(i) {
+        data.frame(matrix(, nrow = 0, ncol = 10, dimnames = list(c(),
+            c("name", "rT (min)", "Diff rT (sec)", "Adducts",
+              "nSamples", "Most intense ion", "Best score (%)",
+              "Best m/z dev (mDa)", "Max iso", "X"))), check.names = FALSE)
+    }, error = function(e) {
+        print("########## check_data_mzdev")
+        print(e)
+        sweet_alert_error(e$message)
+        data.frame(matrix(, nrow = 0, ncol = 10, dimnames = list(c(),
+             c("name", "rT (min)", "Diff rT (sec)", "Adducts",
+               "nSamples", "Most intense ion", "Best score (%)",
+               "Best m/z dev (mDa)", "Max iso", "X"))), check.names = FALSE)
+    })
     DT::formatCurrency(
         table = do.call(
             DT::datatable,

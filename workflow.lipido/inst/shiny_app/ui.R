@@ -16,7 +16,6 @@ header <- shiny::tags$header(
     shinyFeedback::useShinyFeedback(),
     shinyWidgets::useSweetAlert(),
     bsplus::use_bs_tooltip(),
-    rintrojs::introjsUI(),
     shiny::includeCSS("www/workflow.lipido.css"),
     shiny::includeScript("www/workflow.lipido.js"),
 

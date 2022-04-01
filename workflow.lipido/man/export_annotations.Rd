@@ -9,7 +9,7 @@ export_annotations(sqlite_path, excel_path)
 \arguments{
 \item{sqlite_path}{`character(1)` sqlite path to the annotation results}
 
-\item{excel_file}{`character(1)` path to the excel file to create}
+\item{excel_path}{`character(1)` path to the excel file to create}
 }
 \description{
 Export all annotations in a excel file

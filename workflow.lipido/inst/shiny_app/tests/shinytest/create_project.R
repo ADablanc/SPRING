@@ -1,45 +1,70 @@
-app <- shinytest::ShinyDriver$new("../../")
+app <- shinytest::ShinyDriver$new("../../", loadTimeout = 10000)
+# app <- shinytest::ShinyDriver$new(
+#     "workflow.lipido/inst/shiny_app",
+#     loadTimeout = 10000
+# )
 app$snapshotInit("create_project")
-app$waitForValue("project_create", ignore = list(NULL))
-empty_project_name <- app$waitForValue(
-    "project_name",
-    iotype = "output",
-    ignore = list(NULL)
-)
 
-# access to the create project modal
+# 1st test : access to the create project modal
+app$waitForValue("project_create", ignore = list(NULL))
 app$setInputs(project_create = "click")
-empty_path <- app$waitForValue(
-    "project_create_path_display",
-    iotype = "output",
-    ignore = list(NULL)
-)
+app$executeScript(paste0("Shiny.setInputValue(\"project_modal_visible\", $(\"#",
+                         "project_modal\").length !=  0)"))
+app$executeScript(paste0("Shiny.setInputValue(\"project_create_modal_visible\"",
+                         ", $(\"#project_create_modal\").length !=  0)"))
 app$snapshot(
-    items = list(output = c("project_create_path_display")),
+    items = list(
+        input = c("project_modal_visible", "project_create_modal_visible"),
+        output = "project_name"
+    ),
     screenshot = TRUE
 )
 
-# test cancel button
+# 2nd test : test cancel button
 app$setInputs(project_create_cancel = "click")
-app$waitForValue("project_create", ignore = list(NULL))
-app$snapshot(items = list(input = c("project_create")), screenshot = TRUE)
-
-# test if we don't give a name and a directory path
-app$setInputs(project_create = "click")
-app$waitForValue(
-    "project_create_path_display",
-    iotype = "output",
-    ignore = list(NULL)
+app$executeScript(paste0("Shiny.setInputValue(\"project_modal_visible\", $(\"#",
+                         "project_modal\").length !=  0)"))
+app$executeScript(paste0("Shiny.setInputValue(\"project_create_modal_visible\"",
+                         ", $(\"#project_create_modal\").length !=  0)"))
+app$snapshot(
+    items = list(
+        input = c("project_modal_visible", "project_create_modal_visible"),
+        output = "project_name"
+    ),
+    screenshot = TRUE
 )
-app$setInputs(project_create_valid = "click")
-app$snapshot(items = list(output = c("project_name")), screenshot = TRUE)
 
-# test if we don't give a directory path
+# 3rd test : test if we don't give a name and a directory path
+app$setInputs(project_create = "click")
+app$setInputs(project_create_valid = "click")
+app$executeScript(paste0("Shiny.setInputValue(\"project_modal_visible\", $(\"#",
+                         "project_modal\").length !=  0)"))
+app$executeScript(paste0("Shiny.setInputValue(\"project_create_modal_visible\"",
+                         ", $(\"#project_create_modal\").length !=  0)"))
+app$snapshot(
+    items = list(
+        input = c("project_modal_visible", "project_create_modal_visible"),
+        output = "project_name"
+    ),
+    screenshot = TRUE
+)
+
+# 4th test : test if we don't give a directory path
 app$setInputs(project_create_name = "test")
 app$setInputs(project_create_valid = "click")
-app$snapshot(items = list(output = c("project_name")), screenshot = TRUE)
+app$executeScript(paste0("Shiny.setInputValue(\"project_modal_visible\", $(\"#",
+                         "project_modal\").length !=  0)"))
+app$executeScript(paste0("Shiny.setInputValue(\"project_create_modal_visible\"",
+                         ", $(\"#project_create_modal\").length !=  0)"))
+app$snapshot(
+    items = list(
+        input = c("project_modal_visible", "project_create_modal_visible"),
+        output = "project_name"
+    ),
+    screenshot = TRUE
+)
 
-# test if we give a directory path
+# 5th test : test if we give a directory path
 app$executeScript(sprintf("
     Shiny.setInputValue(
         \"project_create_path\",
@@ -51,23 +76,38 @@ app$executeScript(sprintf("
     # create the project in a temp dir
     gsub("C:/", "", gsub("\\\\", "/", tempdir()))
 ))
-app$waitForValue(
-    "project_create_path_display",
-    iotype = "output",
-    ignore = list(empty_path)
+app$snapshot(
+    items = list(input = "project_create_path"),
+    screenshot = TRUE
 )
 
-# test if we forgot to give a name
+# 6th test : test if we forgot to give a name
 app$setInputs(project_create_name = "")
 app$setInputs(project_create_valid = "click")
-app$snapshot(items = list(output = c("project_name")), screenshot = TRUE)
+app$executeScript(paste0("Shiny.setInputValue(\"project_modal_visible\", $(\"#",
+                         "project_modal\").length !=  0)"))
+app$executeScript(paste0("Shiny.setInputValue(\"project_create_modal_visible\"",
+                         ", $(\"#project_create_modal\").length !=  0)"))
+app$snapshot(
+    items = list(
+        input = c("project_modal_visible", "project_create_modal_visible"),
+        output = "project_name"
+    ),
+    screenshot = TRUE
+)
 
-# normal
+# 7th test : normal
 app$setInputs(project_create_name = "test")
 app$setInputs(project_create_valid = "click")
-app$waitForValue(
-    "project_name",
-    iotype = "output",
-    ignore = list(empty_project_name)
+Sys.sleep(1)
+app$executeScript(paste0("Shiny.setInputValue(\"project_modal_visible\", $(\"#",
+                         "project_modal\").length !=  0)"))
+app$executeScript(paste0("Shiny.setInputValue(\"project_create_modal_visible\"",
+                        ", $(\"#project_create_modal\").length !=  0)"))
+app$snapshot(
+    items = list(
+        input = c("project_modal_visible", "project_create_modal_visible"),
+        output = "project_name"
+    ),
+    screenshot = TRUE
 )
-app$snapshot(items = list(output = c("project_name")), screenshot = TRUE)

@@ -6,6 +6,13 @@
 \usage{
 db_resolve_conflict(db, group_id, name)
 }
+\arguments{
+\item{db}{`SQLiteConnection`}
+
+\item{group_id}{`numeric(1)` ID of the peak groups}
+
+\item{name}{`character(1)` name of the annotation to keep instead of others}
+}
 \description{
 Resolve an annotation conflict: it will remove all conflicts for a group of
 annotations and only keep one

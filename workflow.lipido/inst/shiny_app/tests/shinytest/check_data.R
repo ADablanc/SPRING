@@ -1,7 +1,11 @@
-app <- shinytest::ShinyDriver$new("../../")
-# app <- shinytest::ShinyDriver$new("workflow.lipido/inst/shiny_app")
+app <- shinytest::ShinyDriver$new("../../", loadTimeout = 10000)
+# app <- shinytest::ShinyDriver$new(
+#     "workflow.lipido/inst/shiny_app",
+#     loadTimeout = 10000
+# )
 app$snapshotInit("check_data")
 
+# 1st test : no output cause empty project
 # create empty project
 app$waitForValue("project_create", ignore = list(NULL))
 app$setInputs(project_create = "click")
@@ -24,23 +28,6 @@ app$waitForValue(
     ignore = list("")
 )
 app$executeScript("$(\"a[href=\\\"#shiny-tab-check_data\\\"]\").click()")
-
-# 1st test : no output cause empty project
-empty_heatmap <- app$waitForValue(
-    "check_data_heatmap",
-    iotype = "output",
-    ignore = list(NULL)
-)
-empty_eic <- app$waitForValue(
-    "check_data_eic",
-    iotype = "output",
-    ignore = list(NULL)
-)
-empty_mzdev <- app$waitForValue(
-    "check_data_mzdev",
-    iotype = "output",
-    ignore = list(NULL)
-)
 app$snapshot(
     items = list(
         output = c("ui_check_data_adduct", "check_data_heatmap",
@@ -110,11 +97,6 @@ app$snapshot(
 
 # 5th test : load LPC 11:0
 app$setInputs(check_data_cpd = "LPC 11:0")
-new_heatmap <- app$waitForValue(
-    "check_data_heatmap",
-    iotype = "output",
-    ignore = list(empty_heatmap)
-)
 app$snapshot(
     items = list(
         output = c("check_data_heatmap", "check_data_eic", "check_data_mzdev")
@@ -124,11 +106,6 @@ app$snapshot(
 
 # 6th test : load PS 24:0
 app$setInputs(check_data_cpd = c("LPC 11:0", "PS 24a:0"))
-new_heatmap <- app$waitForValue(
-    "check_data_heatmap",
-    iotype = "output",
-    ignore = list(empty_heatmap, new_heatmap)
-)
 app$snapshot(
     items = list(
         output = c("check_data_heatmap", "check_data_eic", "check_data_mzdev")
@@ -144,11 +121,6 @@ app$executeScript(
             cpd_name: \"LPC 11:0\"
         })"
 )
-eic <- app$waitForValue(
-    "check_data_eic",
-    iotype = "output",
-    ignore = list(empty_eic)
-)
 app$snapshot(
     items = list(
         output = c("check_data_heatmap", "check_data_eic", "check_data_mzdev")
@@ -158,11 +130,6 @@ app$snapshot(
 
 # 8th test : click on adduct to change the mzdev plot
 app$setInputs(check_data_adduct = "[M+H]+")
-mzdev <- app$waitForValue(
-    "check_data_mzdev",
-    iotype = "output",
-    ignore = list(empty_mzdev)
-)
 app$snapshot(
     items = list(
         output = c("check_data_heatmap", "check_data_eic", "check_data_mzdev")
@@ -178,16 +145,7 @@ app$executeScript(
             cpd_name: \"PS 24a:0\"
         })"
 )
-app$waitForValue(
-    "check_data_eic",
-    iotype = "output",
-    ignore = list(eic)
-)
-app$waitForValue(
-    "check_data_eic",
-    iotype = "output",
-    ignore = list(mzdev)
-)
+Sys.sleep(1)
 app$snapshot(
     items = list(
         output = c("check_data_heatmap", "check_data_eic", "check_data_mzdev")

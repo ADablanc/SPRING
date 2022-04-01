@@ -4,12 +4,14 @@
 \alias{db_get_annotations}
 \title{Get Annotations}
 \usage{
-db_get_annotations(db, names = NULL)
+db_get_annotations(db, names = NULL, group_ids = NULL)
 }
 \arguments{
 \item{db}{`SQLiteConnection`}
 
 \item{names}{`character vector` the compound names}
+
+\item{group_ids}{`numeric vector` the group IDs}
 }
 \value{
 `DataFrame` each line correspond to a compound found

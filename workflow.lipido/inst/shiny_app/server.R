@@ -41,8 +41,7 @@ server <- function(input, output, session) {
         )
         shiny::exportTestValues(
             sqlite_path = sqlite_path(),
-            ann = ann(),
-            spectra_infos = spectra_infos(),
+            conflicts = conflicts(),
             conflict_id = conflict_id()
         )
         shiny::snapshotPreprocessInput(

@@ -1,5 +1,8 @@
-app <- shinytest::ShinyDriver$new("../../")
-# app <- shinytest::ShinyDriver$new("workflow.lipido/inst/shiny_app")
+app <- shinytest::ShinyDriver$new("../../", loadTimeout = 10000)
+# app <- shinytest::ShinyDriver$new(
+#     "workflow.lipido/inst/shiny_app",
+#     loadTimeout = 10000
+# )
 app$snapshotInit("database")
 
 app$executeScript("$(\"a[href=\\\"#shiny-tab-database\\\"]\").click()")

@@ -919,27 +919,6 @@
       "Hash": "7c89603d81793f0d5486d91ab1fc6f1d",
       "Requirements": []
     },
-    "fst": {
-      "Package": "fst",
-      "Version": "0.9.8",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "34637e000c63c3de8d8aafceb82fd082",
-      "Requirements": [
-        "Rcpp",
-        "fstcore"
-      ]
-    },
-    "fstcore": {
-      "Package": "fstcore",
-      "Version": "0.9.8",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "e3f33e578f19436cc08196f79aaebcd7",
-      "Requirements": [
-        "Rcpp"
-      ]
-    },
     "futile.logger": {
       "Package": "futile.logger",
       "Version": "1.4.3",
@@ -1693,17 +1672,6 @@
       "Hash": "04344a58b52248df53e54d850d153ee4",
       "Requirements": []
     },
-    "rintrojs": {
-      "Package": "rintrojs",
-      "Version": "0.3.0",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "c93b7efc3f34a5888d9a919f86e77414",
-      "Requirements": [
-        "jsonlite",
-        "shiny"
-      ]
-    },
     "rlang": {
       "Package": "rlang",
       "Version": "0.4.12",
@@ -2007,6 +1975,16 @@
         "glue",
         "magrittr",
         "stringi"
+      ]
+    },
+    "survival": {
+      "Package": "survival",
+      "Version": "3.2-11",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "f4d706b25d640dbaeb56d9c9b6ce9a22",
+      "Requirements": [
+        "Matrix"
       ]
     },
     "sys": {

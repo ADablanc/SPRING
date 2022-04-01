@@ -4,6 +4,7 @@
 #' Project modal UI definition
 project_modal <- function() {
     shiny::modalDialog(
+        id = "project_modal",
         shiny::tags$div(
             id = "project_bttn",
             shinyFiles::shinyFilesButton(
@@ -32,6 +33,7 @@ project_modal <- function() {
 #' Create project modal definition
 create_project_modal <- function() {
     shiny::modalDialog(
+        id = "project_create_modal",
         shiny::textInput(
             inputId = "project_create_name",
             label = "Name of the project",
@@ -120,11 +122,9 @@ observeEvent(input$project_load, {
         }
         sqlite_path(params$sqlite_path)
         db(db_connect(params$sqlite_path))
-        ann <- dbReadTable(db(), "ann")
-        ann <- split_conflicts(ann)
-        ann(ann)
-        conflict_id(if (length(ann$conflicts) > 0) 1 else 0)
-        spectra_infos(dbReadTable(db(), "spectra_infos"))
+        conflicts <- split_conflicts(db_get_annotations(db()))$conflicts
+        conflicts(sapply(conflicts, function(x) x[1, "group_id"]))
+        conflict_id(if (length(conflicts) > 0) 1 else 0)
         shiny::removeModal()
     }, invalid = function(i) {
         NULL
@@ -134,8 +134,7 @@ observeEvent(input$project_load, {
         print(e)
         sqlite_path(NULL)
         db(NULL)
-        ann(list(conflicts = list(), no_conflicts = data.frame()))
-        spectra_infos(data.frame())
+        conflicts(c())
         conflict_id(0)
         sweet_alert_error(e$message)
     })

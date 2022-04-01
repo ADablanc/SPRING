@@ -324,7 +324,7 @@ plot_annotation_ms <- function(db, name) {
         stop("name must be only ONE compound")
     }
 
-    annotations <- db_get_annotations(db, name)
+    annotations <- db_get_annotations(db, names = name)
     if (nrow(annotations) == 0) {
         return(plot_empty_MS(title = "Hybrid mass spectra"))
     }
@@ -401,7 +401,7 @@ plot_heatmap <- function(db, names) {
         stop("name must contain at least ONE compound")
     }
 
-    ann <- db_get_annotations(db, names)
+    ann <- db_get_annotations(db, names = names)
     if (ncol(ann) == 0) {
         return(plot_empty_heatmap())
     }

@@ -1,5 +1,9 @@
 {
+  "input": {
+    "project_create_modal_visible": true,
+    "project_modal_visible": false
+  },
   "output": {
-    "project_create_path_display": "No directory selected"
+    "project_name": ""
   }
 }

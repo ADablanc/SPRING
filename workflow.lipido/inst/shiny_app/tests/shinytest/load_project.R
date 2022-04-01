@@ -1,15 +1,20 @@
-app <- shinytest::ShinyDriver$new("../../")
+app <- shinytest::ShinyDriver$new("../../", loadTimeout = 10000)
+# app <- shinytest::ShinyDriver$new(
+#     "workflow.lipido/inst/shiny_app",
+#     loadTimeout = 10000
+# )
 app$snapshotInit("load_project")
-app$waitForValue("project_load", ignore = list(NULL))
-empty_project_name <- app$waitForValue(
-    "project_name",
-    iotype = "output",
-    ignore = list(NULL)
-)
-empty_ann <- app$waitForValue(
-    "ann",
-    iotype = "export",
-    ignore = list(NULL)
+
+Sys.sleep(2)
+app$executeScript(paste0("Shiny.setInputValue(\"project_modal_visible\", $(\"#",
+                         "project_modal\").length !=  0)"))
+app$snapshot(
+    items = list(
+        input = "project_modal_visible",
+        output = "project_name",
+        export = "conflict_id"
+    ),
+    screenshot = TRUE
 )
 
 app$executeScript(sprintf(
@@ -38,20 +43,14 @@ app$executeScript(sprintf(
     )
 ))
 
-app$waitForValue(
-    "project_name",
-    iotype = "output",
-    ignore = list(empty_project_name)
-)
-app$waitForValue(
-    "ann",
-    iotype = "export",
-    ignore = list(empty_ann)
-)
+Sys.sleep(1)
+app$executeScript(paste0("Shiny.setInputValue(\"project_modal_visible\", $(\"#",
+                         "project_modal\").length !=  0)"))
 app$snapshot(
     items = list(
-        output = c("project_name"),
-        export = c("ann", "spectra_infos")
+        input = "project_modal_visible",
+        output = "project_name",
+        export = "conflict_id"
     ),
     screenshot = TRUE
 )

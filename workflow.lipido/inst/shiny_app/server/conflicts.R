@@ -23,6 +23,7 @@ shiny::observeEvent(input$conflicts_right, {
 #' @description
 #' Depending on the value of conflict_id it will enable or disable the arrows
 #'
+#' @param conflicts() `reactive value` group IDs where a conflict was detected
 #' @param conflict_id `reactiveValue` ID of the conflict
 shiny::observeEvent(conflict_id(), {
     if (conflict_id() <= 1) {
@@ -30,7 +31,7 @@ shiny::observeEvent(conflict_id(), {
     } else {
         shinyjs::enable("conflicts_left")
     }
-    if (conflict_id() >= length(ann()$conflicts)) {
+    if (conflict_id() >= length(conflicts())) {
         shinyjs::disable("conflicts_right")
     } else {
         shinyjs::enable("conflicts_right")
@@ -42,64 +43,13 @@ shiny::observeEvent(conflict_id(), {
 #' @description
 #' Print the actual index of the conflicts
 #'
-#' @param ann `reactiveValue` `list` of two items :
-#' \itemize{
-#'     \item no_conflicts : `DataFrame` each line correspond to a compound found
-#'     with the columns:
-#'     \itemize{
-#'         \item group_id `integer` group ID
-#'         \item name `character` name
-#'         \item formula `character` chemical formula
-#'         \item adduct `character` adduct form
-#'         \item ion_formula `character` ion chemical formula
-#'         \item rtdiff `numeric` retention time difference between the measured
-#'          & the expected
-#'         \item rt `numeric` retention time measured meanned accross the
-#'         samples
-#'         \item rtmin `numeric` born min of retention time measured accross the
-#'         samples
-#'         \item rtmax `numeric` born max of the retention time measured accross
-#'          the samples
-#'         \item nsamples `integer` number of samples where the compound was
-#'         found
-#'         \item best_score `numeric` best isotopic score seen
-#'         \item best_deviation_mz `numeric` best m/z deviation seen
-#'         \item best_npeak `integer` best number of isotopologues found
-#'         \item ... `integer` a column for each sample which contain the
-#'         spectra ID
-#'     }
-#'     \item conflicts : `DataFrame list` each item correspond to the same group
-#'      of peaks where multiple annotations is possible. each dataframe has the
-#'     columns :
-#'     \itemize{
-#'         \item group_id `integer` group ID
-#'         \item name `character` name
-#'         \item formula `character` chemical formula
-#'         \item adduct `character` adduct form
-#'         \item ion_formula `character` ion chemical formula
-#'         \item rtdiff `numeric` retention time difference between the measured
-#'          & the expected
-#'         \item rt `numeric` retention time measured meanned accross the
-#'         samples
-#'         \item rtmin `numeric` born min of retention time measured accross the
-#'         samples
-#'         \item rtmax `numeric` born max of the retention time measured accross
-#'          the samples
-#'         \item nsamples `integer` number of samples where the compound was
-#'         found
-#'         \item best_score `numeric` best isotopic score seen
-#'         \item best_deviation_mz `numeric` best m/z deviation seen
-#'         \item best_npeak `integer` best number of isotopologues found
-#'         \item ... `integer` a column for each sample which contain the
-#'         spectra ID
-#'     }
-#' }
+#' @param conflicts() `reactive value` group IDs where a conflict was detected
 #' @param conflict_id `reactiveValue` conflict ID
 #'
 #' @return `character(1)` with the form "conflict ID / number of conflicts"
 output$conflicts_info <- shiny::renderText({
-    if (length(ann()$conflicts) > 0) {
-        sprintf("%s / %s", conflict_id(), length(ann()$conflicts))
+    if (length(conflicts()) > 0) {
+        sprintf("%s / %s", conflict_id(), length(conflicts()))
     } else {
         ""
     }
@@ -112,58 +62,7 @@ output$conflicts_info <- shiny::renderText({
 #' The selection of a line will update the value "conflict_row_selected" with
 #' the row index in order to update the plot "conflicts_ms"
 #'
-#' @param ann `reactiveValue` `list` of two items :
-#' \itemize{
-#'     \item no_conflicts : `DataFrame` each line correspond to a compound found
-#'     with the columns:
-#'     \itemize{
-#'         \item group_id `integer` group ID
-#'         \item name `character` name
-#'         \item formula `character` chemical formula
-#'         \item adduct `character` adduct form
-#'         \item ion_formula `character` ion chemical formula
-#'         \item rtdiff `numeric` retention time difference between the measured
-#'          & the expected
-#'         \item rt `numeric` retention time measured meanned accross the
-#'         samples
-#'         \item rtmin `numeric` born min of retention time measured accross the
-#'         samples
-#'         \item rtmax `numeric` born max of the retention time measured accross
-#'          the samples
-#'         \item nsamples `integer` number of samples where the compound was
-#'         found
-#'         \item best_score `numeric` best isotopic score seen
-#'         \item best_deviation_mz `numeric` best m/z deviation seen
-#'         \item best_npeak `integer` best number of isotopologues found
-#'         \item ... `integer` a column for each sample which contain the
-#'         spectra ID
-#'     }
-#'     \item conflicts : `DataFrame list` each item correspond to the same group
-#'      of peaks where multiple annotations is possible. each dataframe has the
-#'     columns :
-#'     \itemize{
-#'         \item group_id `integer` group ID
-#'         \item name `character` name
-#'         \item formula `character` chemical formula
-#'         \item adduct `character` adduct form
-#'         \item ion_formula `character` ion chemical formula
-#'         \item rtdiff `numeric` retention time difference between the measured
-#'          & the expected
-#'         \item rt `numeric` retention time measured meanned accross the
-#'         samples
-#'         \item rtmin `numeric` born min of retention time measured accross the
-#'         samples
-#'         \item rtmax `numeric` born max of the retention time measured accross
-#'          the samples
-#'         \item nsamples `integer` number of samples where the compound was
-#'         found
-#'         \item best_score `numeric` best isotopic score seen
-#'         \item best_deviation_mz `numeric` best m/z deviation seen
-#'         \item best_npeak `integer` best number of isotopologues found
-#'         \item ... `integer` a column for each sample which contain the
-#'         spectra ID
-#'     }
-#' }
+#' @param conflicts() `reactive value` group IDs where a conflict was detected
 #' @param conflict_id `reactiveValue` conflict ID
 #'
 #' @return `DataTable` with columns :
@@ -189,40 +88,47 @@ output$conflicts_table <- DT::renderDataTable({
                "Best m/z dev (mDa)", "Max iso"))),
         check.names = FALSE)
 
-    conflicts <- ann()$conflicts
-    ann <- ann()$no_conflicts
     params <- list(
-        length_conflicts = length(conflicts),
+        conflicts = conflicts(),
         conflict_id = conflict_id()
     )
     tryCatch({
-        if (length(conflicts) == 0) {
+        if (length(params$conflicts) == 0) {
             custom_stop("invalid", "no conflicts")
         } else if (
-            params$conflict_id > length(conflicts) |
+            params$conflict_id > length(params$conflicts) |
             params$conflict_id < 1
         ) {
             stop("something wrongs with conflict_id")
         }
 
-        conflict <- conflicts[[params$conflict_id]]
-        params$conflict <- conflict
-        conflict <- conflict[, c("name", "rtdiff", "adduct", "nsamples",
+        params$conflict <- db_get_annotations(
+            db(),
+            group_ids = conflicts()[conflict_id()]
+        )
+        conflict <- params$conflict[, c("name", "rtdiff", "adduct", "nsamples",
                                  "best_score", "best_deviation_mz",
                                  "best_npeak")]
+
+        params$ann <- db_get_annotations(db(), names = conflict$name)
+        ann <- params$ann[!params$ann$group_id %in% conflicts(), , drop = FALSE]
+        spectra_ids <- without_na(unlist(ann[, 14:ncol(ann)]))
+        spectra_infos <- db_get_spectra_infos(db(), spectra_ids)
+        info_conflict <- summarise_ann(ann, spectra_infos)
+        info_conflict <- info_conflict[, c("name", "Adducts", "nSamples")]
+        conflict <- merge(conflict, info_conflict, all.x = TRUE)
+
+        conflict <- conflict[c("name", "Adducts", "nSamples", "name", "rtdiff",
+                               "adduct", "nsamples", "best_score",
+                               "best_deviation_mz", "best_npeak")]
         conflict[, c("rtdiff", "best_score")] <- round(
             conflict[, c("rtdiff", "best_score")])
         conflict$best_deviation_mz <- round(conflict$best_deviation_mz, 2)
-        colnames(conflict) <- c("name", "Diff rT (sec)", "Adduct", "nSamples",
+        colnames(conflict) <- c("name", "Already seen with",
+                                "Already seen in nSamples", "name",
+                                "Diff rT (sec)", "Adduct", "nSamples",
                                 "Best score (%)", "Best m/z dev (mDa)",
                                 "Max iso")
-
-        info_conflict <- summarise_ann(ann[ann$name %in% conflict$name, ,
-                                           drop = FALSE], spectra_infos())
-        info_conflict <- info_conflict[, c("name", "Adducts", "nSamples")]
-        colnames(info_conflict) <- c("name", "Already seen with",
-                                     "Already seen in nSamples")
-        conflict <- merge(info_conflict, conflict, all = TRUE)
 
         conflict <- cbind(conflict,
             Valid = sapply(seq(nrow(conflict)), function(bttn_val)
@@ -327,32 +233,40 @@ output$conflicts_table <- DT::renderDataTable({
 #' }
 #'
 #' @param db `reactive value` contains the pointer to the db
+#' @param conflicts() `reactive value` group IDs where a conflict was detected
 #' @param conflict_id `reactive value` conflict ID
 #' @param input$conflict_row_selected `numeric` row ID selected in the conflict
 #'  table
 #'
 #' @param `plotly`
 output$conflicts_ms <- plotly::renderPlotly({
-    conflicts <- ann()$conflicts
-
     params <- list(
         db = db(),
-        length_conflicts = length(conflicts),
+        conflicts = conflicts(),
         conflict_id = conflict_id(),
         conflict_row_selected = input$conflict_row_selected
     )
     tryCatch({
-        if (length(params$conflict_row_selected) == 0) {
+        if (length(params$conflicts) == 0) {
+            custom_stop("invalid", "no conflicts")
+        } else if (
+            params$conflict_id > length(params$conflicts) |
+            params$conflict_id < 1
+        ) {
+            stop("something wrongs with conflict_id")
+        } else if (length(params$conflict_row_selected) == 0) {
             custom_stop("invalid", "no row selected")
         } else if (params$conflict_row_selected == "0") {
             custom_stop("invalid", "no rows in the table")
         }
-        conflict <- conflicts[[params$conflict_id]]
-        params$conflict <- conflict
-        # get all ions for the lipid selected
-        i <- params$conflict_row_selected
-
-        plot_annotation_ms(db(), conflict[i, "name"])
+        params$conflict <- db_get_annotations(
+            db(),
+            group_ids = conflicts()[conflict_id()]
+        )
+        plot_annotation_ms(
+            db(),
+            params$conflict[params$conflict_row_selected, "name"]
+        )
     }, invalid = function(i) {
         print("########## conflicts_ms")
         print(params)
@@ -375,30 +289,31 @@ output$conflicts_ms <- plotly::renderPlotly({
 #' In consequence it will update the ann reactive value
 #'
 #' @param db `reactive value` pointer to the sqlite db
+#' @param conflicts() `reactive value` group IDs where a conflict was detected
 #' @param conflict_id `reactive value` conflict ID
 #' @param input$conflicts_table_valid `numeric` contain the row ID of the
 #'  conflict were the button valid was clicked
 observeEvent(input$conflicts_table_valid, {
-    conflicts <- ann()$conflicts
     params <- list(
         db = db(),
-        length_conflicts = length(conflicts),
+        conflicts = conflicts(),
         conflict_id = conflict_id(),
         conflicts_table_valid = input$conflicts_table_valid
     )
     tryCatch({
-        conflict <- conflicts[[params$conflict_id]]
-        params$conflict <- conflict
+        params$conflict <- db_get_annotations(
+            db(),
+            group_ids = conflicts()[conflict_id()]
+        )
         i <- as.numeric(params$conflicts_table_valid$value)
-        db_resolve_conflict(db(), conflict[i, "group_id"], conflict[i, "name"])
+        db_resolve_conflict(
+            db(),
+            params$conflict[i, "group_id"],
+            params$conflict[i, "name"]
+        )
+        conflicts(conflicts()[-conflict_id()])
         conflict_id(conflict_id() - 1)
-        ann(list(
-            no_conflicts = rbind(
-                ann()$no_conflicts,
-                conflict[i, , drop = FALSE]
-            ),
-            conflicts = conflicts[-params$conflict_id]
-        ))
+        # to force all the outputs to reload if they use the data from the db
         toastr_success(sprintf(
             "%s %s annotated",
             conflict[i, "name"],
