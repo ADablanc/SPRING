@@ -96,7 +96,7 @@ output$summary_table <- DT::renderDataTable({
         spectra_ids <- without_na(unlist(ann[, 14:ncol(ann)]))
         spectra_infos <- db_get_spectra_infos(db(), spectra_ids)
         ann <- summarise_ann(ann, spectra_infos)
-        ann[ann[, 10:ncol(ann)] == 0, 10:ncol(ann)] <- NA
+        ann[, 10:ncol(ann)][ann[, 10:ncol(ann)] == 0] <- NA
         ann
     }, invalid = function(i) {
         data.frame(matrix(, nrow = 0, ncol = 10, dimnames = list(c(),
