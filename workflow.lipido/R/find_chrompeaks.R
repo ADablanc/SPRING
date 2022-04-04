@@ -20,11 +20,29 @@ find_chrompeaks <- function(ms_file, cwt_params, sample_name) {
     object <- methods::new("xcmsSet")
 
     if (is.null(ms_file)) {
+        filepath <- tempfile(fileext = ".mzXML")
+        object@filepaths <- filepath
         object@phenoData <- data.frame(stats::runif(1))
         rownames(object@phenoData) <- sample_name
+        object@profinfo <- list(
+            method = "bin",
+            step = 0
+        )
+        object@peaks <- empty_peaklist
         object@rt <- list(c())
         attributes(object)$mzrange <- c(0, 0)
-        object@peaks <- empty_peaklist
+        proclist <- xcms:::ProcessHistory(
+            info. = sprintf(
+                "Peak detection in %s : %s peaks identified.",
+                basename(filepath),
+                0
+            ),
+            date. = date(),
+            type. = "Peak detection",
+            fileIndex. = 1
+        )
+        object@.processHistory <- list(proclist)
+        object@mslevel <- 1
         return(object)
     }
 
@@ -37,7 +55,6 @@ find_chrompeaks <- function(ms_file, cwt_params, sample_name) {
     rownames(object@phenoData) <- sample_name
     object@profinfo <- xcms::profinfo(ms_file)
 
-    date <- date()
     suppressMessages(suppressWarnings(peaks <- xcms::do_findChromPeaks_centWave(
         mz = as.double(ms_file@env$mz),
         int = as.double(ms_file@env$intensity),
@@ -74,7 +91,7 @@ find_chrompeaks <- function(ms_file, cwt_params, sample_name) {
             basename(file),
             nrow(peaks)
         ),
-        date. = date,
+        date. = date(),
         type. = "Peak detection",
         fileIndex. = 1
     )
