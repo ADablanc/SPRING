@@ -524,21 +524,20 @@ testthat::test_that("plot annotation MS", {
             sizes = c(10, 100),
             spans = c(1, 20),
             type = "scatter",
-            x = c(426.262333104945, 427.265704881008, 426.26152, 427.26484),
+            x = c(426.261913381751, 427.265348519813, 426.26152, 427.26484),
             y = 0,
-            xend = c(426.262333104945, 427.265704881008, 426.26152,
-                     427.26484),
-            yend = c(6201250.27168528, 1186767.56444882, -6201250.27168528,
-                     -1345671.30895571),
+            xend = c(426.261913381751, 427.265348519813, 426.26152, 427.26484),
+            yend = c(6214416.44108707, 1170639.95871094, -6214416.44108707,
+                     -1348528.36771589),
             name = "[M+H]+",
             legendgroup = "[M+H]+",
             showlegend = TRUE,
             hoverinfo = "text",
             text = c(
                 paste("observed", "adduct: [M+H]+", "iso: M",
-                      "m/z: 426.26233", "abd: 100%", sep = "<br />"),
+                      "m/z: 426.26191", "abd: 100%", sep = "<br />"),
                 paste("observed", "adduct: [M+H]+", "iso: M+1",
-                      "m/z: 427.2657", "abd: 19%", sep = "<br />"),
+                      "m/z: 427.26535", "abd: 19%", sep = "<br />"),
                 paste("theoretical", "adduct: [M+H]+", "iso: M",
                       "m/z: 426.26152", "abd: 100%", sep = "<br />"),
                 paste("theoretical", "adduct: [M+H]+", "iso: M+1",
@@ -555,7 +554,7 @@ testthat::test_that("plot annotation MS", {
             x = c(NA, NA, 428.26719, 429.26984),
             y = 0,
             xend = c(NA, NA, 428.26719, 429.26984),
-            yend = c(NA, NA, -214563.259400311, -26045.2511410782),
+            yend = c(NA, NA, -215018.808861613, -26100.5490525657),
             color = "black",
             legendgroup = "[M+H]+",
             showlegend = FALSE,
@@ -712,8 +711,8 @@ testthat::test_that("plot annotation MS", {
         list(
             annotations = list(
                 text = "[M+H]+",
-                x = 426.262333104945,
-                y = 6201250.27168528,
+                x = 426.261913381751,
+                y = 6214416.44108707,
                 xref = "x",
                 yref = "y",
                 valign = "bottom",
@@ -824,6 +823,7 @@ testthat::test_that("plot annotation MS", {
 
     # 5th test : normal
     plot <- plot_annotation_ms(db, "LPC 11a:0")
+    RSQLite::dbDisconnect(db)
     # test if we get all traces
     testthat::expect_true(all(
         unlist(plot[[1]]$attrs) == unlist(traces),
@@ -837,92 +837,6 @@ testthat::test_that("plot annotation MS", {
     # test also the layout
     testthat::expect_true(all(
         unlist(plot[[1]]$layoutAttrs) == unlist(layout_attrs),
-        na.rm = TRUE
-    ))
-    # test also the js func
-    testthat::expect_true(all(
-        unlist(plot[[8]]) == unlist(js_func),
-        na.rm = TRUE
-    ))
-
-    # 6th test : normal test but two referent sample with all the adducts is
-    # found
-    sqlite_path <- db@dbname
-    RSQLite::dbDisconnect(db)
-    sqlite_path2 <- tempfile(fileext = ".sqlite")
-    invisible(file.copy(sqlite_path, sqlite_path2))
-    # modify a column in the database just to create the example
-    db <- db_connect(sqlite_path2)
-    dbExecute(
-        db,
-        "UPDATE ann
-        SET \"220221CCM_global__01_ssleu_filtered\" = 7
-        WHERE group_id == 1"
-    )
-    dbExecute(
-        db,
-        "UPDATE ann
-        SET \"220221CCM_global__01_ssleu_filtered\" = 8
-        WHERE group_id == 9"
-    )
-    dbExecute(
-        db,
-        "UPDATE spectra_infos
-        SET basepeak_int = 0, sum_int = 0
-        WHERE spectra_id == 7 OR spectra_id == 8"
-    )
-    plot <- plot_annotation_ms(db, "LPC 11a:0")
-    # test if we get all traces
-    testthat::expect_true(all(
-        unlist(plot[[1]]$attrs) == unlist(traces),
-        na.rm = TRUE
-    ))
-    # test also the config
-    testthat::expect_true(all(
-        unlist(plot[[1]]$config) == unlist(config),
-        na.rm = TRUE
-    ))
-    # test also the layout
-    testthat::expect_true(all(
-        unlist(plot[[1]]$layoutAttrs) == unlist(layout_attrs),
-        na.rm = TRUE
-    ))
-    # test also the js func
-    testthat::expect_true(all(
-        unlist(plot[[8]]) == unlist(js_func),
-        na.rm = TRUE
-    ))
-
-    # 7th test : normal test but no referent sample with all the adducts is
-    # found
-    dbExecute(
-        db,
-        "UPDATE ann
-        SET \"220221CCM_global__01_ssleu_filtered\" = null,
-            \"220221CCM_global__02_ssleu_filtered\" = null
-        WHERE group_id == 2"
-    )
-    dbExecute(
-        db,
-        "UPDATE ann
-        SET \"220221CCM_global__01_ssleu_filtered\" = null
-        WHERE group_id == 9"
-    )
-    plot <- plot_annotation_ms(db, "LPC 11a:0")
-    RSQLite::dbDisconnect(db)
-    # test if we get all traces
-    testthat::expect_true(all(
-        unlist(plot[[1]]$attrs) == unlist(traces[-c(4, 5)]),
-        na.rm = TRUE
-    ))
-    # test also the config
-    testthat::expect_true(all(
-        unlist(plot[[1]]$config) == unlist(config),
-        na.rm = TRUE
-    ))
-    # test also the layout
-    testthat::expect_true(all(
-        unlist(plot[[1]]$layoutAttrs) == unlist(layout_attrs[-3]),
         na.rm = TRUE
     ))
     # test also the js func

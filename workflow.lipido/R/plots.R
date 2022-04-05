@@ -330,25 +330,17 @@ plot_annotation_ms <- function(db, name) {
     }
     spectra_infos <- db_get_spectra_infos(db)
 
-    # select a referent sample, the one where all the adducts were founded
+    # for each line (adduct) select the most intense spectra
     annotation_int <- get_int_ann(annotations, spectra_infos)
-    j <- which(sapply(annotation_int[, 9:ncol(annotation_int)], function(x)
-        all(!is.na(x))))
-    # now the sample where the intensity was the highest
-    # dont forget that the index begin at +8 for annotation_int !!!
-    if (length(j) == 0) {
-        j <- which.max(apply(annotation_int[, 9:ncol(annotation_int),
-                                            drop = FALSE], 2, sum,
-                             na.rm = TRUE))
-    } else if (length(j) > 1) {
-        j <- j[which.max(sapply(annotation_int[, j + 8], sum))]
-    }
-
-    spectras <- lapply(annotations[, j + 13], function(spectra_id)
-        if (is.na(spectra_id)) NULL
-        else db_get_spectras(db, spectra_id))
+    spectras <- lapply(seq(nrow(annotations)), function(i)
+        db_get_spectras(
+            db,
+            annotations[i, which.max(
+                annotation_int[i, 9:ncol(annotation_int)]
+            ) + 13]
+        )
+    )
     names(spectras) <- annotations$adduct
-    spectras <- spectras[lengths(spectras) > 0]
     plot_composite_ms(spectras)
 }
 

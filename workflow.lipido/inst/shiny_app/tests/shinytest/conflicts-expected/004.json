@@ -83,8 +83,8 @@
             },
             {
               "text": "[M+H]+",
-              "x": 426.262333104945,
-              "y": 6201250.27168528,
+              "x": 426.261913381751,
+              "y": 6214416.44108707,
               "xref": "x",
               "yref": "y",
               "valign": "bottom",
@@ -278,11 +278,11 @@
             "mode": "lines",
             "type": "scatter",
             "x": [
-              426.262333104945,
-              426.262333104945,
+              426.261913381751,
+              426.261913381751,
               null,
-              427.265704881008,
-              427.265704881008,
+              427.265348519813,
+              427.265348519813,
               null,
               426.26152,
               426.26152,
@@ -292,16 +292,16 @@
             ],
             "y": [
               0,
-              6201250.27168528,
+              6214416.44108707,
               null,
               0,
-              1186767.56444882,
+              1170639.95871094,
               null,
               0,
-              -6201250.27168528,
+              -6214416.44108707,
               null,
               0,
-              -1345671.30895571
+              -1348528.36771589
             ],
             "name": "[M+H]+",
             "legendgroup": "[M+H]+",
@@ -320,11 +320,11 @@
               "text"
             ],
             "text": [
-              "observed<br />adduct: [M+H]+<br />iso: M<br />m/z: 426.26233<br />abd: 100%",
-              "observed<br />adduct: [M+H]+<br />iso: M<br />m/z: 426.26233<br />abd: 100%",
+              "observed<br />adduct: [M+H]+<br />iso: M<br />m/z: 426.26191<br />abd: 100%",
+              "observed<br />adduct: [M+H]+<br />iso: M<br />m/z: 426.26191<br />abd: 100%",
               null,
-              "observed<br />adduct: [M+H]+<br />iso: M+1<br />m/z: 427.2657<br />abd: 19%",
-              "observed<br />adduct: [M+H]+<br />iso: M+1<br />m/z: 427.2657<br />abd: 19%",
+              "observed<br />adduct: [M+H]+<br />iso: M+1<br />m/z: 427.26535<br />abd: 19%",
+              "observed<br />adduct: [M+H]+<br />iso: M+1<br />m/z: 427.26535<br />abd: 19%",
               null,
               "theoretical<br />adduct: [M+H]+<br />iso: M<br />m/z: 426.26152<br />abd: 100%",
               "theoretical<br />adduct: [M+H]+<br />iso: M<br />m/z: 426.26152<br />abd: 100%",
@@ -363,10 +363,10 @@
             ],
             "y": [
               0,
-              -214563.259400311,
+              -215018.808861613,
               null,
               0,
-              -26045.2511410782
+              -26100.5490525657
             ],
             "legendgroup": "[M+H]+",
             "showlegend": false,
