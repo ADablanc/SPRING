@@ -344,7 +344,7 @@
       "jsHooks": {
         "render": [
           {
-            "code": "function(el, x) {\n                el.on(\"plotly_click\", function(data) {\n                    Shiny.onInputChange(\"check_data_heatmap_click\", {\n                        sample: data.points[0].x,\n                        cpd_name: data.points[0].y\n                    })\n                })\n            }",
+            "code": "function(el, x) {\n                el.on(\"plotly_click\", function(data) {\n                    Shiny.onInputChange(\"check_data_heatmap_click\", {\n                        sample: data.points[0].y,\n                        cpd_name: data.points[0].x\n                    })\n                })\n            }",
             "data": null
           }
         ]

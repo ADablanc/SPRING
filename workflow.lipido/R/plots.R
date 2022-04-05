@@ -407,20 +407,19 @@ plot_heatmap <- function(db, names) {
         by = "name",
         all = TRUE
     )
-    suppressWarnings(int_ann[is.na(int_ann)] <- 0)
     plotly::add_trace(
         plot_empty_heatmap(),
-        x = colnames(int_ann)[10:ncol(int_ann)],
-        y = int_ann$name,
-        z = as.matrix(int_ann[, 10:ncol(int_ann)]),
+        x = int_ann$name,
+        y = colnames(int_ann)[10:ncol(int_ann)],
+        z = t(int_ann[, 10:ncol(int_ann)]),
         hoverinfo = "text",
         text = matrix(
             sprintf(
                 "sample: %s<br />cpd: %s<br />intensity: %s",
-                rep(colnames(int_ann)[10:ncol(int_ann)], each = nrow(int_ann)),
-                rep(int_ann$name, times = nrow(int_ann)),
+                rep(colnames(int_ann)[10:ncol(int_ann)], times = nrow(int_ann)),
+                rep(int_ann$name, each = nrow(int_ann)),
                 formatC(
-                    round(unlist(int_ann[, 10:ncol(int_ann)])),
+                    round(unlist(t(int_ann[, 10:ncol(int_ann)]))),
                     big.mark = " ",
                     format = "d"
                 )

@@ -911,10 +911,10 @@ testthat::test_that("plot heatmap", {
             spans = c(1, 20),
             type = "heatmap"
         ),
-        x = c("220221CCM_global__01_ssleu_filtered",
+        x = c("LPC 11:0", "PS 24:0"),
+        y = c("220221CCM_global__01_ssleu_filtered",
               "220221CCM_global__02_ssleu_filtered"),
-        y = c("LPC 11:0", "PS 24:0"),
-        z = matrix(c(6214416.44108707, 0, 6578365.65569723, 0),
+        z = matrix(c(6214416.44108707, NA, 6578365.65569723, NA),
                    nrow = 2, ncol = 2,
                    dimnames = list(c(), c("220221CCM_global__01_ssleu_filtered",
                                           "220221CCM_global__02_ssleu_filtered")
@@ -923,12 +923,12 @@ testthat::test_that("plot heatmap", {
         text = matrix(c(
             paste0("sample: 220221CCM_global__01_ssleu_filtered<br />cpd: LPC ",
                    "11:0<br />intensity: 6 214 416"),
-            paste0("sample: 220221CCM_global__01_ssleu_filtered<br />cpd: PS 2",
-                   "4:0<br />intensity: 0"),
             paste0("sample: 220221CCM_global__02_ssleu_filtered<br />cpd: LPC ",
                    "11:0<br />intensity: 6 578 366"),
+            paste0("sample: 220221CCM_global__01_ssleu_filtered<br />cpd: PS 2",
+                   "4:0<br />intensity: NA"),
             paste0("sample: 220221CCM_global__02_ssleu_filtered<br />cpd: PS 2",
-                   "4:0<br />intensity: 0")), nrow = 2, ncol = 2),
+                   "4:0<br />intensity: NA")), nrow = 2, ncol = 2),
         inherit = TRUE
     )
     config <- list(

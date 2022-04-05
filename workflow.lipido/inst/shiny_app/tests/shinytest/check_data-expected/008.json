@@ -2076,11 +2076,11 @@
                 "rgba(68,1,84,1)"
               ],
               [
-                "0.0416666666666667",
+                "0.0416666666666675",
                 "rgba(70,19,97,1)"
               ],
               [
-                "0.0833333333333333",
+                "0.0833333333333325",
                 "rgba(72,32,111,1)"
               ],
               [
@@ -2088,11 +2088,11 @@
                 "rgba(71,45,122,1)"
               ],
               [
-                "0.166666666666667",
+                "0.166666666666668",
                 "rgba(68,58,128,1)"
               ],
               [
-                "0.208333333333333",
+                "0.208333333333332",
                 "rgba(64,70,135,1)"
               ],
               [
@@ -2100,11 +2100,11 @@
                 "rgba(60,82,138,1)"
               ],
               [
-                "0.291666666666667",
+                "0.291666666666668",
                 "rgba(56,93,140,1)"
               ],
               [
-                "0.333333333333333",
+                "0.333333333333332",
                 "rgba(49,104,142,1)"
               ],
               [
@@ -2112,11 +2112,11 @@
                 "rgba(46,114,142,1)"
               ],
               [
-                "0.416666666666667",
+                "0.416666666666668",
                 "rgba(42,123,142,1)"
               ],
               [
-                "0.458333333333333",
+                "0.458333333333332",
                 "rgba(38,133,141,1)"
               ],
               [
@@ -2124,11 +2124,11 @@
                 "rgba(37,144,140,1)"
               ],
               [
-                "0.541666666666667",
+                "0.541666666666668",
                 "rgba(33,154,138,1)"
               ],
               [
-                "0.583333333333333",
+                "0.583333333333332",
                 "rgba(39,164,133,1)"
               ],
               [
@@ -2136,11 +2136,11 @@
                 "rgba(47,174,127,1)"
               ],
               [
-                "0.666666666666667",
+                "0.666666666666668",
                 "rgba(53,183,121,1)"
               ],
               [
-                "0.708333333333333",
+                "0.708333333333332",
                 "rgba(79,191,110,1)"
               ],
               [
@@ -2148,11 +2148,11 @@
                 "rgba(98,199,98,1)"
               ],
               [
-                "0.791666666666667",
+                "0.791666666666668",
                 "rgba(119,207,85,1)"
               ],
               [
-                "0.833333333333333",
+                "0.833333333333332",
                 "rgba(147,214,70,1)"
               ],
               [
@@ -2160,11 +2160,11 @@
                 "rgba(172,220,52,1)"
               ],
               [
-                "0.916666666666667",
+                "0.916666666666668",
                 "rgba(199,225,42,1)"
               ],
               [
-                "0.958333333333333",
+                "0.958333333333332",
                 "rgba(226,228,40,1)"
               ],
               [
@@ -2175,32 +2175,32 @@
             "showscale": true,
             "type": "heatmap",
             "x": [
-              "220221CCM_global__01_ssleu_filtered",
-              "220221CCM_global__02_ssleu_filtered"
-            ],
-            "y": [
               "LPC 11:0",
               "PS 24a:0"
+            ],
+            "y": [
+              "220221CCM_global__01_ssleu_filtered",
+              "220221CCM_global__02_ssleu_filtered"
             ],
             "z": [
               [
                 6214416.44108707,
-                6578365.65569723
+                null
               ],
               [
-                0,
-                0
+                6578365.65569723,
+                null
               ]
             ],
             "hoverinfo": "text",
             "text": [
               [
                 "sample: 220221CCM_global__01_ssleu_filtered<br />cpd: LPC 11:0<br />intensity: 6 214 416",
-                "sample: 220221CCM_global__02_ssleu_filtered<br />cpd: LPC 11:0<br />intensity: 6 578 366"
+                "sample: 220221CCM_global__01_ssleu_filtered<br />cpd: PS 24a:0<br />intensity: NA"
               ],
               [
-                "sample: 220221CCM_global__01_ssleu_filtered<br />cpd: PS 24a:0<br />intensity: 0",
-                "sample: 220221CCM_global__02_ssleu_filtered<br />cpd: PS 24a:0<br />intensity: 0"
+                "sample: 220221CCM_global__02_ssleu_filtered<br />cpd: LPC 11:0<br />intensity: 6 578 366",
+                "sample: 220221CCM_global__02_ssleu_filtered<br />cpd: PS 24a:0<br />intensity: NA"
               ]
             ],
             "xaxis": "x",
@@ -2241,7 +2241,7 @@
       "jsHooks": {
         "render": [
           {
-            "code": "function(el, x) {\n                el.on(\"plotly_click\", function(data) {\n                    Shiny.onInputChange(\"check_data_heatmap_click\", {\n                        sample: data.points[0].x,\n                        cpd_name: data.points[0].y\n                    })\n                })\n            }",
+            "code": "function(el, x) {\n                el.on(\"plotly_click\", function(data) {\n                    Shiny.onInputChange(\"check_data_heatmap_click\", {\n                        sample: data.points[0].y,\n                        cpd_name: data.points[0].x\n                    })\n                })\n            }",
             "data": null
           }
         ]

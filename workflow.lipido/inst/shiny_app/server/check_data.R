@@ -58,8 +58,8 @@ output$check_data_heatmap <- plotly::renderPlotly({
             "function(el, x) {
                 el.on(\"plotly_click\", function(data) {
                     Shiny.onInputChange(\"check_data_heatmap_click\", {
-                        sample: data.points[0].x,
-                        cpd_name: data.points[0].y
+                        sample: data.points[0].y,
+                        cpd_name: data.points[0].x
                     })
                 })
             }"
