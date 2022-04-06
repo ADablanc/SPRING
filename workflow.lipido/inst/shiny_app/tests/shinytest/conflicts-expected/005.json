@@ -527,28 +527,28 @@
             "LPC 11a:0"
           ],
           [
+            "<button class=\"btn btn-default action-button btn-success\" id=\"conflicts_table_bttn 1\" type=\"button\" value=\"1\">\n  <i class=\"fa fa-check\" role=\"presentation\" aria-label=\"check icon\"><\/i>\n  \n<\/button>",
+            "<button class=\"btn btn-default action-button btn-success\" id=\"conflicts_table_bttn 2\" type=\"button\" value=\"2\">\n  <i class=\"fa fa-check\" role=\"presentation\" aria-label=\"check icon\"><\/i>\n  \n<\/button>"
+          ],
+          [
             "[M+Na]+",
             null
-          ],
-          [
-            1,
-            null
-          ],
-          [
-            "LPC 11:0",
-            "LPC 11a:0"
-          ],
-          [
-            9,
-            4
           ],
           [
             "[M+H]+",
             "[M+H]+"
           ],
           [
+            1,
+            null
+          ],
+          [
             2,
             2
+          ],
+          [
+            9,
+            4
           ],
           [
             95,
@@ -561,13 +561,9 @@
           [
             2,
             2
-          ],
-          [
-            "<button class=\"btn btn-default action-button btn-success\" id=\"conflicts_table_bttn 1\" type=\"button\" value=\"1\">\n  <i class=\"fa fa-check\" role=\"presentation\" aria-label=\"check icon\"><\/i>\n  \n<\/button>",
-            "<button class=\"btn btn-default action-button btn-success\" id=\"conflicts_table_bttn 2\" type=\"button\" value=\"2\">\n  <i class=\"fa fa-check\" role=\"presentation\" aria-label=\"check icon\"><\/i>\n  \n<\/button>"
           ]
         ],
-        "container": "<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Already seen with<\/th>\n      <th>Already seen in nSamples<\/th>\n      <th>name<\/th>\n      <th>Diff rT (sec)<\/th>\n      <th>Adduct<\/th>\n      <th>nSamples<\/th>\n      <th>Best score (%)<\/th>\n      <th>Best m/z dev (mDa)<\/th>\n      <th>Max iso<\/th>\n      <th>Valid<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>",
+        "container": "<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Valid<\/th>\n      <th>Already seen with<\/th>\n      <th>Conflicted adduct<\/th>\n      <th>Already seen in nSamples<\/th>\n      <th>Conflicted nSamples<\/th>\n      <th>Diff rT (sec)<\/th>\n      <th>Best score (%)<\/th>\n      <th>Best m/z dev (mDa)<\/th>\n      <th>Max iso<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>",
         "options": {
           "dom": "frtip",
           "paging": false,
@@ -657,6 +653,6 @@
     }
   },
   "export": {
-
+    "conflict_id": 2
   }
 }

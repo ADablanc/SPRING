@@ -1,10 +1,10 @@
 {
   "input": {
-    "conflicts_left_disabled": false,
+    "conflicts_left_disabled": true,
     "conflicts_right_disabled": true
   },
   "output": {
-    "conflicts_info": "2 / 2",
+    "conflicts_info": "1 / 1",
     "conflicts_ms": {
       "x": {
         "layout": {
@@ -660,7 +660,7 @@
             "<button class=\"btn btn-default action-button btn-success\" id=\"conflicts_table_bttn 2\" type=\"button\" value=\"2\">\n  <i class=\"fa fa-check\" role=\"presentation\" aria-label=\"check icon\"><\/i>\n  \n<\/button>"
           ],
           [
-            "[M+Na]+",
+            "[M+H-H2O]+ [M+Na]+",
             null
           ],
           [
@@ -782,6 +782,6 @@
     }
   },
   "export": {
-    "conflict_id": 2
+    "conflict_id": 1
   }
 }

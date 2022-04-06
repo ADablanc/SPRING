@@ -417,7 +417,7 @@ plot_heatmap <- function(db, names) {
             sprintf(
                 "sample: %s<br />cpd: %s<br />intensity: %s",
                 rep(colnames(int_ann)[10:ncol(int_ann)], times = nrow(int_ann)),
-                rep(int_ann$name, each = nrow(int_ann)),
+                rep(int_ann$name, each = ncol(int_ann) - 9),
                 formatC(
                     round(unlist(t(int_ann[, 10:ncol(int_ann)]))),
                     big.mark = " ",

@@ -35,7 +35,12 @@ app$waitForValue(
 )
 
 # 1st test : get an empty summary table
-app$snapshot(items = list(output = "summary_table"), screenshot = TRUE)
+app$snapshot(
+    items = list(
+        output = "summary_table" # should be empty
+    ),
+    screenshot = TRUE
+)
 
 # load a project
 sqlite_file <- system.file(
@@ -70,7 +75,36 @@ app$waitForValue(
 )
 
 # 2nd test : see if we have now a table
-app$snapshot(items = list(output = "summary_table"), screenshot = TRUE)
+app$snapshot(
+    items = list(
+        output = "summary_table" # "Cer (d18:1/C12:0)", "FA 17:0"
+    ),
+    screenshot = TRUE
+)
+
+# 3rd test : filter by polarity
+app$setInputs(summary_polarity = "positive")
+app$snapshot(
+    items = list(
+        output = "summary_table" # "Cer (d18:1/C12:0)"
+    ),
+    screenshot = TRUE
+)
+
+# 4th test : filter by polarity
+app$setInputs(summary_polarity = "negative")
+app$snapshot(
+    items = list(
+        output = "summary_table" # "FA 17:0"
+    ),
+    screenshot = TRUE
+)
+
 
 # see if we can upload the xlsx file
 # app$snapshotDownload("summary_export")
+
+## Interrupt shinyProcess so covr::save_trace can execute onExit
+p <- app$.__enclos_env__$private$shinyProcess
+p$interrupt()
+p$wait()

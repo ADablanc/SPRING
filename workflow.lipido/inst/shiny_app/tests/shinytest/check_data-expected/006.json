@@ -821,6 +821,24 @@
           "all_files": false
         }
       ]
+    },
+    "ui_check_data_adduct": {
+      "html": "<div class=\"form-group shiny-input-container shiny-input-radiogroup shiny-input-container-inline\">\n  <label class=\"control-label shiny-label-null\" for=\"check_data_adduct\" id=\"check_data_adduct-label\"><\/label>\n  <div id=\"check_data_adduct\" class=\"radio-group-buttons\">\n    <div aria-labelledby=\"check_data_adduct-label\" class=\"btn-group btn-group-container-sw\" data-toggle=\"buttons\" role=\"group\">\n      <div class=\"btn-group btn-group-toggle\" role=\"group\">\n        <button class=\"btn radiobtn btn-default active\">\n          <input type=\"radio\" autocomplete=\"off\" name=\"check_data_adduct\" value=\"[M+H]+\" checked=\"checked\"/>\n          [M+H]+\n        <\/button>\n      <\/div>\n      <div class=\"btn-group btn-group-toggle\" role=\"group\">\n        <button class=\"btn radiobtn btn-default\">\n          <input type=\"radio\" autocomplete=\"off\" name=\"check_data_adduct\" value=\"[M+NH4]+\"/>\n          [M+NH4]+\n        <\/button>\n      <\/div>\n      <div class=\"btn-group btn-group-toggle\" role=\"group\">\n        <button class=\"btn radiobtn btn-default\">\n          <input type=\"radio\" autocomplete=\"off\" name=\"check_data_adduct\" value=\"[M+Na]+\"/>\n          [M+Na]+\n        <\/button>\n      <\/div>\n      <div class=\"btn-group btn-group-toggle\" role=\"group\">\n        <button class=\"btn radiobtn btn-default\">\n          <input type=\"radio\" autocomplete=\"off\" name=\"check_data_adduct\" value=\"[M-H]-\"/>\n          [M-H]-\n        <\/button>\n      <\/div>\n      <div class=\"btn-group btn-group-toggle\" role=\"group\">\n        <button class=\"btn radiobtn btn-default\">\n          <input type=\"radio\" autocomplete=\"off\" name=\"check_data_adduct\" value=\"[M+H-H2O]+\"/>\n          [M+H-H2O]+\n        <\/button>\n      <\/div>\n    <\/div>\n  <\/div>\n<\/div>",
+      "deps": [
+        {
+          "name": "shinyWidgets",
+          "version": "0.6.4",
+          "src": {
+            "href": "shinyWidgets"
+          },
+          "meta": null,
+          "script": "shinyWidgets-bindings.min.js",
+          "stylesheet": "shinyWidgets.min.css",
+          "head": null,
+          "attachment": null,
+          "all_files": false
+        }
+      ]
     }
   }
 }

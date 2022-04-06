@@ -25,7 +25,7 @@ shiny::observeEvent(input$conflicts_right, {
 #'
 #' @param conflicts() `reactive value` group IDs where a conflict was detected
 #' @param conflict_id `reactiveValue` ID of the conflict
-shiny::observeEvent(conflict_id(), {
+shiny::observeEvent(c(conflicts(), conflict_id()), {
     if (conflict_id() <= 1) {
         shinyjs::disable("conflicts_left")
     } else {
@@ -82,10 +82,11 @@ output$conflicts_info <- shiny::renderText({
 #'     \item Max iso `numeric` max number of isopologue identified
 #' }
 output$conflicts_table <- DT::renderDataTable({
-    default_table <- data.frame(matrix(, nrow = 0, ncol = 9, dimnames = list(
-        c(), c("name", "Already seen with", "Already seen in nSamples",
-               "Diff rT (sec)", "Adduct", "nsamples", "Best score (%)",
-               "Best m/z dev (mDa)", "Max iso"))),
+    default_table <- data.frame(matrix(, nrow = 0, ncol = 8, dimnames = list(
+        c(), c("Already seen with", "Conflicted adduct",
+                 "Already seen in nSamples", "Conflicted nSamples",
+                 "Diff rT (sec)", "Best score (%)", "Best m/z dev (mDa)",
+                 "Max iso"))),
         check.names = FALSE)
 
     params <- list(
@@ -118,19 +119,20 @@ output$conflicts_table <- DT::renderDataTable({
         info_conflict <- info_conflict[, c("name", "Adducts", "nSamples")]
         conflict <- merge(conflict, info_conflict, all.x = TRUE)
 
-        conflict <- conflict[c("name", "Adducts", "nSamples", "name", "rtdiff",
-                               "adduct", "nsamples", "best_score",
-                               "best_deviation_mz", "best_npeak")]
+        cpd_names <- conflict$name
+        conflict <- conflict[c("Adducts", "adduct", "nSamples", "nsamples",
+                               "rtdiff", "best_score", "best_deviation_mz",
+                               "best_npeak")]
         conflict[, c("rtdiff", "best_score")] <- round(
             conflict[, c("rtdiff", "best_score")])
         conflict$best_deviation_mz <- round(conflict$best_deviation_mz, 2)
-        colnames(conflict) <- c("name", "Already seen with",
-                                "Already seen in nSamples", "name",
-                                "Diff rT (sec)", "Adduct", "nSamples",
+        colnames(conflict) <- c("Already seen with", "Conflicted adduct",
+                                "Already seen in nSamples",
+                                "Conflicted nSamples", "Diff rT (sec)",
                                 "Best score (%)", "Best m/z dev (mDa)",
                                 "Max iso")
 
-        conflict <- cbind(conflict,
+        conflict <- cbind(
             Valid = sapply(seq(nrow(conflict)), function(bttn_val)
                 as.character(
                     shiny::actionButton(
@@ -141,10 +143,11 @@ output$conflicts_table <- DT::renderDataTable({
                         value = bttn_val
                     )
                 )
-            )
+            ),
+            conflict
         )
-        rownames(conflict) <- conflict$name
-        conflict[, -1]
+        rownames(conflict) <- cpd_names
+        conflict
     }, invalid = function(i) {
         print("########## conflicts_table")
         print(params)
@@ -312,12 +315,16 @@ observeEvent(input$conflicts_table_valid, {
             params$conflict[i, "name"]
         )
         conflicts(conflicts()[-conflict_id()])
-        conflict_id(conflict_id() - 1)
+        conflict_id(
+            if (length(conflicts()) == 0) 0
+            else if (conflict_id() == 1) 1
+            else conflict_id() - 1
+        )
         # to force all the outputs to reload if they use the data from the db
         toastr_success(sprintf(
             "%s %s annotated",
-            conflict[i, "name"],
-            conflict[i, "adduct"]
+            params$conflict[i, "name"],
+            params$conflict[i, "adduct"]
         ))
     }, error = function(e) {
         print("########## conflicts_table_valid")

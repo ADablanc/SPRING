@@ -5,14 +5,14 @@ app <- shinytest::ShinyDriver$new("../../", loadTimeout = 10000)
 # )
 app$snapshotInit("load_project")
 
-Sys.sleep(3)
+Sys.sleep(4)
 app$executeScript(paste0("Shiny.setInputValue(\"project_modal_visible\", $(\"#",
-                         "project_modal\").length !=  0)"))
+                         "project_modal\").length != 0)"))
 app$snapshot(
     items = list(
-        input = "project_modal_visible",
-        output = "project_name",
-        export = "conflict_id"
+        input = "project_modal_visible", # TRUE
+        output = "project_name", # ""
+        export = "conflict_id" # 0
     ),
     screenshot = TRUE
 )
@@ -43,14 +43,19 @@ app$executeScript(sprintf(
     )
 ))
 
-Sys.sleep(1)
+Sys.sleep(.5)
 app$executeScript(paste0("Shiny.setInputValue(\"project_modal_visible\", $(\"#",
                          "project_modal\").length !=  0)"))
 app$snapshot(
     items = list(
-        input = "project_modal_visible",
-        output = "project_name",
-        export = "conflict_id"
+        input = "project_modal_visible", # FALSE
+        output = "project_name", # "220221CCM_global"
+        export = "conflict_id" # 1
     ),
     screenshot = TRUE
 )
+
+## Interrupt shinyProcess so covr::save_trace can execute onExit
+p <- app$.__enclos_env__$private$shinyProcess
+p$interrupt()
+p$wait()

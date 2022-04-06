@@ -4,14 +4,16 @@
 \alias{db_get_annotations}
 \title{Get Annotations}
 \usage{
-db_get_annotations(db, names = NULL, group_ids = NULL)
+db_get_annotations(db, polarity = "both", names = NULL, group_ids = NULL)
 }
 \arguments{
 \item{db}{`SQLiteConnection`}
 
-\item{names}{`character vector` the compound names}
+\item{polarity}{`character(1)` can be positive" or "negative", not mandatory}
 
-\item{group_ids}{`numeric vector` the group IDs}
+\item{names}{`character vector` the compound names, not mandatory}
+
+\item{group_ids}{`numeric vector` the group IDs, not mandatory}
 }
 \value{
 `DataFrame` each line correspond to a compound found

@@ -39,9 +39,16 @@ app$setInputs(
 )
 app$snapshot(
     items = list(
-        input = c("conflicts_left_disabled", "conflicts_right_disabled"),
-        output = c("conflicts_info", "conflicts_table", "conflicts_ms"),
-        export = "conflict_id"
+        input = c(
+            "conflicts_left_disabled", # TRUE
+            "conflicts_right_disabled" # TRUE
+        ),
+        output = c(
+            "conflicts_info", # ""
+            "conflicts_table", # empty
+            "conflicts_ms" # empty
+        ),
+        export = "conflict_id" # 0
     ),
     screenshot = TRUE
 )
@@ -97,9 +104,20 @@ app$setInputs(
 )
 app$snapshot(
     items = list(
-        input = c("conflicts_left_disabled", "conflicts_right_disabled"),
-        output = c("conflicts_info", "conflicts_table", "conflicts_ms"),
-        export = "confict_id"
+        input = c(
+            "conflicts_left_disabled", # TRUE
+            "conflicts_right_disabled" # FALSE
+        ),
+        output = c(
+            "conflicts_info", # "1/3"
+            # ["LPC 11:0","LPC 11a:0"],
+            # [null,null],
+            # ["[M+H-H2O]+","[M+H-H2O]+"]
+            "conflicts_table",
+            # "[M+H-H2O]+" "[M+H]+" "[M+Na]+"
+            "conflicts_ms"
+        ),
+        export = "conflict_id" # 1
     ),
     screenshot = TRUE
 )
@@ -127,9 +145,20 @@ app$setInputs(
 )
 app$snapshot(
     items = list(
-        input = c("conflicts_left_disabled", "conflicts_right_disabled"),
-        output = c("conflicts_info", "conflicts_table", "conflicts_ms"),
-        export = c("confict_id")
+        input = c(
+            "conflicts_left_disabled", # FALSE
+            "conflicts_right_disabled" # TRUE
+        ),
+        output = c(
+            "conflicts_info", # "3/3"
+            # ["LPC 11:0","LPC 11a:0"],
+            # [null,null],
+            # ["[M+Na]+","[M+Na]+"]
+            "conflicts_table",
+            # "[M+H-H2O]+" "[M+H]+" "[M+Na]+"
+            "conflicts_ms"
+        ),
+        export = "conflict_id" # 3
     ),
     screenshot = TRUE
 )
@@ -156,9 +185,20 @@ app$setInputs(
 )
 app$snapshot(
     items = list(
-        input = c("conflicts_left_disabled", "conflicts_right_disabled"),
-        output = c("conflicts_info", "conflicts_table", "conflicts_ms"),
-        export = c("confict_id")
+        input = c(
+            "conflicts_left_disabled", # FALSE
+            "conflicts_right_disabled" # TRUE
+        ),
+        output = c(
+            "conflicts_info", # "2/2"
+            # ["LPC 11:0","LPC 11a:0"],
+            # ["[M+Na]+",null],
+            # ["[M+H]+","[M+H]+"]
+            "conflicts_table",
+            # "[M+H-H2O]+" "[M+H]+" "[M+Na]+"
+            "conflicts_ms"
+        ),
+        export = "conflict_id" # 2
     ),
     screenshot = TRUE
 )
@@ -168,9 +208,105 @@ app$executeScript(paste0("$($(\"#conflicts_table\").data(\"datatable\").row(1)",
                          ".node()).click()"))
 app$snapshot(
     items = list(
-        input = c("conflicts_left_disabled", "conflicts_right_disabled"),
-        output = c("conflicts_info", "conflicts_table", "conflicts_ms"),
-        export = c("confict_id")
+        input = c(
+            "conflicts_left_disabled", # FALSE
+            "conflicts_right_disabled" # TRUE
+        ),
+        output = c(
+            "conflicts_info", # "2/2"
+            # ["LPC 11:0","LPC 11a:0"],
+            # ["[M+Na]+",null],
+            # ["[M+H]+","[M+H]+"]
+            "conflicts_table",
+            # "[M+H-H2O]+" "[M+H]+"
+            "conflicts_ms"
+        ),
+        export = "conflict_id" # 2
     ),
     screenshot = TRUE
 )
+
+# 6th test : check that conflict_id not change when valid the first conflict
+app$setInputs(conflicts_left = "click")
+app$executeScript("$(\"#conflicts_table button\").get(0).click()")
+Sys.sleep(.5)
+app$setInputs(
+    conflicts_left_disabled = grepl(
+        "disabled",
+        app$findWidget("conflicts_left")$getHtml()
+    ),
+    allowInputNoBinding_ = TRUE,
+    wait_ = FALSE,
+    values_ = FALSE
+)
+app$setInputs(
+    conflicts_right_disabled = grepl(
+        "disabled",
+        app$findWidget("conflicts_right")$getHtml()
+    ),
+    allowInputNoBinding_ = TRUE,
+    wait_ = FALSE,
+    values_ = FALSE
+)
+app$snapshot(
+    items = list(
+        input = c(
+            "conflicts_left_disabled", # TRUE
+            "conflicts_right_disabled" # TRUE
+        ),
+        output = c(
+            "conflicts_info", # "1/1"
+            # ["LPC 11:0","LPC 11a:0"],
+            # ["[M+H-H2O]+ [M+Na]+",null],
+            # ["[M+H]+","[M+H]+"]
+            "conflicts_table",
+            # "[M+H-H2O]+" "[M+H]+" "[M+Na]+"
+            "conflicts_ms"
+        ),
+        export = "conflict_id" # 1
+    ),
+    screenshot = TRUE
+)
+
+# 7th test : check that the table & plots are empty cause no conflicts anymore
+app$executeScript("$(\"#conflicts_table button\").get(0).click()")
+app$setInputs(
+    conflicts_left_disabled = grepl(
+        "disabled",
+        app$findWidget("conflicts_left")$getHtml()
+    ),
+    allowInputNoBinding_ = TRUE,
+    wait_ = FALSE,
+    values_ = FALSE
+)
+app$setInputs(
+    conflicts_right_disabled = grepl(
+        "disabled",
+        app$findWidget("conflicts_right")$getHtml()
+    ),
+    allowInputNoBinding_ = TRUE,
+    wait_ = FALSE,
+    values_ = FALSE
+)
+app$snapshot(
+    items = list(
+        input = c(
+            "conflicts_left_disabled", # TRUE
+            "conflicts_right_disabled" # TRUE
+        ),
+        output = c(
+            "conflicts_info", # ""
+            # empty
+            "conflicts_table",
+            # empty
+            "conflicts_ms"
+        ),
+        export = "conflict_id" # 0
+    ),
+    screenshot = TRUE
+)
+
+## Interrupt shinyProcess so covr::save_trace can execute onExit
+p <- app$.__enclos_env__$private$shinyProcess
+p$interrupt()
+p$wait()

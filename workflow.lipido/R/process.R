@@ -99,12 +99,16 @@ ms_process <- function(raw_files,
         raw_files <- sapply(raw_files, normalizePath)
         sqlite_path <- suppressWarnings(normalizePath(sqlite_path))
         converter <- normalizePath(converter)
-        sample_names <- unique(gsub(
+        sample_names <- gsub(
             "(positive)|(negative)|(pos)|(neg)",
             "",
             tools::file_path_sans_ext(basename(raw_files)),
             ignore.case = TRUE
-        ))
+        )
+        # order alphabetically raw files & sample names
+        raw_files <- raw_files[order(sample_names)]
+        sample_names <- sort(unique(sample_names))
+
         cwt_params@verboseColumns <- TRUE
         obw_params@binSize <- .1
         pd_params@sampleGroups <- seq(length(sample_names))
@@ -684,9 +688,10 @@ merge_xsets <- function(xset_pos, xset_neg) {
 #'
 #' @param sqlite_path `character(1)` sqlite path to the annotation results
 #' @param excel_path `character(1)` path to the excel file to create
+#' @param polarity `character(1)` polarity to filter annotations, not mandatory
 #'
 #' @export
-export_annotations <- function(sqlite_path, excel_path) {
+export_annotations <- function(sqlite_path, excel_path, polarity = "both") {
     if (class(sqlite_path) != "character") {
         stop("sqlite file arg must be a filepath to a database file")
     } else if (!file.exists(sqlite_path)) {
@@ -698,15 +703,18 @@ export_annotations <- function(sqlite_path, excel_path) {
     }
 
     db <- db_connect(sqlite_path)
-    ann <- dbReadTable(db, "ann")
+    ann <- db_get_annotations(db, polarity = polarity)
     if (nrow(ann) == 0) {
         stop("no annotations in database")
     }
-    ann <- split_conflicts(ann)
-    spectra_infos <- dbReadTable(db, "spectra_infos")
-    if (nrow(spectra_infos) == 0) {
-        stop("no spectras in database")
+    ann <- split_conflicts(ann)$no_conflicts
+    if (nrow(ann) == 0) {
+        stop("no annotations with 0 conflicts")
     }
+    nsamples <- db_get_nsamples(db)
+    spectra_ids <- without_na(unlist(
+        ann[, (ncol(ann) - nsamples - 1):ncol(ann)]))
+    spectra_infos <- db_get_spectra_infos(db, spectra_ids)
 
     wb <- openxlsx::createWorkbook()
     openxlsx::addWorksheet(wb, "Summary")
@@ -714,12 +722,12 @@ export_annotations <- function(sqlite_path, excel_path) {
     openxlsx::writeDataTable(
         wb,
         "Summary",
-        summarise_ann(ann$no_conflicts, spectra_infos)
+        summarise_ann(ann, spectra_infos)
     )
     openxlsx::writeDataTable(
         wb,
         "Details",
-        get_int_ann(ann$no_conflicts, spectra_infos)
+        get_int_ann(ann, spectra_infos)
     )
     openxlsx::saveWorkbook(wb, excel_path, overwrite = TRUE)
 }

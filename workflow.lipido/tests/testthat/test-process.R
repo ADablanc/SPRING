@@ -1520,22 +1520,22 @@ testthat::test_that("workflow", {
     raw_files <- c(
         system.file(
             "testdata",
-            "220221CCM_global_POS_01_ssleu_filtered.mzML",
-            package = "workflow.lipido"
-        ),
-        system.file(
-            "testdata",
             "220221CCM_global_POS_02_ssleu_filtered.mzML",
             package = "workflow.lipido"
         ),
         system.file(
             "testdata",
-            "220221CCM_global_NEG_01_ssleu_filtered.mzML",
+            "220221CCM_global_POS_01_ssleu_filtered.mzML",
             package = "workflow.lipido"
         ),
         system.file(
             "testdata",
             "220221CCM_global_NEG_02_ssleu_filtered.mzML",
+            package = "workflow.lipido"
+        ),
+        system.file(
+            "testdata",
+            "220221CCM_global_NEG_01_ssleu_filtered.mzML",
             package = "workflow.lipido"
         )
     )
@@ -1756,11 +1756,13 @@ testthat::test_that("export annotations", {
     )
 
     excel_file <- tempfile(fileext = ".xlsx")
-    sqlite_path <- system.file(
+    sqlite_file <- system.file(
         "testdata",
         "220221CCM_global.sqlite",
         package = "workflow.lipido"
     )
+    sqlite_file2 <- gsub("\\\\", "/", tempfile(fileext = ".sqlite"))
+    invisible(file.copy(sqlite_file, sqlite_file2))
     ann <- split_conflicts(ann)
 
     # 1st : test with a wrong sqlite path
@@ -1777,17 +1779,18 @@ testthat::test_that("export annotations", {
 
     # 3rd : test with a wrong excel file
     testthat::expect_error(
-        export_annotations(sqlite_path, 2),
+        export_annotations(sqlite_file2, 2),
         "excel file arg must be a filepath to a database file"
     )
 
     # 4th : test with a missing direcory for the excel file
     testthat::expect_error(
-        export_annotations(sqlite_path, "a/a.xlsx"),
+        export_annotations(sqlite_file2, "a/a.xlsx"),
         "the directory path to the excel file arg doesn't exist"
     )
 
-    export_annotations(sqlite_path, excel_file)
+    # 5th : normal
+    export_annotations(sqlite_file2, excel_file)
     ann_summarised <- summarise_ann(ann$no_conflicts, spectra_infos)
     ann_summarised$nSamples <- as.numeric(ann_summarised$nSamples)
     ann_summarised[, "Most intense ion"] <- as.character(
@@ -1799,6 +1802,56 @@ testthat::test_that("export annotations", {
     int_ann <- get_int_ann(ann$no_conflicts, spectra_infos)
     testthat::expect_equal(
         openxlsx::read.xlsx(excel_file, 2, sep.names = " "),
-        data.frame(int_ann, row.names = seq(nrow(int_ann)), check.names = FALSE)
+        data.frame(int_ann, row.names = NULL, check.names = FALSE)
     )
+
+    # 7th : with only positive annotations
+    export_annotations(sqlite_file2, excel_file, polarity = "positive")
+    testthat::expect_equal(
+        openxlsx::read.xlsx(excel_file, 1, sep.names = " "),
+        ann_summarised[grepl("\\+$", ann_summarised$Adducts), ]
+    )
+    testthat::expect_equal(
+        openxlsx::read.xlsx(excel_file, 2, sep.names = " "),
+        data.frame(
+            int_ann[grepl("\\+$", int_ann$Adduct), ],
+            row.names = NULL,
+            check.names = FALSE
+        )
+    )
+
+    # 7th : with only negative annotations
+    export_annotations(sqlite_file2, excel_file, polarity = "negative")
+    testthat::expect_equal(
+        openxlsx::read.xlsx(excel_file, 1, sep.names = " "),
+        data.frame(
+            ann_summarised[grepl("\\-$", ann_summarised$Adducts), ],
+            row.names = NULL,
+            check.names = FALSE
+        )
+    )
+    testthat::expect_equal(
+        openxlsx::read.xlsx(excel_file, 2, sep.names = " "),
+        data.frame(
+            int_ann[grepl("\\-$", int_ann$Adduct), ],
+            row.names = NULL,
+            check.names = FALSE
+        )
+    )
+
+    # 8th test : with all annotations in conflicts
+    db <- db_connect(sqlite_file2)
+    dbExecute(db, "delete from ann where group_id in (10, 11, 13)")
+    testthat::expect_error(
+        export_annotations(sqlite_file2, excel_file),
+        "no annotations with 0 conflicts"
+    )
+
+    # 9th test : with no annotations
+    dbExecute(db, "delete from ann")
+    testthat::expect_error(
+        export_annotations(sqlite_file2, excel_file),
+        "no annotations in database"
+    )
+    RSQLite::dbDisconnect(db)
 })

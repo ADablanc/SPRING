@@ -3,7 +3,7 @@
 #     shinytest::expect_pass(
 #         shinytest::testApp(
 #             shiny_app_dir,
-#             interactive = FALSE,
+#             # interactive = FALSE,
 #             compareImages = FALSE
 #         )
 #     )

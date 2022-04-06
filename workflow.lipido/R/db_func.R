@@ -540,8 +540,9 @@ db_record_params <- function(db,
 #' Get annotations from database
 #'
 #' @param db `SQLiteConnection`
-#' @param names `character vector` the compound names
-#' @param group_ids `numeric vector` the group IDs
+#' @param polarity `character(1)` can be positive" or "negative", not mandatory
+#' @param names `character vector` the compound names, not mandatory
+#' @param group_ids `numeric vector` the group IDs, not mandatory
 #'
 #' @return `DataFrame` each line correspond to a compound found
 #' with the columns:
@@ -564,24 +565,38 @@ db_record_params <- function(db,
 #'     \item best_npeak `integer` best number of isotopologues found
 #'     \item ... `integer` a column for each sample which contain the spectra ID
 #' }
-db_get_annotations <- function(db, names = NULL, group_ids = NULL) {
+db_get_annotations <- function(db, polarity = "both", names = NULL,
+                               group_ids = NULL) {
+    query <- "SELECT * FROM ann"
     if (!is.null(group_ids)) {
-        dbGetQuery(db, sprintf(
-            "SELECT *
-            FROM ann
-            WHERE group_id IN (%s)",
+        query2 <- sprintf(
+            "group_id IN (%s)",
             paste(group_ids, sep = "", collapse = ", ")
-        ))
+        )
     } else if (!is.null(names)) {
-        dbGetQuery(db, sprintf(
-            "SELECT *
-            FROM ann
-            WHERE name IN (%s)",
+        query2 <- sprintf(
+            "name IN (%s)",
             paste("\"", names, "\"", sep = "", collapse = ", ")
-        ))
+        )
     } else {
-        dbReadTable(db, "ann")
+        query2 <- NULL
     }
+    if (polarity == "positive") {
+        query2 <- c(query2, "adduct LIKE \"%+\"")
+    } else if (polarity == "negative") {
+        query2 <- c(query2, "adduct LIKE \"%-\"")
+    }
+    if (!is.null(query2)) {
+        query <- paste(
+            query,
+            paste(
+                query2,
+                collapse = " AND "
+            ),
+            sep = " WHERE "
+        )
+    }
+    dbGetQuery(db, query)
 }
 
 #' @title Get spectra infos
@@ -822,6 +837,18 @@ db_get_peaks <- function(db, feature_ids = NULL) {
         )
         dbGetQuery(db, query)
     }
+}
+
+#' @title Count nsamples
+#'
+#' @description
+#' Count number of samples recorded in database
+#'
+#' @param db `SQLiteConnection`
+#'
+#' @return `numeric` number of samples recorded in database
+db_get_nsamples <- function(db) {
+    max(0, dbGetQuery(db, "select count(sample) from sample")[1, 1])
 }
 
 #' @title Resolve annotation conflict

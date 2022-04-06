@@ -11,4 +11,14 @@ app$waitForValue(
     iotype = "output",
     ignore = list(NULL)
 )
-app$snapshot(items = list(output = c("database_table")), screenshot = TRUE)
+app$snapshot(
+    items = list(
+        output = "database_table" # contain all database entries
+    ),
+    screenshot = TRUE
+)
+
+## Interrupt shinyProcess so covr::save_trace can execute onExit
+p <- app$.__enclos_env__$private$shinyProcess
+p$interrupt()
+p$wait()

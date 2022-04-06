@@ -714,17 +714,119 @@ testthat::test_that("get annotations", {
     )
     db <- db_connect(":memory:")
     dbWriteTable(db, "ann", ann)
+
+    # 1st test : get all annotations
     testthat::expect_identical(
-        db_get_annotations(db, group_ids = 11),
-        ann[ann$group_id == 11, ]
+        db_get_annotations(db),
+        ann
     )
+
+    # 2nd test : get all annotations for a compound name
     testthat::expect_identical(
         db_get_annotations(db, names = "Cer (d18:1/C12:0)"),
         ann[ann$name == "Cer (d18:1/C12:0)", ]
     )
+
+    # 3rd test : get all annotations for a group id
     testthat::expect_identical(
-        db_get_annotations(db),
-        ann
+        db_get_annotations(db, group_ids = 11),
+        ann[ann$group_id == 11, ]
+    )
+
+    # 4th test : get all annotations in positive
+    testthat::expect_equal(
+        db_get_annotations(db, polarity = "positive"),
+        data.frame(ann[grepl("\\+$", ann$adduct), ], row.names = NULL)
+    )
+
+    # 5th test : get all annotations for a compound name and
+    # only positive adduct
+    testthat::expect_identical(
+        db_get_annotations(
+            db,
+            polarity = "positive",
+            names = "Cer (d18:1/C12:0)"
+        ),
+        data.frame(ann[which(
+            ann$name == "Cer (d18:1/C12:0)" &
+                grepl("\\+$", ann$adduct)), ], row.names = NULL)
+    )
+    testthat::expect_identical(
+        db_get_annotations(
+            db,
+            polarity = "positive",
+            names = "FA 17:0"
+        ),
+        ann[0, ]
+    )
+
+    # 6th test : get all annotations for a group id and
+    # only positive adduct
+    testthat::expect_identical(
+        db_get_annotations(
+            db,
+            polarity = "positive",
+            group_ids = 11
+        ),
+        data.frame(ann[which(
+            ann$group_id == 11 &
+                grepl("\\+$", ann$adduct)), ], row.names = NULL)
+    )
+    testthat::expect_identical(
+        db_get_annotations(
+            db,
+            polarity = "positive",
+            group_ids = 13
+        ),
+        ann[0, ]
+    )
+
+    # 7th test : get all annotations in negative
+    testthat::expect_equal(
+        db_get_annotations(db, polarity = "negative"),
+        data.frame(ann[grepl("\\-$", ann$adduct), ], row.names = NULL)
+    )
+
+    # 8th test : get all annotations for a compound name and
+    # only negative adduct
+    testthat::expect_identical(
+        db_get_annotations(
+            db,
+            polarity = "negative",
+            names = "Cer (d18:1/C12:0)"
+        ),
+        ann[0, ]
+    )
+    testthat::expect_identical(
+        db_get_annotations(
+            db,
+            polarity = "negative",
+            names = "FA 17:0"
+        ),
+        data.frame(ann[which(
+            ann$name == "FA 17:0" &
+                grepl("\\-$", ann$adduct)), ], row.names = NULL)
+    )
+
+    # 9th test : get all annotations for a group id and
+    # only positive adduct
+    testthat::expect_identical(
+        db_get_annotations(
+            db,
+            polarity = "negative",
+            group_ids = 11
+        ),
+        ann[0, ]
+    )
+    testthat::expect_identical(
+        db_get_annotations(
+            db,
+            polarity = "negative",
+            group_ids = 13
+        ),
+        data.frame(ann[which(
+            ann$group_id == 13 &
+                grepl("\\-$", ann$adduct)), ], row.names = NULL)
     )
     RSQLite::dbDisconnect(db)
 })
@@ -1082,6 +1184,33 @@ testthat::test_that("get peaks", {
     testthat::expect_identical(
         db_get_peaks(db),
         peaks
+    )
+    RSQLite::dbDisconnect(db)
+})
+
+testthat::test_that("count number of samples", {
+    db <- db_connect(":memory:")
+
+    # 1st test : test with no samples
+    testthat::expect_identical(
+        db_get_nsamples(db),
+        0
+    )
+
+    # 2nd test : test with one sample
+    samples <- data.frame(
+        sample = "small",
+        ms_file_positive = NA,
+        ms_file_negative = NA,
+        profile_positive = NA,
+        profile_negative = NA,
+        xset_positive = NA,
+        xset_negative = NA
+    )
+    db_record_samples(db, samples$sample)
+    testthat::expect_identical(
+        db_get_nsamples(db),
+        1
     )
     RSQLite::dbDisconnect(db)
 })

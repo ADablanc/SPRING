@@ -4,12 +4,14 @@
 \alias{export_annotations}
 \title{Export annotations}
 \usage{
-export_annotations(sqlite_path, excel_path)
+export_annotations(sqlite_path, excel_path, polarity = "both")
 }
 \arguments{
 \item{sqlite_path}{`character(1)` sqlite path to the annotation results}
 
 \item{excel_path}{`character(1)` path to the excel file to create}
+
+\item{polarity}{`character(1)` polarity to filter annotations, not mandatory}
 }
 \description{
 Export all annotations in a excel file

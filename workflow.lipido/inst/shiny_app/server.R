@@ -41,8 +41,8 @@ server <- function(input, output, session) {
         )
         shiny::exportTestValues(
             sqlite_path = sqlite_path(),
-            conflicts = conflicts(),
-            conflict_id = conflict_id()
+            conflict_id = conflict_id(),
+            conflicts = conflicts()
         )
         shiny::snapshotPreprocessInput(
             "process_dt_files_imported_state",

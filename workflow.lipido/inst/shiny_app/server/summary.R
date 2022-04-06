@@ -86,25 +86,39 @@ summary_table_options <- list(
 #'     intensity of ALL basepeaks
 #' }
 output$summary_table <- DT::renderDataTable({
+    params <- list(
+        db = db(),
+        polarity = input$summary_polarity
+    )
     ann <- tryCatch({
     # to invalidate the summary table
-        ann <- db_get_annotations(db())
-        if (ncol(ann) == 0) {
-            custom_stop("invalid", "no annotations results")
+        ann <- db_get_annotations(db(), polarity = params$polarity)
+        if (nrow(ann) == 0) {
+            custom_stop("invalid", "no annotations in database")
         }
-        ann <- ann[!ann$group_id %in% conflicts(), , drop = FALSE]
-        spectra_ids <- without_na(unlist(ann[, 14:ncol(ann)]))
+        ann <- split_conflicts(ann)$no_conflicts
+        if (nrow(ann) == 0) {
+            custom_stop("invalid", "no annotations with 0 conflicts")
+        }
+        nsamples <- db_get_nsamples(db())
+        spectra_ids <- without_na(unlist(
+            ann[, (ncol(ann) - nsamples - 1):ncol(ann)]))
         spectra_infos <- db_get_spectra_infos(db(), spectra_ids)
+
         ann <- summarise_ann(ann, spectra_infos)
         ann[, 10:ncol(ann)][ann[, 10:ncol(ann)] == 0] <- NA
         ann
     }, invalid = function(i) {
+        print("########## check_data_mzdev")
+        print(params)
+        print(i)
         data.frame(matrix(, nrow = 0, ncol = 10, dimnames = list(c(),
             c("name", "rT (min)", "Diff rT (sec)", "Adducts",
               "nSamples", "Most intense ion", "Best score (%)",
               "Best m/z dev (mDa)", "Max iso", "X"))), check.names = FALSE)
     }, error = function(e) {
         print("########## check_data_mzdev")
+        print(params)
         print(e)
         sweet_alert_error(e$message)
         data.frame(matrix(, nrow = 0, ncol = 10, dimnames = list(c(),
@@ -145,7 +159,11 @@ output$summary_export <- shiny::downloadHandler(
         }
     },
     content = function(excel_path) {
-        export_annotations(sqlite_path(), excel_path)
+        export_annotations(
+            sqlite_path(),
+            excel_path,
+            polarity = input$summary_polarity
+        )
         excel_path
     }
 )

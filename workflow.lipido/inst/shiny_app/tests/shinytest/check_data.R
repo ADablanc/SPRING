@@ -30,8 +30,12 @@ app$waitForValue(
 app$executeScript("$(\"a[href=\\\"#shiny-tab-check_data\\\"]\").click()")
 app$snapshot(
     items = list(
-        output = c("ui_check_data_adduct", "check_data_heatmap",
-                   "check_data_eic", "check_data_mzdev")
+        output = c(
+            "ui_check_data_adduct", # NULL
+            "check_data_heatmap", # empty
+            "check_data_eic", # empty
+            "check_data_mzdev" # empty
+        )
     ),
     screenshot = TRUE
 )
@@ -40,11 +44,16 @@ app$snapshot(
 app$setInputs(check_data_cpd = "LPC 11:0")
 app$snapshot(
     items = list(
-        output = c("ui_check_data_adduct", "check_data_heatmap",
-                   "check_data_eic", "check_data_mzdev")
+        output = c(
+            "ui_check_data_adduct", # NULL
+            "check_data_heatmap", # empty
+            "check_data_eic", # empty
+            "check_data_mzdev" # empty
+        )
     ),
     screenshot = TRUE
 )
+
 
 # 3rd test : load a project
 app$setInputs(check_data_cpd = "")
@@ -80,8 +89,12 @@ app$waitForValue(
 )
 app$snapshot(
     items = list(
-        output = c("ui_check_data_adduct", "check_data_heatmap",
-                   "check_data_eic", "check_data_mzdev")
+        output = c(
+            "ui_check_data_adduct",
+            "check_data_heatmap", # empty
+            "check_data_eic", # empty
+            "check_data_mzdev" # empty
+        )
     ),
     screenshot = TRUE
 )
@@ -90,7 +103,12 @@ app$snapshot(
 app$setInputs(check_data_adduct = "[M+NH4]+")
 app$snapshot(
     items = list(
-        output = c("check_data_heatmap", "check_data_eic", "check_data_mzdev")
+        output = c(
+            "ui_check_data_adduct",
+            "check_data_heatmap", # empty
+            "check_data_eic", # empty
+            "check_data_mzdev" # empty
+        )
     ),
     screenshot = TRUE
 )
@@ -99,7 +117,15 @@ app$snapshot(
 app$setInputs(check_data_cpd = "LPC 11:0")
 app$snapshot(
     items = list(
-        output = c("check_data_heatmap", "check_data_eic", "check_data_mzdev")
+        output = c(
+            "ui_check_data_adduct",
+            # "x":"LPC 11:0",
+            # "y":["220221CCM_global__01_ssleu_filtered",
+                # "220221CCM_global__02_ssleu_filtered"]
+            "check_data_heatmap",
+            "check_data_eic", # empty
+            "check_data_mzdev" # empty
+        )
     ),
     screenshot = TRUE
 )
@@ -108,7 +134,15 @@ app$snapshot(
 app$setInputs(check_data_cpd = c("LPC 11:0", "PS 24a:0"))
 app$snapshot(
     items = list(
-        output = c("check_data_heatmap", "check_data_eic", "check_data_mzdev")
+        output = c(
+            "ui_check_data_adduct",
+            # "x":["LPC 11:0","PS 24a:0"],
+            # "y":["220221CCM_global__01_ssleu_filtered",
+                # "220221CCM_global__02_ssleu_filtered"]
+            "check_data_heatmap",
+            "check_data_eic", # empty
+            "check_data_mzdev" # empty
+        )
     ),
     screenshot = TRUE
 )
@@ -121,10 +155,17 @@ app$executeScript(
             cpd_name: \"LPC 11:0\"
         })"
 )
-Sys.sleep(1)
 app$snapshot(
     items = list(
-        output = c("check_data_heatmap", "check_data_eic", "check_data_mzdev")
+        output = c(
+            "ui_check_data_adduct",
+            # "x":["LPC 11:0","PS 24a:0"],
+            # "y":["220221CCM_global__01_ssleu_filtered",
+                # "220221CCM_global__02_ssleu_filtered"]
+            "check_data_heatmap",
+            "check_data_eic",
+            "check_data_mzdev"
+        )
     ),
     screenshot = TRUE
 )
@@ -133,7 +174,15 @@ app$snapshot(
 app$setInputs(check_data_adduct = "[M+H]+")
 app$snapshot(
     items = list(
-        output = c("check_data_heatmap", "check_data_eic", "check_data_mzdev")
+        output = c(
+            "ui_check_data_adduct",
+            # "x":["LPC 11:0","PS 24a:0"],
+            # "y":["220221CCM_global__01_ssleu_filtered",
+                # "220221CCM_global__02_ssleu_filtered"]
+            "check_data_heatmap",
+            "check_data_eic",
+            "check_data_mzdev"
+        )
     ),
     screenshot = TRUE
 )
@@ -146,10 +195,22 @@ app$executeScript(
             cpd_name: \"PS 24a:0\"
         })"
 )
-Sys.sleep(1)
 app$snapshot(
     items = list(
-        output = c("check_data_heatmap", "check_data_eic", "check_data_mzdev")
+        output = c(
+            "ui_check_data_adduct",
+            # "x":["LPC 11:0","PS 24a:0"],
+            # "y":["220221CCM_global__01_ssleu_filtered",
+                # "220221CCM_global__02_ssleu_filtered"]
+            "check_data_heatmap",
+            "check_data_eic", # empty
+            "check_data_mzdev" # empty
+        )
     ),
     screenshot = TRUE
 )
+
+## Interrupt shinyProcess so covr::save_trace can execute onExit
+p <- app$.__enclos_env__$private$shinyProcess
+p$interrupt()
+p$wait()

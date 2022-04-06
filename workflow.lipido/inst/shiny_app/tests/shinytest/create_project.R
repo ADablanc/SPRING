@@ -14,8 +14,11 @@ app$executeScript(paste0("Shiny.setInputValue(\"project_create_modal_visible\"",
                          ", $(\"#project_create_modal\").length !=  0)"))
 app$snapshot(
     items = list(
-        input = c("project_modal_visible", "project_create_modal_visible"),
-        output = "project_name"
+        input = c(
+            "project_modal_visible", # FALSE
+            "project_create_modal_visible" # TRUE
+        ),
+        output = "project_name" # ""
     ),
     screenshot = TRUE
 )
@@ -28,8 +31,11 @@ app$executeScript(paste0("Shiny.setInputValue(\"project_create_modal_visible\"",
                          ", $(\"#project_create_modal\").length !=  0)"))
 app$snapshot(
     items = list(
-        input = c("project_modal_visible", "project_create_modal_visible"),
-        output = "project_name"
+        input = c(
+            "project_modal_visible", # TRUE
+            "project_create_modal_visible" # FALSE
+        ),
+        output = "project_name" # ""
     ),
     screenshot = TRUE
 )
@@ -43,8 +49,11 @@ app$executeScript(paste0("Shiny.setInputValue(\"project_create_modal_visible\"",
                          ", $(\"#project_create_modal\").length !=  0)"))
 app$snapshot(
     items = list(
-        input = c("project_modal_visible", "project_create_modal_visible"),
-        output = "project_name"
+        input = c(
+            "project_modal_visible", # FALSE
+            "project_create_modal_visible" # TRUE
+        ),
+        output = "project_name" # ""
     ),
     screenshot = TRUE
 )
@@ -58,8 +67,11 @@ app$executeScript(paste0("Shiny.setInputValue(\"project_create_modal_visible\"",
                          ", $(\"#project_create_modal\").length !=  0)"))
 app$snapshot(
     items = list(
-        input = c("project_modal_visible", "project_create_modal_visible"),
-        output = "project_name"
+        input = c(
+            "project_modal_visible", # FALSE
+            "project_create_modal_visible" # TRUE
+        ),
+        output = "project_name" # ""
     ),
     screenshot = TRUE
 )
@@ -77,7 +89,9 @@ app$executeScript(sprintf("
     gsub("C:/", "", gsub("\\\\", "/", dirname(tempdir())))
 ))
 app$snapshot(
-    items = list(input = "project_create_path"),
+    items = list(
+        input = "project_create_path" # "Users/SEBAST~1.HUT/AppData/Local/Temp"
+    ),
     screenshot = TRUE
 )
 
@@ -90,8 +104,11 @@ app$executeScript(paste0("Shiny.setInputValue(\"project_create_modal_visible\"",
                          ", $(\"#project_create_modal\").length !=  0)"))
 app$snapshot(
     items = list(
-        input = c("project_modal_visible", "project_create_modal_visible"),
-        output = "project_name"
+        input = c(
+            "project_modal_visible", # FALSE
+            "project_create_modal_visible" # TRUE
+        ),
+        output = "project_name" # ""
     ),
     screenshot = TRUE
 )
@@ -99,15 +116,23 @@ app$snapshot(
 # 7th test : normal
 app$setInputs(project_create_name = "test")
 app$setInputs(project_create_valid = "click")
-Sys.sleep(1)
+Sys.sleep(.5)
 app$executeScript(paste0("Shiny.setInputValue(\"project_modal_visible\", $(\"#",
                          "project_modal\").length !=  0)"))
 app$executeScript(paste0("Shiny.setInputValue(\"project_create_modal_visible\"",
                         ", $(\"#project_create_modal\").length !=  0)"))
 app$snapshot(
     items = list(
-        input = c("project_modal_visible", "project_create_modal_visible"),
-        output = "project_name"
+        input = c(
+            "project_modal_visible", # FALSE
+            "project_create_modal_visible" # FALSE
+        ),
+        output = "project_name" # "test"
     ),
     screenshot = TRUE
 )
+
+## Interrupt shinyProcess so covr::save_trace can execute onExit
+p <- app$.__enclos_env__$private$shinyProcess
+p$interrupt()
+p$wait()
