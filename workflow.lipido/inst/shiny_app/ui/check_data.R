@@ -23,15 +23,8 @@ shinydashboard::tabItem(
             width = 6,
             shinycssloaders::withSpinner(
                 plotly::plotlyOutput(
-                    "check_data_eic",
-                    height = "43vh"
-                )
-            ),
-            shiny::uiOutput("ui_check_data_adduct"),
-            shinycssloaders::withSpinner(
-                plotly::plotlyOutput(
-                    "check_data_mzdev",
-                    height = "38vh"
+                    "check_data_eic_mzdev",
+                    height = "75vh"
                 )
             )
         )

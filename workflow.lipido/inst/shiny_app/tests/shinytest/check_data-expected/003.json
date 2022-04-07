@@ -1,115 +1,7 @@
 {
   "output": {
-    "check_data_eic": {
+    "check_data_eic_mzdev": {
       "x": {
-        "layout": {
-          "margin": {
-            "b": 40,
-            "l": 60,
-            "t": 50,
-            "r": 10
-          },
-          "title": {
-            "text": "<b>EIC<\/b>",
-            "y": 0.95,
-            "x": 0.5,
-            "font": {
-              "family": "\"Open Sans\",verdana,arial,sans-serif",
-              "size": 18
-            },
-            "xanchor": "center",
-            "yanchor": "bottom"
-          },
-          "spikedistance": -1,
-          "hovermode": "x unified",
-          "xaxis": {
-            "domain": [
-              0,
-              1
-            ],
-            "automargin": true,
-            "title": "Retention time",
-            "titlefont": {
-              "family": "\"Open Sans\",verdana,arial,sans-serif",
-              "size": 18
-            },
-            "showspikes": true,
-            "spikemode": "across",
-            "spikedash": "dash",
-            "spikecolor": "#000000",
-            "spikethickness": 1,
-            "ticksuffix": " min",
-            "showticksuffix": "all",
-            "hoverformat": ".2f"
-          },
-          "yaxis": {
-            "domain": [
-              0,
-              1
-            ],
-            "automargin": true,
-            "exponentformat": "e",
-            "title": "",
-            "hoverformat": ".2e"
-          },
-          "hoverlabel": {
-            "namelength": -1
-          },
-          "selectdirection": "h",
-          "annotations": [
-            {
-              "xref": "paper",
-              "yref": "paper",
-              "x": 0,
-              "y": 1,
-              "xanchor": "left",
-              "yanchor": "bottom",
-              "text": "Intensity",
-              "showarrow": false,
-              "font": {
-                "family": "\"Open Sans\",verdana,arial,sans-serif",
-                "size": 18
-              }
-            }
-          ],
-          "showlegend": false
-        },
-        "source": "A",
-        "config": {
-          "modeBarButtonsToAdd": [
-            "hoverclosest",
-            "hovercompare"
-          ],
-          "showSendToCloud": false,
-          "responsive": true,
-          "displaylogo": false,
-          "scrollZoom": false,
-          "edits": {
-            "annotationTail": true
-          },
-          "modeBarButtons": [
-            [
-              {
-                "name": "toImage",
-                "title": "Download plot as a png",
-                "icon": "Plotly.Icons.camera",
-                "click": "function(gd) {Plotly.downloadImage(gd, {format:'png', width:1200, height:400, filename:'Chromatogram'})}"
-              }
-            ],
-            [
-              "zoom2d",
-              "autoScale2d"
-            ],
-            [
-              {
-                "name": "resetView",
-                "title": "Reset legend",
-                "icon": "Plotly.Icons.undo",
-                "click": "function(gd) {Plotly.restyle(gd, 'visible', true);}"
-              }
-            ]
-          ]
-        },
         "data": [
           {
             "mode": "markers",
@@ -132,8 +24,148 @@
             "xaxis": "x",
             "yaxis": "y",
             "frame": null
+          },
+          {
+            "mode": "markers",
+            "type": "scatter",
+            "marker": {
+              "color": "rgba(255,127,14,1)",
+              "line": {
+                "color": "rgba(255,127,14,1)"
+              }
+            },
+            "error_y": {
+              "color": "rgba(255,127,14,1)"
+            },
+            "error_x": {
+              "color": "rgba(255,127,14,1)"
+            },
+            "line": {
+              "color": "rgba(255,127,14,1)"
+            },
+            "xaxis": "x",
+            "yaxis": "y2",
+            "frame": null
           }
         ],
+        "layout": {
+          "xaxis": {
+            "domain": [
+              0,
+              1
+            ],
+            "automargin": true,
+            "title": "Retention time",
+            "titlefont": {
+              "family": "\"Open Sans\",verdana,arial,sans-serif",
+              "size": 18
+            },
+            "showspikes": true,
+            "spikemode": "across",
+            "spikedash": "dash",
+            "spikecolor": "#000000",
+            "spikethickness": 1,
+            "ticksuffix": " min",
+            "showticksuffix": "all",
+            "hoverformat": ".2f",
+            "anchor": "y2"
+          },
+          "yaxis2": {
+            "domain": [
+              0,
+              0.48
+            ],
+            "automargin": true,
+            "exponentformat": "e",
+            "hoverformat": ".2f",
+            "anchor": "x"
+          },
+          "yaxis": {
+            "domain": [
+              0.52,
+              1
+            ],
+            "automargin": true,
+            "exponentformat": "e",
+            "hoverformat": ".2e",
+            "anchor": "x"
+          },
+          "annotations": [
+            {
+              "xref": "paper",
+              "yref": "paper",
+              "x": 0,
+              "y": 1,
+              "xanchor": "left",
+              "yanchor": "bottom",
+              "text": "Intensity",
+              "showarrow": false,
+              "font": {
+                "family": "\"Open Sans\",verdana,arial,sans-serif",
+                "size": 18
+              }
+            },
+            {
+              "xref": "paper",
+              "yref": "paper",
+              "x": 0,
+              "y": 0.48,
+              "xanchor": "left",
+              "yanchor": "bottom",
+              "text": "m/z deviation (mDa)",
+              "showarrow": false,
+              "font": {
+                "family": "\"Open Sans\",verdana,arial,sans-serif",
+                "size": 18
+              }
+            }
+          ],
+          "shapes": [
+
+          ],
+          "images": [
+
+          ],
+          "margin": {
+            "b": 40,
+            "l": 60,
+            "t": 50,
+            "r": 10
+          },
+          "title": "",
+          "spikedistance": -1,
+          "hovermode": "closest",
+          "hoverlabel": {
+            "namelength": -1
+          },
+          "selectdirection": "h",
+          "showlegend": true
+        },
+        "source": "A",
+        "config": {
+          "modeBarButtonsToAdd": [
+            "hoverclosest",
+            "hovercompare"
+          ],
+          "showSendToCloud": false,
+          "responsive": true,
+          "displaylogo": false,
+          "scrollZoom": false,
+          "modeBarButtons": [
+            [
+              {
+                "name": "toImage",
+                "title": "Download plot as a png",
+                "icon": "Plotly.Icons.camera",
+                "click": "function(gd) {Plotly.downloadImage(gd, {format:'png', width:1200, height:400, filename:'mzdev'})}"
+              }
+            ],
+            [
+              "zoom2d",
+              "autoScale2d"
+            ]
+          ]
+        },
         "highlight": {
           "on": "plotly_click",
           "persistent": false,
@@ -145,6 +177,7 @@
           },
           "debounce": 0
         },
+        "subplot": true,
         "shinyEvents": [
           "plotly_hover",
           "plotly_click",
@@ -162,9 +195,7 @@
       },
       "evals": [
         "config.modeBarButtons.0.0.icon",
-        "config.modeBarButtons.0.0.click",
-        "config.modeBarButtons.2.0.icon",
-        "config.modeBarButtons.2.0.click"
+        "config.modeBarButtons.0.0.click"
       ],
       "jsHooks": [
 
@@ -419,253 +450,6 @@
           "meta": null,
           "script": "plotly-latest.min.js",
           "stylesheet": null,
-          "head": null,
-          "attachment": null,
-          "all_files": false
-        }
-      ]
-    },
-    "check_data_mzdev": {
-      "x": {
-        "layout": {
-          "margin": {
-            "b": 40,
-            "l": 60,
-            "t": 50,
-            "r": 10
-          },
-          "title": {
-            "text": "<b>m/z deviation<\/b>",
-            "y": 0.95,
-            "x": 0.5,
-            "font": {
-              "family": "\"Open Sans\",verdana,arial,sans-serif",
-              "size": 18
-            },
-            "xanchor": "center",
-            "yanchor": "bottom"
-          },
-          "xaxis": {
-            "domain": [
-              0,
-              1
-            ],
-            "automargin": true,
-            "title": "Retention time",
-            "titlefont": {
-              "family": "\"Open Sans\",verdana,arial,sans-serif",
-              "size": 18
-            },
-            "hoverformat": ".2f"
-          },
-          "yaxis": {
-            "domain": [
-              0,
-              1
-            ],
-            "automargin": true,
-            "exponentformat": "e",
-            "title": "",
-            "hoverformat": ".2f"
-          },
-          "hoverlabel": {
-            "namelength": -1
-          },
-          "selectdirection": "h",
-          "annotations": [
-            {
-              "xref": "paper",
-              "yref": "paper",
-              "x": 0,
-              "y": 1,
-              "xanchor": "left",
-              "yanchor": "bottom",
-              "text": "m/z deviation (mDa)",
-              "showarrow": false,
-              "font": {
-                "family": "\"Open Sans\",verdana,arial,sans-serif",
-                "size": 18
-              }
-            }
-          ],
-          "hovermode": "closest",
-          "showlegend": false
-        },
-        "source": "A",
-        "config": {
-          "modeBarButtonsToAdd": [
-            "hoverclosest",
-            "hovercompare"
-          ],
-          "showSendToCloud": false,
-          "responsive": true,
-          "displaylogo": false,
-          "scrollZoom": false,
-          "modeBarButtons": [
-            [
-              {
-                "name": "toImage",
-                "title": "Download plot as a png",
-                "icon": "Plotly.Icons.camera",
-                "click": "function(gd) {Plotly.downloadImage(gd, {format:'png', width:1200, height:400, filename:'mzdev'})}"
-              }
-            ],
-            [
-              "zoom2d",
-              "autoScale2d"
-            ]
-          ]
-        },
-        "data": [
-          {
-            "mode": "markers",
-            "type": "scatter",
-            "marker": {
-              "color": "rgba(31,119,180,1)",
-              "line": {
-                "color": "rgba(31,119,180,1)"
-              }
-            },
-            "error_y": {
-              "color": "rgba(31,119,180,1)"
-            },
-            "error_x": {
-              "color": "rgba(31,119,180,1)"
-            },
-            "line": {
-              "color": "rgba(31,119,180,1)"
-            },
-            "xaxis": "x",
-            "yaxis": "y",
-            "frame": null
-          }
-        ],
-        "highlight": {
-          "on": "plotly_click",
-          "persistent": false,
-          "dynamic": false,
-          "selectize": false,
-          "opacityDim": 0.2,
-          "selected": {
-            "opacity": 1
-          },
-          "debounce": 0
-        },
-        "shinyEvents": [
-          "plotly_hover",
-          "plotly_click",
-          "plotly_selected",
-          "plotly_relayout",
-          "plotly_brushed",
-          "plotly_brushing",
-          "plotly_clickannotation",
-          "plotly_doubleclick",
-          "plotly_deselect",
-          "plotly_afterplot",
-          "plotly_sunburstclick"
-        ],
-        "base_url": "https://plot.ly"
-      },
-      "evals": [
-        "config.modeBarButtons.0.0.icon",
-        "config.modeBarButtons.0.0.click"
-      ],
-      "jsHooks": [
-
-      ],
-      "deps": [
-        {
-          "name": "setprototypeof",
-          "version": "0.1",
-          "src": {
-            "href": "setprototypeof-0.1"
-          },
-          "meta": null,
-          "script": "setprototypeof.js",
-          "stylesheet": null,
-          "head": null,
-          "attachment": null,
-          "all_files": false
-        },
-        {
-          "name": "typedarray",
-          "version": "0.1",
-          "src": {
-            "href": "typedarray-0.1"
-          },
-          "meta": null,
-          "script": "typedarray.min.js",
-          "stylesheet": null,
-          "head": null,
-          "attachment": null,
-          "all_files": false
-        },
-        {
-          "name": "jquery",
-          "version": "3.5.1",
-          "src": {
-            "href": "jquery-3.5.1"
-          },
-          "meta": null,
-          "script": "jquery.min.js",
-          "stylesheet": null,
-          "head": null,
-          "attachment": null,
-          "all_files": true
-        },
-        {
-          "name": "crosstalk",
-          "version": "1.2.0",
-          "src": {
-            "href": "crosstalk-1.2.0"
-          },
-          "meta": null,
-          "script": "js/crosstalk.min.js",
-          "stylesheet": "css/crosstalk.min.css",
-          "head": null,
-          "attachment": null,
-          "all_files": true
-        },
-        {
-          "name": "plotly-htmlwidgets-css",
-          "version": "2.5.1",
-          "src": {
-            "href": "plotly-htmlwidgets-css-2.5.1"
-          },
-          "meta": null,
-          "script": null,
-          "stylesheet": "plotly-htmlwidgets.css",
-          "head": null,
-          "attachment": null,
-          "all_files": false
-        },
-        {
-          "name": "plotly-main",
-          "version": "2.5.1",
-          "src": {
-            "href": "plotly-main-2.5.1"
-          },
-          "meta": null,
-          "script": "plotly-latest.min.js",
-          "stylesheet": null,
-          "head": null,
-          "attachment": null,
-          "all_files": false
-        }
-      ]
-    },
-    "ui_check_data_adduct": {
-      "html": "<div class=\"form-group shiny-input-container shiny-input-radiogroup shiny-input-container-inline\">\n  <label class=\"control-label shiny-label-null\" for=\"check_data_adduct\" id=\"check_data_adduct-label\"><\/label>\n  <div id=\"check_data_adduct\" class=\"radio-group-buttons\">\n    <div aria-labelledby=\"check_data_adduct-label\" class=\"btn-group btn-group-container-sw\" data-toggle=\"buttons\" role=\"group\">\n      <div class=\"btn-group btn-group-toggle\" role=\"group\">\n        <button class=\"btn radiobtn btn-default active\">\n          <input type=\"radio\" autocomplete=\"off\" name=\"check_data_adduct\" value=\"[M+H]+\" checked=\"checked\"/>\n          [M+H]+\n        <\/button>\n      <\/div>\n      <div class=\"btn-group btn-group-toggle\" role=\"group\">\n        <button class=\"btn radiobtn btn-default\">\n          <input type=\"radio\" autocomplete=\"off\" name=\"check_data_adduct\" value=\"[M+NH4]+\"/>\n          [M+NH4]+\n        <\/button>\n      <\/div>\n      <div class=\"btn-group btn-group-toggle\" role=\"group\">\n        <button class=\"btn radiobtn btn-default\">\n          <input type=\"radio\" autocomplete=\"off\" name=\"check_data_adduct\" value=\"[M+Na]+\"/>\n          [M+Na]+\n        <\/button>\n      <\/div>\n      <div class=\"btn-group btn-group-toggle\" role=\"group\">\n        <button class=\"btn radiobtn btn-default\">\n          <input type=\"radio\" autocomplete=\"off\" name=\"check_data_adduct\" value=\"[M-H]-\"/>\n          [M-H]-\n        <\/button>\n      <\/div>\n      <div class=\"btn-group btn-group-toggle\" role=\"group\">\n        <button class=\"btn radiobtn btn-default\">\n          <input type=\"radio\" autocomplete=\"off\" name=\"check_data_adduct\" value=\"[M+H-H2O]+\"/>\n          [M+H-H2O]+\n        <\/button>\n      <\/div>\n    <\/div>\n  <\/div>\n<\/div>",
-      "deps": [
-        {
-          "name": "shinyWidgets",
-          "version": "0.6.4",
-          "src": {
-            "href": "shinyWidgets"
-          },
-          "meta": null,
-          "script": "shinyWidgets-bindings.min.js",
-          "stylesheet": "shinyWidgets.min.css",
           "head": null,
           "attachment": null,
           "all_files": false

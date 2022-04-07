@@ -31,10 +31,8 @@ app$executeScript("$(\"a[href=\\\"#shiny-tab-check_data\\\"]\").click()")
 app$snapshot(
     items = list(
         output = c(
-            "ui_check_data_adduct", # NULL
             "check_data_heatmap", # empty
-            "check_data_eic", # empty
-            "check_data_mzdev" # empty
+            "check_data_eic_mzdev" # empty
         )
     ),
     screenshot = TRUE
@@ -45,10 +43,8 @@ app$setInputs(check_data_cpd = "LPC 11:0")
 app$snapshot(
     items = list(
         output = c(
-            "ui_check_data_adduct", # NULL
             "check_data_heatmap", # empty
-            "check_data_eic", # empty
-            "check_data_mzdev" # empty
+            "check_data_eic_mzdev" # empty
         )
     ),
     screenshot = TRUE
@@ -90,64 +86,44 @@ app$waitForValue(
 app$snapshot(
     items = list(
         output = c(
-            "ui_check_data_adduct",
             "check_data_heatmap", # empty
-            "check_data_eic", # empty
-            "check_data_mzdev" # empty
+            "check_data_eic_mzdev" # empty
         )
     ),
     screenshot = TRUE
 )
 
-# 4th test : click on new adduct
-app$setInputs(check_data_adduct = "[M+NH4]+")
-app$snapshot(
-    items = list(
-        output = c(
-            "ui_check_data_adduct",
-            "check_data_heatmap", # empty
-            "check_data_eic", # empty
-            "check_data_mzdev" # empty
-        )
-    ),
-    screenshot = TRUE
-)
-
-# 5th test : load LPC 11:0
+# 4th test : load LPC 11:0
 app$setInputs(check_data_cpd = "LPC 11:0")
 app$snapshot(
     items = list(
         output = c(
-            "ui_check_data_adduct",
             # "x":"LPC 11:0",
             # "y":["220221CCM_global__01_ssleu_filtered",
                 # "220221CCM_global__02_ssleu_filtered"]
             "check_data_heatmap",
-            "check_data_eic", # empty
-            "check_data_mzdev" # empty
+            "check_data_eic_mzdev" # empty
         )
     ),
     screenshot = TRUE
 )
 
-# 6th test : load PS 24:0
+# 5th test : load PS 24:0
 app$setInputs(check_data_cpd = c("LPC 11:0", "PS 24a:0"))
 app$snapshot(
     items = list(
         output = c(
-            "ui_check_data_adduct",
             # "x":["LPC 11:0","PS 24a:0"],
             # "y":["220221CCM_global__01_ssleu_filtered",
                 # "220221CCM_global__02_ssleu_filtered"]
             "check_data_heatmap",
-            "check_data_eic", # empty
-            "check_data_mzdev" # empty
+            "check_data_eic_mzdev" # empty
         )
     ),
     screenshot = TRUE
 )
 
-# 7th test : click on LPC 11:0 & first file
+# 6th test : click on LPC 11:0 & first file
 app$executeScript(
     "Shiny.onInputChange(
         \"check_data_heatmap_click\", {
@@ -158,36 +134,17 @@ app$executeScript(
 app$snapshot(
     items = list(
         output = c(
-            "ui_check_data_adduct",
             # "x":["LPC 11:0","PS 24a:0"],
             # "y":["220221CCM_global__01_ssleu_filtered",
                 # "220221CCM_global__02_ssleu_filtered"]
             "check_data_heatmap",
-            "check_data_eic",
-            "check_data_mzdev"
+            "check_data_eic_mzdev"
         )
     ),
     screenshot = TRUE
 )
 
-# 8th test : click on adduct to change the mzdev plot
-app$setInputs(check_data_adduct = "[M+H]+")
-app$snapshot(
-    items = list(
-        output = c(
-            "ui_check_data_adduct",
-            # "x":["LPC 11:0","PS 24a:0"],
-            # "y":["220221CCM_global__01_ssleu_filtered",
-                # "220221CCM_global__02_ssleu_filtered"]
-            "check_data_heatmap",
-            "check_data_eic",
-            "check_data_mzdev"
-        )
-    ),
-    screenshot = TRUE
-)
-
-# 9th test : click on PS 24a:0 to empty eic & mzdev
+# 7th test : click on PS 24a:0 to empty eic & mzdev
 app$executeScript(
     "Shiny.onInputChange(
         \"check_data_heatmap_click\", {
@@ -195,16 +152,15 @@ app$executeScript(
             cpd_name: \"PS 24a:0\"
         })"
 )
+Sys.sleep(.5)
 app$snapshot(
     items = list(
         output = c(
-            "ui_check_data_adduct",
             # "x":["LPC 11:0","PS 24a:0"],
             # "y":["220221CCM_global__01_ssleu_filtered",
                 # "220221CCM_global__02_ssleu_filtered"]
             "check_data_heatmap",
-            "check_data_eic", # empty
-            "check_data_mzdev" # empty
+            "check_data_eic_mzdev" # empty
         )
     ),
     screenshot = TRUE

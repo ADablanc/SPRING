@@ -5,9 +5,10 @@ app <- shinytest::ShinyDriver$new("../../", loadTimeout = 10000)
 # )
 app$snapshotInit("load_project")
 
-Sys.sleep(4)
+app$waitForValue("project_load", ignore = list(NULL))
 app$executeScript(paste0("Shiny.setInputValue(\"project_modal_visible\", $(\"#",
                          "project_modal\").length != 0)"))
+Sys.sleep(.5)
 app$snapshot(
     items = list(
         input = "project_modal_visible", # TRUE

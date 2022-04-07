@@ -7,27 +7,6 @@ shinyWidgets::updatePickerInput(
     )$name
 )
 
-#' @title Adduct picklist
-#'
-#' @description
-#' Adduct picklist which contains only the adducts used during the
-#'  identification step of the process
-#'
-#' @param db `reactive value` pointer to the sqlite db connection
-#'
-#' @return pick list with adducts
-output$ui_check_data_adduct <- shiny::renderUI({
-    ann_params <- db_get_params(db())$ann
-    if (length(ann_params) == 0) {
-        return(NULL)
-    }
-    shinyWidgets::radioGroupButtons(
-        "check_data_adduct",
-        label = NULL,
-        choices = strsplit(ann_params$adduct_names, ";")[[1]]
-    )
-})
-
 #' @title Compound heatmap
 #'
 #' @description
@@ -81,12 +60,13 @@ output$check_data_heatmap <- plotly::renderPlotly({
 #' @title Plot EIC
 #'
 #' @description
-#' Plot the EIC for a sample and a compound. It will trace all the EIC in the
-#' same  plot for all possible adducts used in the processing workflow.
-#' The line dashed correspond to the area not integrated & the line colored the
-#' retention time range where integrated by XCMS. The two line dashed which
-#' surround the trace correspond to the retention time tolerance used for the
-#' identification
+#' Plot the EIC for a sample and a compound with the m/z deviations compared to
+#' the theoreticals.
+#' It will trace all the EIC in the same plot for all possible adducts used in
+#' the processing workflow (same for the m/z deviation). The line dashed
+#' correspond to the area not integrated & the line colored the retention time
+#' range where integrated by XCMS. The two line dashed which surround the trace
+#' correspond to the retention time tolerance used for the identification.
 #' This special EIC help to distinguate if this is the peakpicking which turn
 #' wrong or the identification (if it is the rT tolerance or the FWHM window)
 #' It contains a special behavior when the mouse hover a trace : it will display
@@ -105,12 +85,17 @@ output$check_data_heatmap <- plotly::renderPlotly({
 #' }
 #'
 #' @return `plotly`
-output$check_data_eic <- plotly::renderPlotly({
+output$check_data_eic_mzdev <- plotly::renderPlotly({
     params <- list(
         db = db(),
         sample = input$check_data_heatmap_click$sample,
         cpd_name = input$check_data_heatmap_click$cpd_name
     )
+    p1 <- plot_empty_chromato("EIC")
+    p2 <- plot_empty_mzdev()
+    p <- suppressWarnings(
+        plotly::subplot(p1, p2, nrows = 2, shareX = TRUE))
+    p <- plotly::layout(p, title = "")
 
     tryCatch({
         if (is.null(params$cpd_name)) {
@@ -118,18 +103,18 @@ output$check_data_eic <- plotly::renderPlotly({
         } else if (is.null(params$sample)) {
             custom_stop("invalid", "no sample selected")
         }
-        plot_eic(db(), params$sample, params$cpd_name)
+        plot_eic_mzdev(db(), params$sample, params$cpd_name)
     }, invalid = function(i) {
-        print("########## check_data_eic")
+        print("########## check_data_eic_mzdev")
         print(params)
         print(i)
-        plot_empty_chromato(title = "EIC")
+        p
     }, error = function(e) {
-        print("########## check_data_eic")
+        print("########## check_data_eic_mzdev")
         print(params)
         print(e)
         sweet_alert_error(e$message)
-        plot_empty_chromato(title = "EIC")
+        p
     })
 })
 

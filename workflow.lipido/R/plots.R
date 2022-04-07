@@ -884,3 +884,238 @@ plot_mzdev <- function(db, sample_name, name, adduct_name) {
         hoverinfo = "none"
     )
 }
+
+#' @title Plot EIC & m/z deviation
+#'
+#' @description
+#' Plot the EIC for a sample and a compound with the m/z deviations compared to
+#' the theoreticals.
+#' It will trace all the EIC in the same plot for all possible adducts used in
+#' the processing workflow (same for the m/z deviation). The line dashed
+#' correspond to the area not integrated & the line colored the retention time
+#' range where integrated by XCMS. The two line dashed which surround the trace
+#' correspond to the retention time tolerance used for the identification.
+#' This special EIC help to distinguate if this is the peakpicking which turn
+#' wrong or the identification (if it is the rT tolerance or the FWHM window)
+#' It contains a special behavior when the mouse hover a trace : it will display
+#'  all the hovertext of all traces in a unique textbox allowing the user to
+#'   differentiate all the y coordinates of the traces in one shot
+#' It draw also annotation to better view to which adduct correspond the trace
+#' (the annotation is placed at the most intense point for the trace)
+#' A JS function is added to hide the annotation when the trace is hidden
+#'
+#' @param db `SQLiteConnection`
+#' @param sample_name `character(1)` sample name of the file recorded in db
+#' @param name `character(1)` compound name
+#'
+#' @return `plotly`
+#'
+#' @export
+plot_eic_mzdev <- function(db, sample_name, name) {
+    if (class(db) != "SQLiteConnection") {
+        stop("db must be a connection to the sqlite database")
+    } else if (class(sample_name) != "character") {
+        stop("sample name must be a character")
+    } else if (length(sample_name) != 1) {
+        stop("sample name must contain only ONE sample name")
+    } else if (class(name) != "character") {
+        stop("name must be a character")
+    } else if (length(name) != 1) {
+        stop("name must contain only ONE compound")
+    }
+
+    p1 <- plot_empty_chromato("EIC")
+    p2 <- plot_empty_mzdev()
+
+    # load files
+    ms_file_pos <- db_read_ms_file(db, sample_name, "positive")
+    ms_file_neg <- db_read_ms_file(db, sample_name, "negative")
+    # if never processed or file doesn't exists
+    if (is.null(ms_file_pos) && is.null(ms_file_neg)) {
+        p <- suppressWarnings(
+            plotly::subplot(p1, p2, nrows = 2, shareX = TRUE))
+        return(plotly::layout(p, title = ""))
+    }
+
+    # get params used in process & load all the basepeaks for the compound name
+    params <- db_get_params(db)
+    # if never processed
+    if (ncol(params$ann) == 0) {
+        p <- suppressWarnings(
+            plotly::subplot(p1, p2, nrows = 2, shareX = TRUE))
+        return(plotly::layout(p, title = ""))
+    }
+
+    adduct_names <- strsplit(params$ann$adduct_names, ";")[[1]]
+    colors <- RColorBrewer::brewer.pal(length(adduct_names), "Set2")
+    chem_db <- load_db(adduct_names, params$ann$instrument, name)
+    chem_db <- chem_db[chem_db$iso == "M", , drop = FALSE]
+
+    max_int <- 0
+    for (i in seq(nrow(chem_db))) {
+        mz_range <- get_mz_range(chem_db[i, "mz"], params$cwt$ppm)
+        rt_range <- chem_db[i, "rt"] + c(-params$cwt$peakwidth_max * 3.5,
+                                         params$cwt$peakwidth_max * 3.5)
+        # get the eic
+        eic <- get_eic(
+            if (chem_db[i, "charge"] > 0) ms_file_pos else ms_file_neg,
+            mz_range,
+            rt_range
+        )
+        if (all(eic$int == 0)) {
+            next
+        }
+        mz_dev <- xcms::rawMat(
+            if (chem_db[i, "charge"] > 0) ms_file_pos else ms_file_neg,
+            mz_range,
+            rt_range
+        )
+        max_int <- max(max_int, eic$int)
+        # search if the ion was integrated
+        peaks <- dbGetQuery(db, sprintf(
+            "SELECT rtmin, rtmax
+            FROM peaks
+            WHERE sample == \"%s\" AND
+                mzmin >= %s AND mzmax <= %s AND
+                rtmin >= %s AND rtmax <= %s;",
+            sample_name,
+            mz_range[1],
+            mz_range[2],
+            rt_range[1],
+            rt_range[2]
+        ))
+        if (nrow(peaks) > 0) {
+            idx <- lapply(seq(nrow(peaks)), function(j)
+                which(eic$rt >= peaks[j, "rtmin"] &
+                          eic$rt <= peaks[j, "rtmax"])
+            )
+            idx2 <- do.call(c, lapply(idx, function(id)
+                c(if (id[1] != 1) id[1] - 1 else NULL,
+                  id,
+                  if (id[length(id)] != nrow(eic)) id[length(id)] + 1
+                  else NULL)
+            ))
+            integrated <- eic
+            integrated[-idx2, "int"] <- NA
+            eic[do.call(c, idx), "int"] <- NA
+        } else {
+            integrated <- data.frame(rt = NA, int = 0)
+        }
+        # trace
+        p1 <- plotly::add_trace(
+            p1,
+            mode = "lines",
+            x = integrated$rt / 60,
+            y = integrated$int,
+            name = chem_db[i, "adduct"],
+            color = colors[i],
+            legendgroup = chem_db[i, "adduct"],
+            showlegend = nrow(peaks) > 0,
+            hoverinfo = "text",
+            text = sprintf(
+                "%s<br />rT: %s min<br />intensity: %s",
+                chem_db[i, "adduct"],
+                round(integrated$rt / 60, 2),
+                formatC(integrated$int, big.mark = " ", format = "fg")
+            )
+        )
+        p1 <- plotly::add_trace(
+            p1,
+            mode = "lines",
+            x = eic$rt / 60,
+            y = eic$int,
+            name = chem_db[i, "adduct"],
+            color = colors[i],
+            legendgroup = chem_db[i, "adduct"],
+            showlegend = nrow(peaks) == 0,
+            line = list(
+                color = "black",
+                width = 1,
+                dash = "dash"
+            ),
+            hoverinfo = "text",
+            text = sprintf(
+                "%s<br />rT: %s min<br />intensity: %s",
+                chem_db[i, "adduct"],
+                round(eic$rt / 60, 2),
+                formatC(eic$int, big.mark = " ", format = "fg")
+            )
+        )
+        p1 <- plotly::add_annotations(
+            p1,
+            x = if (nrow(peaks) == 0) eic[which.max(eic$int), "rt"] / 60
+                else integrated[which.max(integrated$int), "rt"] / 60,
+            y = if (nrow(peaks) == 0) max(eic$int, na.rm = TRUE)
+                else max(integrated$int, na.rm = TRUE),
+            text = chem_db[i, "adduct"],
+            xref = "x",
+            yref = "y",
+            valign = "bottom",
+            arrowhead = 0
+        )
+        p2 <- plotly::add_trace(
+            p2,
+            mode = "markers",
+            x = mz_dev[, "time"] / 60,
+            y = (chem_db[i, "mz"] - mz_dev[, "mz"]) * 10**3,
+            hoverinfo = "text",
+            name = chem_db[i, "adduct"],
+            color = colors[i],
+            legendgroup = chem_db[i, "adduct"],
+            text = sprintf(
+                "%s<br />rT: %s min<br />m/z deviation: %s mDa",
+                chem_db[i, "adduct"],
+                round(mz_dev[, "time"] / 60, 2),
+                round((chem_db[i, "mz"] - mz_dev[, "mz"]) * 10**3, 2)
+            )
+        )
+    }
+    p1 <- plotly::add_trace(
+        p1,
+        mode = "lines",
+        x = c(rep(chem_db[1, "rt"] - params$ann$rt_tol, 2), NA,
+              rep(chem_db[1, "rt"] + params$ann$rt_tol, 2)) / 60,
+        y = c(0, max_int, NA, 0, max_int),
+        showlegend = FALSE,
+        line = list(
+            color = "rgb(0,0,0)",
+            width = 2,
+            dash = "dash"
+        ),
+        hoverinfo = "skip"
+    )
+    p2 <- plotly::add_trace(
+        p2,
+        mode = "lines",
+        x = c(rep(chem_db[1, "rt"] - params$ann$rt_tol, 2),
+              rep(chem_db[1, "rt"] + params$ann$rt_tol, 2),
+              chem_db[1, "rt"] - params$ann$rt_tol) / 60,
+        y = c(-params$ann$da_tol, params$ann$da_tol, params$ann$da_tol,
+              -params$ann$da_tol, -params$ann$da_tol) * 10**3,
+        showlegend = FALSE,
+        line = list(
+            color = "rgb(0,0,0)",
+            width = 2,
+            dash = "dash"
+        ),
+        hoverinfo = "skip"
+    )
+    p <- suppressWarnings(plotly::subplot(p1, p2, nrows = 2, shareX = TRUE))
+    htmlwidgets::onRender(
+        plotly::layout(p, title = ""),
+        paste0(
+            "function(el, x) {",
+            "el.on(\"plotly_restyle\", () => {",
+            "annotations = el.layout.annotations;",
+            "for (var i = 1; i < annotations.length; i++) {",
+            "annotations[i].visible = el._fullData[i * 2 - 1]",
+            ".visible != \"legendonly\"",
+            "}",
+            "Plotly.relayout(el, {",
+            "annotations: annotations",
+            "});",
+            "});",
+            "}"
+        )
+    )
+}
