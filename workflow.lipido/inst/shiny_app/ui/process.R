@@ -2,12 +2,6 @@ shinydashboard::tabItem(
     tabName = "process",
     shinydashboard::box(
         width = 3,
-        shinyWidgets::actionBttn(
-            inputId = "process_launch",
-            label = "Launch deconvolution process",
-            style = "minimal",
-            color = "primary"
-        ),
         shiny::tabsetPanel(
             shiny::tabPanel(
                 title = "Conversion",
@@ -594,6 +588,13 @@ shinydashboard::tabItem(
                     )
                 )
             )
+        ),
+        shiny::tags$hr(),
+        shinyWidgets::actionBttn(
+            inputId = "process_launch",
+            label = "Launch deconvolution process",
+            style = "unite",
+            color = "primary"
         )
     )
 )

@@ -61,7 +61,7 @@
           "dom": "Bfrtip",
           "paging": true,
           "scroller": true,
-          "scrollY": "65vh",
+          "scrollY": "55vh",
           "scrollX": true,
           "scrollCollapse": true,
           "buttons": [

@@ -182,37 +182,39 @@ plot_composite_ms <- function(spectras) {
                 )
             )
         )
-        p <- plotly::add_segments(
-            p,
-            x = c(not_matched$mz, not_matched$mz_theo),
-            xend = c(not_matched$mz, not_matched$mz_theo),
-            y = 0,
-            yend = c(not_matched$int, -not_matched$int_theo),
-            color = I("black"),
-            legendgroup = names(spectras)[i],
-            showlegend = FALSE,
-            hoverinfo = "text",
-            text = c(
-                sprintf(
-                    "observed<br /><br />m/z: %s",
-                    round(not_matched$mz, 5)
-                ),
-                sprintf(
-                    paste(
-                        "theoretical",
-                        "adduct: %s",
-                        "iso: %s",
-                        "m/z: %s",
-                        "abd: %s%%",
-                        sep = "<br />"
+        if (nrow(not_matched) > 0) {
+            p <- plotly::add_segments(
+                p,
+                x = c(not_matched$mz, not_matched$mz_theo),
+                xend = c(not_matched$mz, not_matched$mz_theo),
+                y = 0,
+                yend = c(not_matched$int, -not_matched$int_theo),
+                color = I("black"),
+                legendgroup = names(spectras)[i],
+                showlegend = FALSE,
+                hoverinfo = "text",
+                text = c(
+                    sprintf(
+                        "observed<br /><br />m/z: %s",
+                        round(not_matched$mz, 5)
                     ),
-                    names(spectras)[i],
-                    not_matched$iso_theo,
-                    round(not_matched$mz_theo, 5),
-                    round(not_matched$abd_theo)
+                    sprintf(
+                        paste(
+                            "theoretical",
+                            "adduct: %s",
+                            "iso: %s",
+                            "m/z: %s",
+                            "abd: %s%%",
+                            sep = "<br />"
+                        ),
+                        names(spectras)[i],
+                        not_matched$iso_theo,
+                        round(not_matched$mz_theo, 5),
+                        round(not_matched$abd_theo)
+                    )
                 )
             )
-        )
+        }
         p <- plotly::add_annotations(
             p,
             x = matched[matched$iso_theo == "M", "mz"],

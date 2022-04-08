@@ -13,7 +13,7 @@ summary_table_options <- list(
         dom = "Bfrtip",
         paging = TRUE,
         scroller = TRUE,
-        scrollY = "65vh",
+        scrollY = "55vh",
         scrollX = TRUE,
         scrollCollapse = TRUE,
         buttons = list(
