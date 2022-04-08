@@ -799,6 +799,8 @@ plot_empty_mzdev <- function(title = "m/z deviation") {
 #' used for the identification step
 #' It is useful to use it with the `plot_eic` plot in order to see if there is
 #' a problem during the peak picking or the identification step
+#' If available it will use the retention time corrected in the slot
+#' `scantime_corrected` added by the function `obiwarp`
 #'
 #' @param db `SQLiteConnection`
 #' @param sample_name `character(1)` sample name of the file recorded in db
@@ -846,24 +848,26 @@ plot_mzdev <- function(db, sample_name, name, adduct_name) {
         return(p)
     }
 
-    mz_dev <- xcms::rawMat(ms_file,
+    mz_dev <- get_mzdev(
+        ms_file,
         get_mz_range(chem_db$mz, params$cwt$ppm),
         chem_db$rt + c(-params$cwt$peakwidth_max * 3.5,
                        params$cwt$peakwidth_max * 3.5)
     )
-    # trace
+
+        # trace
     p <- plotly::add_trace(
         p,
         mode = "markers",
-        x = mz_dev[, "time"] / 60,
-        y = (chem_db$mz - mz_dev[, "mz"]) * 10**3,
+        x = mz_dev$rt / 60,
+        y = (chem_db$mz - mz_dev$mz) * 10**3,
         showlegend = FALSE,
         hoverinfo = "text",
         name = adduct_name,
         text = sprintf(
             "rT: %s min<br />m/z deviation: %s mDa",
-            round(mz_dev[, "time"] / 60, 2),
-            round((chem_db$mz - mz_dev[, "mz"]) * 10**3, 2)
+            round(mz_dev$rt / 60, 2),
+            round((chem_db$mz - mz_dev$mz) * 10**3, 2)
         )
     )
     # plot the limit parameters square
@@ -903,6 +907,8 @@ plot_mzdev <- function(db, sample_name, name, adduct_name) {
 #' It draw also annotation to better view to which adduct correspond the trace
 #' (the annotation is placed at the most intense point for the trace)
 #' A JS function is added to hide the annotation when the trace is hidden
+#' If available it will use the retention time corrected in the slot
+#' `scantime_corrected` added by the function `obiwarp`
 #'
 #' @param db `SQLiteConnection`
 #' @param sample_name `character(1)` sample name of the file recorded in db
@@ -927,16 +933,6 @@ plot_eic_mzdev <- function(db, sample_name, name) {
     p1 <- plot_empty_chromato("EIC")
     p2 <- plot_empty_mzdev()
 
-    # load files
-    ms_file_pos <- db_read_ms_file(db, sample_name, "positive")
-    ms_file_neg <- db_read_ms_file(db, sample_name, "negative")
-    # if never processed or file doesn't exists
-    if (is.null(ms_file_pos) && is.null(ms_file_neg)) {
-        p <- suppressWarnings(
-            plotly::subplot(p1, p2, nrows = 2, shareX = TRUE))
-        return(plotly::layout(p, title = ""))
-    }
-
     # get params used in process & load all the basepeaks for the compound name
     params <- db_get_params(db)
     # if never processed
@@ -950,6 +946,16 @@ plot_eic_mzdev <- function(db, sample_name, name) {
     colors <- RColorBrewer::brewer.pal(length(adduct_names), "Set2")
     chem_db <- load_db(adduct_names, params$ann$instrument, name)
     chem_db <- chem_db[chem_db$iso == "M", , drop = FALSE]
+
+    # load files
+    ms_file_pos <- db_read_ms_file(db, sample_name, "positive")
+    ms_file_neg <- db_read_ms_file(db, sample_name, "negative")
+    # if never processed or file doesn't exists
+    if (is.null(ms_file_pos) && is.null(ms_file_neg)) {
+        p <- suppressWarnings(
+            plotly::subplot(p1, p2, nrows = 2, shareX = TRUE))
+        return(plotly::layout(p, title = ""))
+    }
 
     max_int <- 0
     for (i in seq(nrow(chem_db))) {
@@ -965,7 +971,7 @@ plot_eic_mzdev <- function(db, sample_name, name) {
         if (all(eic$int == 0)) {
             next
         }
-        mz_dev <- xcms::rawMat(
+        mz_dev <- get_mzdev(
             if (chem_db[i, "charge"] > 0) ms_file_pos else ms_file_neg,
             mz_range,
             rt_range
@@ -1056,8 +1062,8 @@ plot_eic_mzdev <- function(db, sample_name, name) {
         p2 <- plotly::add_trace(
             p2,
             mode = "markers",
-            x = mz_dev[, "time"] / 60,
-            y = (chem_db[i, "mz"] - mz_dev[, "mz"]) * 10**3,
+            x = mz_dev$rt / 60,
+            y = (chem_db[i, "mz"] - mz_dev$mz) * 10**3,
             hoverinfo = "text",
             name = chem_db[i, "adduct"],
             color = colors[i],
@@ -1065,8 +1071,8 @@ plot_eic_mzdev <- function(db, sample_name, name) {
             text = sprintf(
                 "%s<br />rT: %s min<br />m/z deviation: %s mDa",
                 chem_db[i, "adduct"],
-                round(mz_dev[, "time"] / 60, 2),
-                round((chem_db[i, "mz"] - mz_dev[, "mz"]) * 10**3, 2)
+                round(mz_dev$rt / 60, 2),
+                round((chem_db[i, "mz"] - mz_dev$mz) * 10**3, 2)
             )
         )
     }

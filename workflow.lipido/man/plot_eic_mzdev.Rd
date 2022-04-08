@@ -32,4 +32,6 @@ It contains a special behavior when the mouse hover a trace : it will display
 It draw also annotation to better view to which adduct correspond the trace
 (the annotation is placed at the most intense point for the trace)
 A JS function is added to hide the annotation when the trace is hidden
+If available it will use the retention time corrected in the slot
+`scantime_corrected` added by the function `obiwarp`
 }

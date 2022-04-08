@@ -114,8 +114,7 @@ testthat::test_that("workflow polarity", {
                 raw_file,
                 converter,
                 "positive",
-                filter_params,
-                obw_params@binSize
+                filter_params
             ),
             negative = import_ms_file(
                 db,
@@ -123,8 +122,7 @@ testthat::test_that("workflow polarity", {
                 raw_file,
                 converter,
                 "negative",
-                filter_params,
-                obw_params@binSize
+                filter_params
             )
         )
     }

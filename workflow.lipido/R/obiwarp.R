@@ -55,6 +55,17 @@ obiwarp <- function(sqlite_path,
         center <- as.integer(names(which.max(table(peakmat[, "sample"]))))
     }
 
+    # add new attributes `scantime_corrected` to ms_file which will contain
+    # the retention times corrected
+    db <- db_connect(sqlite_path)
+    center_ms_file <- db_read_ms_file(db, samples[center], polarity)
+    attributes(center_ms_file)$scantime_corrected <- center_ms_file@scantime
+    center_profile <- suppressMessages(
+        xcms::profMat(center_ms_file, step = obw_params@binSize))
+    db_record_ms_file(db, samples[center], polarity, center_ms_file)
+    RSQLite::dbDisconnect(db)
+    rm(center_ms_file)
+
     s <- NULL # just to get rid of the NOTE when checking package
     rtimecor <- operator(
         foreach::foreach(
@@ -71,13 +82,14 @@ obiwarp <- function(sqlite_path,
             )
         ), {
             db <- db_connect(sqlite_path)
-            center_profile <- db_get_profile(db, samples[center], polarity)
-            profile <- db_get_profile(db, samples[s], polarity)
+            ms_file <- db_read_ms_file(db, samples[s], polarity)
             RSQLite::dbDisconnect(db)
-
-            if (is.null(profile)) {
+            if (is.null(ms_file)) {
                 return(list(rtcor[[s]]))
             }
+
+            profile <- suppressMessages(
+                xcms::profMat(ms_file, step = obw_params@binSize))
 
             center_scantime <- rtcor[[center]]
             center_mzrange <- mzranges[[center]]
@@ -179,6 +191,7 @@ obiwarp <- function(sqlite_path,
                 (mzval * center_valscantime != length(center_profile)) ||
                 (mzval * valscantime != length(profile))
             ) {
+                rm(ms_file)
                 stop("Dimensions of profile matrices do not match !\n")
             }
 
@@ -212,8 +225,11 @@ obiwarp <- function(sqlite_path,
                     (valscantime + 1) : length(rtcor[[s]])])
             }
 
-            rm(center_profile)
-            rm(profile)
+            attributes(ms_file)$scantime_corrected <- tmp
+            db <- db_connect(sqlite_path)
+            db_record_ms_file(db, samples[s], polarity, ms_file)
+            RSQLite::dbDisconnect(db)
+            rm(list = c("ms_file", "profile"))
             gc()
             list(tmp)
         }

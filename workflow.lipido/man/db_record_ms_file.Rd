@@ -4,7 +4,7 @@
 \alias{db_record_ms_file}
 \title{Record ms file}
 \usage{
-db_record_ms_file(db, sample_name, polarity, ms_file, bin_size)
+db_record_ms_file(db, sample_name, polarity, ms_file)
 }
 \arguments{
 \item{db}{`SQLiteConnection`}
@@ -14,13 +14,10 @@ db_record_ms_file(db, sample_name, polarity, ms_file, bin_size)
 \item{polarity}{`character(1)` "positive" or "negative"}
 
 \item{ms_file}{`xcmsRaw` object}
-
-\item{bin_size}{`numeric(1)` bin size to use for the generation of the
-profile matrix. cannot be 0 !!!!}
 }
 \description{
-Record a `xcmsRaw` file and its corresponding profile matrix in the database
-this two object are compress into a blob object before inserting in the
+Record a `xcmsRaw` file in the database
+this object is compressed into a blob object before inserting in the
 database.
 These object are recorded in their corresponding "polarity" column (a sample
 could contain a `xcmsRaw` in positive AND a `xcmsRaw` in negative !)

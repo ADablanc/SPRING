@@ -26,4 +26,6 @@ It will trace also a box which represent the m/z tolerance and rT tolernace
 used for the identification step
 It is useful to use it with the `plot_eic` plot in order to see if there is
 a problem during the peak picking or the identification step
+If available it will use the retention time corrected in the slot
+`scantime_corrected` added by the function `obiwarp`
 }

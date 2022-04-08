@@ -168,8 +168,6 @@ db_record_samples <- function(db, sample_names) {
             sample = sample_names,
             ms_file_positive = NA,
             ms_file_negative = NA,
-            profile_positive = NA,
-            profile_negative = NA,
             xset_positive = NA,
             xset_negative = NA
         ),
@@ -208,8 +206,8 @@ decompress <- function(obj) {
 #' @title Record ms file
 #'
 #' @description
-#' Record a `xcmsRaw` file and its corresponding profile matrix in the database
-#' this two object are compress into a blob object before inserting in the
+#' Record a `xcmsRaw` file in the database
+#' this object is compressed into a blob object before inserting in the
 #' database.
 #' These object are recorded in their corresponding "polarity" column (a sample
 #' could contain a `xcmsRaw` in positive AND a `xcmsRaw` in negative !)
@@ -220,26 +218,18 @@ decompress <- function(obj) {
 #' @param sample_name `character(1)` sample name (primary key)
 #' @param polarity `character(1)` "positive" or "negative"
 #' @param ms_file `xcmsRaw` object
-#' @param bin_size `numeric(1)` bin size to use for the generation of the
-#' profile matrix. cannot be 0 !!!!
-db_record_ms_file <- function(db, sample_name, polarity, ms_file, bin_size) {
-    suppressMessages(profile <- compress(
-        xcms::profMat(ms_file, step = bin_size)
-    ))
+db_record_ms_file <- function(db, sample_name, polarity, ms_file) {
     ms_file <- compress(ms_file)
     query <- sprintf(
         "UPDATE sample
         SET
-            ms_file_%s = :a,
-            profile_%s = :b
+            ms_file_%s = :a
         WHERE sample == \"%s\";",
-        polarity,
         polarity,
         sample_name
     )
-    dbExecute(db, query, params = list(a = ms_file, b = profile))
+    dbExecute(db, query, params = list(a = ms_file))
     rm(ms_file)
-    rm(profile)
     gc()
 }
 
@@ -271,32 +261,6 @@ db_read_ms_file <- function(db, sample_name, polarity) {
     }
 }
 
-#' @title Get profile matrix
-#'
-#' @description
-#' Get the profile matrix of corresponding sample in the polarity desired
-#'
-#' @param db `SQLiteConnection`
-#' @param sample_name `character(1)` sample name
-#' @param polarity `character(1)` "positive" or "negative"
-#'
-#' @return a profile matrix
-db_get_profile <- function(db, sample_name, polarity) {
-    query <- sprintf(
-        "SELECT profile_%s
-        FROM sample
-        WHERE sample == \"%s\";",
-        polarity,
-        sample_name
-    )
-    profile <- dbGetQuery(db, query)[1, 1]
-    if (is.na(profile[1])) {
-        NULL
-    } else {
-        decompress(profile)
-    }
-}
-
 #' @title Import ms file
 #'
 #' @description
@@ -312,9 +276,9 @@ db_get_profile <- function(db, sample_name, polarity) {
 #' it will copy the file instead and try to trim only the rt range
 #' then it record the `xcmsRaw` object obtained in the database if the
 #' conversion was successful
-#' the `xcmsRaw` object and its corresponding profile matrix are compress into a
-#' `blob` object before inserting in the database.
-#' These object are recorded in their corresponding "polarity" column (a sample
+#' the `xcmsRaw` object is compressed into a `blob` object before inserting in
+#' the database.
+#' This object is recorded in their corresponding "polarity" column (a sample
 #' could contain a `xcmsRaw` in positive AND a `xcmsRaw` in negative !)
 #' Before doing it, we must first use the function `db_record_samples` in order
 #' to prepopulate the database with the sample name (which is the primary key)
@@ -325,8 +289,6 @@ db_get_profile <- function(db, sample_name, polarity) {
 #' @param converter `character(1)` filepath to the msconvert.exe
 #' @param polarity `character(1)` "positive" or "negative"
 #' @param filter_params `FilterParam` object
-#' @param bin_size `numeric(1)` bin size to use for the generation of the
-#' profile matrix. cannot be 0 !!!!
 #'
 #' @seealso `convert_file`, `record_ms_file`
 import_ms_file <- function(db,
@@ -334,8 +296,7 @@ import_ms_file <- function(db,
                            raw_file,
                            converter,
                            polarity,
-                           filter_params,
-                           bin_size = .1) {
+                           filter_params) {
     ms_file <- tryCatch({
             convert_file(raw_file, converter, polarity, filter_params)
         },
@@ -344,8 +305,9 @@ import_ms_file <- function(db,
         }
     )
     if (class(ms_file) == "xcmsRaw") {
+        attributes(ms_file)$scantime_corrected <- ms_file@scantime
         ms_file <- filter_ms_file(ms_file, filter_params)
-        db_record_ms_file(db, sample_name, polarity, ms_file, bin_size)
+        db_record_ms_file(db, sample_name, polarity, ms_file)
         "success"
     } else {
         ms_file

@@ -94,8 +94,6 @@ testthat::test_that("db record samples", {
         sample = "small",
         ms_file_positive = NA,
         ms_file_negative = NA,
-        profile_positive = NA,
-        profile_negative = NA,
         xset_positive = NA,
         xset_negative = NA
     )
@@ -121,22 +119,15 @@ testthat::test_that("record ms file", {
                 package = "workflow.lipido"
             ),
             profstep = 0
-        ),
-        .1
+        )
     )
-    expect_equal(
-        decompress(dbGetQuery(
-            db,
-            "SELECT ms_file_positive FROM sample LIMIT 1"
-        )[1, 1])@scanindex,
+    ms_file <- decompress(dbGetQuery(
+        db,
+        "SELECT ms_file_positive FROM sample LIMIT 1"
+    )[1, 1])
+    testthat::expect_equal(
+        ms_file@scanindex,
         c(0, 1810)
-    )
-    expect_equal(
-        length(decompress(dbGetQuery(
-            db,
-            "SELECT profile_positive FROM sample LIMIT 1"
-        )[1, 1])),
-        35996
     )
     RSQLite::dbDisconnect(db)
 })
@@ -159,40 +150,11 @@ testthat::test_that("read ms file", {
                 package = "workflow.lipido"
             ),
             profstep = 0
-        ),
-        .1
+        )
     )
     expect_equal(
         db_read_ms_file(db, "small", "positive")@scanindex,
         c(0, 1810)
-    )
-    RSQLite::dbDisconnect(db)
-})
-
-testthat::test_that("get profile matrix", {
-    db <- db_connect(":memory:")
-    db_record_samples(db, "small")
-    expect_equal(
-        db_get_profile(db, "small", "negative"),
-        NULL
-    )
-    db_record_ms_file(
-        db,
-        "small",
-        "positive",
-        xcms::xcmsRaw(
-            system.file(
-                "testdata",
-                "small.mzXML",
-                package = "workflow.lipido"
-            ),
-            profstep = 0
-        ),
-        .1
-    )
-    expect_equal(
-        length(db_get_profile(db, "small", "positive")),
-        35996
     )
     RSQLite::dbDisconnect(db)
 })
@@ -224,13 +186,14 @@ testthat::test_that("import ms file", {
         "msconvert error"
     )
     import_ms_file(db, "small", raw_file, converter, "positive", filter_params)
+    ms_file <- db_read_ms_file(db, "small", "positive")
     testthat::expect_equal(
-        db_read_ms_file(db, "small", "positive")@scanindex,
+        ms_file@scanindex,
         c(0, 1810)
     )
-    testthat::expect_identical(
-        length(db_get_profile(db, "small", "positive")),
-        as.integer(35996)
+    testthat::expect_equal(
+        ms_file@scantime,
+        ms_file@scantime_corrected
     )
     RSQLite::dbDisconnect(db)
 })

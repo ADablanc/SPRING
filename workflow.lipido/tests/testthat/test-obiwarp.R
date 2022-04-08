@@ -180,6 +180,18 @@ testthat::test_that("obiwarp", {
               0, 0, 0, 0, 0)
         )
     )
+    # check that the file recorded have their `scantime_corrected` slot updated
+    ms_files <- lapply(sample_names, function(sample_name)
+        db_read_ms_file(db, sample_name, "positive")
+    )
+    testthat::expect_equal(
+        xset@rt$corrected[[1]],
+        ms_files[[1]]@scantime_corrected
+    )
+    testthat::expect_equal(
+        xset@rt$corrected[[2]],
+        ms_files[[2]]@scantime_corrected
+    )
 
     # 6th test: with an empty ms file
     xset <- obiwarp(
@@ -200,6 +212,18 @@ testthat::test_that("obiwarp", {
               0, 0, 0, 0, 0),
             numeric(0)
         )
+    )
+    # check that the file recorded have their `scantime_corrected` slot updated
+    ms_files <- lapply(sample_names, function(sample_name)
+        db_read_ms_file(db, sample_name, "positive")
+    )
+    testthat::expect_equal(
+        xset@rt$corrected[[1]],
+        ms_files[[1]]@scantime_corrected
+    )
+    testthat::expect_equal(
+        xset@rt$corrected[[2]],
+        ms_files[[2]]@scantime_corrected
     )
     RSQLite::dbDisconnect(db)
 })

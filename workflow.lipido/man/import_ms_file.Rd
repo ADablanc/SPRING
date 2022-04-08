@@ -4,15 +4,7 @@
 \alias{import_ms_file}
 \title{Import ms file}
 \usage{
-import_ms_file(
-  db,
-  sample_name,
-  raw_file,
-  converter,
-  polarity,
-  filter_params,
-  bin_size = 0.1
-)
+import_ms_file(db, sample_name, raw_file, converter, polarity, filter_params)
 }
 \arguments{
 \item{db}{`SQLiteConnection`}
@@ -26,9 +18,6 @@ import_ms_file(
 \item{polarity}{`character(1)` "positive" or "negative"}
 
 \item{filter_params}{`FilterParam` object}
-
-\item{bin_size}{`numeric(1)` bin size to use for the generation of the
-profile matrix. cannot be 0 !!!!}
 }
 \description{
 First it try to convert the file in mzXML
@@ -43,9 +32,9 @@ If the conversion failed & the file is a mzML or mzXML
 it will copy the file instead and try to trim only the rt range
 then it record the `xcmsRaw` object obtained in the database if the
 conversion was successful
-the `xcmsRaw` object and its corresponding profile matrix are compress into a
-`blob` object before inserting in the database.
-These object are recorded in their corresponding "polarity" column (a sample
+the `xcmsRaw` object is compressed into a `blob` object before inserting in
+the database.
+This object is recorded in their corresponding "polarity" column (a sample
 could contain a `xcmsRaw` in positive AND a `xcmsRaw` in negative !)
 Before doing it, we must first use the function `db_record_samples` in order
 to prepopulate the database with the sample name (which is the primary key)

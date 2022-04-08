@@ -124,7 +124,7 @@ ms_process <- function(raw_files,
                      "dbGetQuery", "import_ms_file", "convert_file",
                      "check_ms_file", "db_record_ms_file", "compress",
                      "filter_ms_file", "filter_params", "db_read_ms_file",
-                     "decompress", "find_chrompeaks", "db_get_profile"),
+                     "decompress", "find_chrompeaks"),
                 envir = pryr::where("sqlite_path")
             )
             doSNOW::registerDoSNOW(cl)
@@ -186,8 +186,7 @@ ms_process <- function(raw_files,
                         raw_file,
                         converter,
                         "positive",
-                        filter_params,
-                        obw_params@binSize
+                        filter_params
                     ),
                     negative = import_ms_file(
                         db,
@@ -195,8 +194,7 @@ ms_process <- function(raw_files,
                         raw_file,
                         converter,
                         "negative",
-                        filter_params,
-                        obw_params@binSize
+                        filter_params
                     )
                 )
                 RSQLite::dbDisconnect(db)
