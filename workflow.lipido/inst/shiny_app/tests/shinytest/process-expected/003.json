@@ -1,5 +1,107 @@
 {
-  "export": {
-    "conflict_id": 0
+  "output": {
+    "process_dt_files_imported": {
+      "x": {
+        "filter": "none",
+        "vertical": false,
+        "extensions": [
+          "Scroller"
+        ],
+        "data": [
+          [
+            "220221CCM_global_POS_01_ssleu_filtered.mzML",
+            "220221CCM_global_POS_02_ssleu_filtered.mzML",
+            "220221CCM_global_NEG_01_ssleu_filtered.mzML",
+            "220221CCM_global_NEG_02_ssleu_filtered.mzML"
+          ]
+        ],
+        "container": "<table class=\"display\">\n  <thead>\n    <tr>\n      <th>File<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>",
+        "options": {
+          "dom": "frtip",
+          "bFilter": false,
+          "ordering": false,
+          "scroller": true,
+          "scrollY": "50vh",
+          "scrollX": true,
+          "scrollCollapse": true,
+          "order": [
+
+          ],
+          "autoWidth": false,
+          "orderClasses": false
+        },
+        "selection": {
+          "mode": "none",
+          "selected": null,
+          "target": "row",
+          "selectable": null
+        }
+      },
+      "evals": [
+
+      ],
+      "jsHooks": [
+
+      ],
+      "deps": [
+        {
+          "name": "jquery",
+          "version": "3.6.0",
+          "src": {
+            "href": "jquery-3.6.0"
+          },
+          "meta": null,
+          "script": "jquery-3.6.0.min.js",
+          "stylesheet": null,
+          "head": null,
+          "attachment": null,
+          "all_files": true
+        },
+        {
+          "name": "dt-core",
+          "version": "1.11.3",
+          "src": {
+            "href": "dt-core-1.11.3"
+          },
+          "meta": null,
+          "script": "js/jquery.dataTables.min.js",
+          "stylesheet": [
+            "css/jquery.dataTables.min.css",
+            "css/jquery.dataTables.extra.css"
+          ],
+          "head": null,
+          "attachment": null,
+          "package": null,
+          "all_files": false
+        },
+        {
+          "name": "dt-ext-scroller",
+          "version": "1.11.3",
+          "src": {
+            "href": "dt-ext-scroller-1.11.3"
+          },
+          "meta": null,
+          "script": "js/dataTables.scroller.min.js",
+          "stylesheet": "css/scroller.dataTables.min.css",
+          "head": null,
+          "attachment": null,
+          "package": null,
+          "all_files": false
+        },
+        {
+          "name": "crosstalk",
+          "version": "1.2.0",
+          "src": {
+            "href": "crosstalk-1.2.0"
+          },
+          "meta": null,
+          "script": "js/crosstalk.min.js",
+          "stylesheet": "css/crosstalk.min.css",
+          "head": null,
+          "attachment": null,
+          "all_files": true
+        }
+      ]
+    }
   }
 }

@@ -13,6 +13,7 @@ db_record_ann(db, ann, spectras, spectra_infos, peaks, peak_groups)
 with the columns:
 \itemize{
     \item group_id `integer` group ID
+    \item class `character` cpd class
     \item name `character` name
     \item formula `character` chemical formula
     \item adduct `character` adduct form

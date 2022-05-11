@@ -142,7 +142,7 @@ setClass(
 #' Construct a FilterParam object
 #'
 #' @param mz_range `numeric(2)` a m/z range
-#' @param rt_range `numeric(2)` a rT range
+#' @param rt_range `numeric(2)` a rT range in min
 #'
 #' @return `FilterParam` object
 FilterParam <- function(mz_range = c(300, 1000),
@@ -159,6 +159,8 @@ FilterParam <- function(mz_range = c(300, 1000),
 #' theoretical peak will be discarded
 #' @slot adduct_names `character vector` adduct names from the enviPat package
 #' @slot instrument `character(1)` instrument names from the enviPat package
+#' @slot cpd_classes `character vector` compound classes in database to
+#' restrict for annotation
 setClass(
     "AnnotationParam",
     slots = c(
@@ -166,20 +168,16 @@ setClass(
         rt_tol = "numeric",
         abd_tol = "numeric",
         adduct_names = "character",
-        instrument = "character"
+        instrument = "character",
+        cpd_classes = "character"
     ),
     prototype = prototype(
         da_tol = .015,
         rt_tol = 10,
         abd_tol = 25,
-        adduct_names = c(
-            "[M+Na]+",
-            "[M+NH4]+",
-            "[M+H-H2O]+",
-            "[M+H]+",
-            "[M-H]-"
-        ),
-        instrument = "QTOF_XevoG2-S_R25000@200"
+        adduct_names = "[M+H]+",
+        instrument = "QTOF_XevoG2-S_R25000@200",
+        cpd_classes = "LPC"
     ),
     validity = function(object) {
         msg <- character()
@@ -194,9 +192,6 @@ setClass(
         ) {
             msg <- c(msg,
                      "abd_tol need to be a positive number between 0 & 100")
-        }
-        if (length(object@adduct_names) < 1) {
-            msg <- c(msg, "adduct_names is required")
         }
         test <- which(!object@adduct_names %in% adducts$Name)
         if (length(test) > 0) {
@@ -215,6 +210,16 @@ setClass(
             msg <- c(msg, sprintf(
                 "%s doesn't exists in the instrument list",
                 object@instrument
+            ))
+        }
+        test <- which(!object@cpd_classes %in% get_cpd_classes())
+        if (length(test) > 0) {
+            msg <- c(msg, sprintf(
+                "%s doesn't exists in database",
+                paste(
+                    object@cpd_classes[test],
+                    collapse = " and "
+                )
             ))
         }
         if (length(msg) > 0) {
@@ -236,27 +241,32 @@ setClass(
 #' have an higher difference of relative abundance with its corresponding
 #' theoretical peak will be discarded
 #' @param adduct_names `character vector` adduct names from the enviPat package
+#' (optional)
 #' @param instrument `character(1)` instrument names from the enviPat package
+#' @param cpd_classes `character vector` compound classes in database to
+#' restrict for annotation
 #'
 #' @return `AnnotationParam` object
 AnnotationParam <- function(da_tol = 0.015,
                             rt_tol = 10,
                             abd_tol = 25,
-                            adduct_names = c(
-                                "[M+Na]+",
-                                "[M+NH4]+",
-                                "[M+H-H2O]+",
-                                "[M+H]+",
-                                "[M-H]-"
-                            ),
-                            instrument = "QTOF_XevoG2-S_R25000@200") {
+                            adduct_names = NULL,
+                            instrument = "QTOF_XevoG2-S_R25000@200",
+                            cpd_classes = NULL) {
+    if (length(adduct_names) == 0) {
+        adduct_names <- adducts$Name
+    }
+    if (length(cpd_classes) == 0) {
+        cpd_classes <- get_cpd_classes()
+    }
     methods::new(
         "AnnotationParam",
         da_tol = da_tol,
         rt_tol = rt_tol,
         abd_tol = abd_tol,
         adduct_names = adduct_names,
-        instrument = instrument
+        instrument = instrument,
+        cpd_classes = cpd_classes
     )
 }
 
@@ -488,6 +498,8 @@ setMethod(
 #'     \item adduct_names `character` adduct names from the enviPat package
 #'     collapsed with the character ";"
 #'     \item instrument `character` instrument names from the enviPat package
+#'     \item cpd_classes `character` compound classes in database to restrict
+#'     for annotation collapsed with the character ";"
 #' }
 setMethod(
     "params_to_dataframe",
@@ -501,7 +513,11 @@ setMethod(
                 object@adduct_names,
                 collapse = ";"
             ),
-            instrument = object@instrument
+            instrument = object@instrument,
+            cpd_classes = paste(
+                object@cpd_classes,
+                collapse = ";"
+            )
         )
     }
 )

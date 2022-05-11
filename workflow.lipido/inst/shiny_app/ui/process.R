@@ -555,17 +555,30 @@ shinydashboard::tabItem(
                 ),
                 shinyWidgets::pickerInput(
                     inputId = "process_adducts",
-                    label = "adducts",
+                    label = "Adducts",
                     choices = c(),
                     multiple = TRUE,
                     options = list(
-                        `live-search` = TRUE
+                        `actions-box` = TRUE,
+                        `live-search` = TRUE,
+                        `none-selected-text` = "No adducts selected"
                     )
                 ),
                 shiny::selectInput(
                     inputId = "process_instrument",
                     label = "Instrument",
                     choices = c()
+                ),
+                shinyWidgets::pickerInput(
+                    inputId = "process_cpd_classes",
+                    label = "Compound classes",
+                    choices = c(),
+                    multiple = TRUE,
+                    options = list(
+                        `actions-box` = TRUE,
+                        `live-search` = TRUE,
+                        `none-selected-text` = "No compound classes selected"
+                    )
                 )
             ),
             shiny::tabPanel(

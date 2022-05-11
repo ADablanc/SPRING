@@ -160,8 +160,29 @@ testthat::test_that("obiwarp", {
         )
     )
 
-    # 5th test : normal
+    # 4th test: with only ONE peak
     xsets[[1]]@peaks <- peaks1
+    xsets[[2]]@peaks <- peaks2[1, , drop = FALSE]
+    xset <- obiwarp(
+        sqlite_path,
+        sample_names[1:2],
+        "positive",
+        xsets[1:2],
+        obw_params
+    )
+    expect_equal(
+        lapply(1:2, function(i)
+            xsets[[i]]@peaks[, "rt"] -
+                xset@peaks[which(xset@peaks[, "sample"] == i), "rt"]
+        ),
+        list(
+            c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+            setNames(-7.19999999999999, "rt")
+        )
+    )
+
+    # 5th test : normal
+    xsets[[2]]@peaks <- peaks2
     xset <- obiwarp(
         sqlite_path,
         sample_names[1:2],

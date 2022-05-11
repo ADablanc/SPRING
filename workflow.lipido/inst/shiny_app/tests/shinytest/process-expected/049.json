@@ -1,0 +1,10 @@
+{
+  "export": {
+    "conflict_id": 1,
+    "conflicts": [
+      1,
+      2,
+      9
+    ]
+  }
+}

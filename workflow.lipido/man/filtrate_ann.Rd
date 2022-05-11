@@ -4,13 +4,14 @@
 \alias{filtrate_ann}
 \title{Filtrate annotation dataframe}
 \usage{
-filtrate_ann(ann, spectra_infos, sigma = 6, perfwhm = 0.6)
+filtrate_ann(ann, spectra_infos, nsamples, sigma = 6, perfwhm = 0.6)
 }
 \arguments{
 \item{ann}{`DataFrame` each line correspond to a compound found
 with the columns:
 \itemize{
     \item group_id `integer` group ID
+    \item class `character` cpd class
     \item name `character` name
     \item formula `character` chemical formula
     \item adduct `character` adduct form
@@ -41,6 +42,9 @@ annotated, with the columns :
     isotopologues annotated
     \item rt `numeric` retention time
 }}
+
+\item{nsamples}{`numeric(1)` number of samples (used to determine where the
+column of samples begin in the DataFrame ann)}
 
 \item{sigma}{`numeric(1)` ignore}
 

@@ -20,6 +20,7 @@ db_get_annotations(db, polarity = "both", names = NULL, group_ids = NULL)
 with the columns:
 \itemize{
     \item group_id `integer` group ID
+    \item class `character` cpd class
     \item name `character` name
     \item formula `character` chemical formula
     \item adduct `character` adduct form

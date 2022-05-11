@@ -8,8 +8,9 @@ AnnotationParam(
   da_tol = 0.015,
   rt_tol = 10,
   abd_tol = 25,
-  adduct_names = c("[M+Na]+", "[M+NH4]+", "[M+H-H2O]+", "[M+H]+", "[M-H]-"),
-  instrument = "QTOF_XevoG2-S_R25000@200"
+  adduct_names = NULL,
+  instrument = "QTOF_XevoG2-S_R25000@200",
+  cpd_classes = NULL
 )
 }
 \arguments{
@@ -21,9 +22,13 @@ AnnotationParam(
 have an higher difference of relative abundance with its corresponding
 theoretical peak will be discarded}
 
-\item{adduct_names}{`character vector` adduct names from the enviPat package}
+\item{adduct_names}{`character vector` adduct names from the enviPat package
+(optional)}
 
 \item{instrument}{`character(1)` instrument names from the enviPat package}
+
+\item{cpd_classes}{`character vector` compound classes in database to
+restrict for annotation}
 }
 \value{
 `AnnotationParam` object

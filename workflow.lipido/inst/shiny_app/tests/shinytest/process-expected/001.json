@@ -1,5 +1,30 @@
 {
-  "export": {
-    "conflict_id": 0
+  "input": {
+    "process_adducts": [
+      "[M+H]+",
+      "[M+NH4]+",
+      "[M+Na]+",
+      "[M-H]-",
+      "[M+H-H2O]+"
+    ],
+    "process_cpd_classes": [
+      "CE",
+      "FA",
+      "Cer",
+      "SM",
+      "LPC",
+      "PE",
+      "LPE",
+      "TG",
+      "PC",
+      "MHCer",
+      "PG",
+      "PI",
+      "PS",
+      "Car",
+      "DG",
+      "GlcCer",
+      "LacCer"
+    ]
   }
 }

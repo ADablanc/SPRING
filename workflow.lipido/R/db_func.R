@@ -358,6 +358,7 @@ db_record_xset <- function(db, xset_pos, xset_neg, sample_name) {
 #' with the columns:
 #' \itemize{
 #'     \item group_id `integer` group ID
+#'     \item class `character` cpd class
 #'     \item name `character` name
 #'     \item formula `character` chemical formula
 #'     \item adduct `character` adduct form
@@ -510,6 +511,7 @@ db_record_params <- function(db,
 #' with the columns:
 #' \itemize{
 #'     \item group_id `integer` group ID
+#'     \item class `character` cpd class
 #'     \item name `character` name
 #'     \item formula `character` chemical formula
 #'     \item adduct `character` adduct form

@@ -230,6 +230,7 @@ testthat::test_that("record xset", {
 testthat::test_that("db record ann", {
     ann <- data.frame(
         group_id = c(11, 10, 13, 2, 1, 9),
+        class = c(rep("Cer", 2), "FA", rep("LPC", 3)),
         name = c("Cer (d18:1/C12:0)", "Cer (d18:1/C12:0)", "FA 17:0",
                  "LPC 11:0", "LPC 11:0", "LPC 11:0"),
         formula = c("C30H59N1O3", "C30H59N1O3", "C17H34O2", "C19H40N1O7P1",
@@ -614,7 +615,8 @@ testthat::test_that("record params", {
             "[M+H]+",
             "[M-H]-"
         ),
-        instrument = "QTOF_XevoG2-S_R25000@200"
+        instrument = "QTOF_XevoG2-S_R25000@200",
+        cpd_classes = c("LPC", "Cer", "FA")
     )
     db <- db_connect(":memory:")
     db_record_params(
@@ -651,6 +653,7 @@ testthat::test_that("record params", {
 testthat::test_that("get annotations", {
     ann <- data.frame(
         group_id = c(11, 10, 13, 2, 1, 9),
+        class = c(rep("Cer", 2), "FA", rep("LPC", 3)),
         name = c("Cer (d18:1/C12:0)", "Cer (d18:1/C12:0)", "FA 17:0",
                  "LPC 11:0", "LPC 11:0", "LPC 11:0"),
         formula = c("C30H59N1O3", "C30H59N1O3", "C17H34O2", "C19H40N1O7P1",
@@ -955,7 +958,8 @@ testthat::test_that("get params", {
             "[M+H]+",
             "[M-H]-"
         ),
-        instrument = "QTOF_XevoG2-S_R25000@200"
+        instrument = "QTOF_XevoG2-S_R25000@200",
+        cpd_classes = c("LPC", "Cer", "FA")
     )
     db <- db_connect(":memory:")
     db_record_params(
@@ -1181,6 +1185,7 @@ testthat::test_that("count number of samples", {
 testthat::test_that("resolve conflict", {
     ann <- data.frame(
         group_id = c(6, 6, 7, 1, 2, 5),
+        class = c(rep("Cer", 3), rep("LPC", 3)),
         name = c("Cer (d18:1/C12:0)", "Cer (d18:2/C12:0)", "Cer (d18:1/C12:0)",
                  "LPC 11:0", "LPC 11:0", "LPC 11:0"),
         formula = c("C30H59N1O3", "C30H59N1O3", "C30H59N1O3", "C19H40N1O7P1",

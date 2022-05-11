@@ -4,12 +4,15 @@
 \alias{merge_xsets}
 \title{Merge `xcmsSets`}
 \usage{
-merge_xsets(xset_pos, xset_neg)
+merge_xsets(xset_pos, xset_neg, nsamples)
 }
 \arguments{
 \item{xset_pos}{`xcmSet` in positive mode}
 
 \item{xset_neg}{`xcmSet` in negative mode}
+
+\item{nsamples}{`numeric(1)` number of samples (used only to know where the
+column of samples begin in the annotation DataFrame)}
 }
 \value{
 `list` with items:
@@ -18,6 +21,7 @@ merge_xsets(xset_pos, xset_neg)
     with the columns:
     \itemize{
         \item group_id `integer` group ID
+        \item class `character` cpd class
         \item name `character` name
         \item formula `character` chemical formula
         \item adduct `character` adduct form

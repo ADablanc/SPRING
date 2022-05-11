@@ -88,7 +88,8 @@ testthat::test_that("workflow polarity", {
             "[M+H]+",
             "[M-H]-"
         ),
-        instrument = "QTOF_XevoG2-S_R25000@200"
+        instrument = "QTOF_XevoG2-S_R25000@200",
+        cpd_classes = c("LPC", "Cer", "FA")
     )
 
     # record files
@@ -143,6 +144,7 @@ testthat::test_that("workflow polarity", {
         xset@ann,
         data.frame(
             group_id = c(1, 1, 2, 2, 9, 9, 10, 11),
+            class = c(rep("LPC", 6), rep("Cer", 2)),
             name = c("LPC 11:0", "LPC 11a:0", "LPC 11:0", "LPC 11a:0",
                      "LPC 11:0", "LPC 11a:0", "Cer (d18:1/C12:0)",
                      "Cer (d18:1/C12:0)"),
@@ -217,43 +219,42 @@ testthat::test_that("workflow polarity", {
         data.frame(
             spectra_id = c(1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5,
                            5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8),
-            feature_id = c(NA, 17, NA, NA, 5, 4, NA, NA, 20, 19, NA, NA, 18, NA,
-                           NA, NA, 1, NA, NA, NA, 14, NA, NA, NA, 2, 3, NA, NA,
-                           15, 13, NA, NA),
-            mz = c(NA, 408.251325886321, NA, NA, 426.261913381751,
+            feature_id = c(17, NA, NA, NA, 5, 4, NA, NA, 20, 19, NA, NA, NA, NA,
+                           NA, 18, 1, NA, NA, NA, 14, NA, NA, NA, NA, 2, 3, NA,
+                           NA, 15, 13, NA),
+            mz = c(408.251325886321, NA, NA, NA, 426.261913381751,
                    427.265348519813, NA, NA, 426.262333104945, 427.265704881008,
-                   NA, NA, 448.244170162955, NA, NA, NA, 464.447304014051, NA,
-                   NA, NA, 464.447454557257, NA, NA, NA, 504.440032161331,
-                   505.443534603, NA, NA, 504.44048100644, 505.44383474773, NA,
-                   NA),
-            int = c(NA, 88824.635233072, NA, NA, 6214416.44108707,
+                   NA, NA, NA, NA, NA, 448.244170162955, 464.447304014051, NA,
+                   NA, NA, 464.447454557257, NA, NA, NA, NA, 504.440032161331,
+                   505.443534603, NA, NA, 504.44048100644, 505.44383474773, NA),
+            int = c(88824.635233072, NA, NA, NA, 6214416.44108707,
                     1170639.95871094, NA, NA, 6201250.27168528,
-                    1186767.56444882, NA, NA, 288290.748778874, NA, NA, NA,
+                    1186767.56444882, NA, NA, NA, NA, NA, 288290.748778874,
                     4945601.93026269, NA, NA, NA, 5689144.27927454, NA, NA, NA,
-                    1448292.29379181, 401071.227087501, NA, NA,
-                    1662831.19267642, 444083.087307128, NA, NA),
-            abd = c(NA, 100, NA, NA, 100, 18.8374881182917, NA, NA, 100,
-                    19.1375531135642, NA, NA, 100, NA, NA, NA, 100, NA, NA, NA,
-                    100, NA, NA, NA, 100, 27.6926991054717, NA, NA, 100,
-                    26.7064443620612, NA, NA),
-            ion_id_theo = c(62, 62, 62, 62, 66, 66, 66, 66, 66, 66, 66, 66, 64,
-                            64, 64, 64, 278, 278, 278, 278, 278, 278, 278, 278,
-                            281, 281, 281, 281, 281, 281, 281, 281),
-            mz_theo = c(411.25935, 408.25095, 409.25427, 410.25672, 426.26152,
+                    NA, 1448292.29379181, 401071.227087501, NA, NA,
+                    1662831.19267642, 444083.087307128, NA),
+            abd = c(100, NA, NA, NA, 100, 18.8374881182917, NA, NA, 100,
+                    19.1375531135642, NA, NA, NA, NA, NA, 100, 100, NA, NA, NA,
+                    100, NA, NA, NA, NA, 100, 27.6926991054717, NA, NA, 100,
+                    26.7064443620612, NA),
+            ion_id_theo = c(50, 50, 50, 50, 54, 54, 54, 54, 54, 54, 54, 54, 52,
+                            52, 52, 52, 212, 212, 212, 212, 212, 212, 212, 212,
+                            213, 213, 213, 213, 213, 213, 213, 213),
+            mz_theo = c(408.25095, 409.25427, 410.25672, 411.25935, 426.26152,
                         427.26484, 428.26719, 429.26984, 426.26152, 427.26484,
-                        428.26719, 429.26984, 448.24346, 449.24678, 450.24914,
-                        451.25178, 464.44621, 465.44955, 466.45272, 467.45576,
-                        464.44621, 465.44955, 466.45272, 467.45576, 504.43872,
-                        505.44206, 506.44516, 507.44809, 504.43872, 505.44206,
-                        506.44516, 507.44809),
-            abd_theo = c(0.38, 100, 21.65, 3.25, 100, 21.7, 3.46, 0.42, 100,
-                         21.7, 3.46, 0.42, 100, 21.69, 3.45, 0.42, 100, 33.55,
-                         5.86, 0.65, 100, 33.55, 5.86, 0.65, 100, 33.67, 6.07,
-                         0.72, 100, 33.67, 6.07, 0.72),
-            iso_theo = c("M+3", "M", "M+1", "M+2", "M", "M+1", "M+2", "M+3",
+                        428.26719, 429.26984, 449.24678, 450.24914, 451.25178,
+                        448.24346, 464.44621, 465.44955, 466.45272, 467.45576,
+                        464.44621, 465.44955, 466.45272, 467.45576, 506.44516,
+                        504.43872, 505.44206, 507.44809, 506.44516, 504.43872,
+                        505.44206, 507.44809),
+            abd_theo = c(100, 21.65, 3.25, 0.38, 100, 21.7, 3.46, 0.42, 100,
+                         21.7, 3.46, 0.42, 21.69, 3.45, 0.42, 100, 100, 33.55,
+                         5.86, 0.65, 100, 33.55, 5.86, 0.65, 6.07, 100, 33.67,
+                         0.72, 6.07, 100, 33.67, 0.72),
+            iso_theo = c("M", "M+1", "M+2", "M+3", "M", "M+1", "M+2", "M+3",
+                         "M", "M+1", "M+2", "M+3", "M+1", "M+2", "M+3", "M",
                          "M", "M+1", "M+2", "M+3", "M", "M+1", "M+2", "M+3",
-                         "M", "M+1", "M+2", "M+3", "M", "M+1", "M+2", "M+3",
-                         "M", "M+1", "M+2", "M+3", "M", "M+1", "M+2", "M+3")
+                         "M+2", "M", "M+1", "M+3", "M+2", "M", "M+1", "M+3")
         )
     )
     testthat::expect_equal(
@@ -383,6 +384,7 @@ testthat::test_that("workflow polarity", {
         xset@ann,
         data.frame(
             group_id = 1,
+            class = "FA",
             name = "FA 17:0",
             formula = "C17H34O2",
             adduct = "[M-H]-",
@@ -425,7 +427,7 @@ testthat::test_that("workflow polarity", {
             int = c(8927664.85468527, NA, NA, 4593482.66518999,
                     899482.748384234, 87688.1346123047),
             abd = c(100, NA, NA, 100, 19.5817164000777, 1.90896844515855),
-            ion_id_theo = c(8, 8, 8, 8, 8, 8),
+            ion_id_theo = c(6, 6, 6, 6, 6, 6),
             mz_theo = c(269.2486, 270.25202, 271.25481, 269.2486, 270.25202,
                         271.25481),
             abd_theo = c(100, 18.84, 2.02, 100, 18.84, 2.02),
@@ -507,11 +509,11 @@ testthat::test_that("merge xsets", {
                              )
                           )
     empty_ann <- data.frame(
-        matrix(, nrow = 0, ncol = 13 + length(sample_names), dimnames = list(
-            c(), c("group_id", "name", "formula", "adduct", "ion_formula",
-                   "rtdiff", "rt", "rtmin", "rtmax", "nsamples",
-                   "best_score",
-                   "best_deviation_mz", "best_npeak", sample_names))
+        matrix(, nrow = 0, ncol = 14 + length(sample_names), dimnames = list(
+            c(), c("group_id", "class", "name", "formula", "adduct",
+                   "ion_formula", "rtdiff", "rt", "rtmin", "rtmax", "nsamples",
+                   "best_score", "best_deviation_mz", "best_npeak",
+                   sample_names))
         ),
         check.names = FALSE
     )
@@ -735,6 +737,7 @@ testthat::test_that("merge xsets", {
     )
     ann_pos <- data.frame(
         group_id = c(1, 1, 2, 2, 9, 9, 10, 11),
+        class = c(rep("LPC", 6), rep("Cer", 2)),
         name = c("LPC 11:0", "LPC 11a:0", "LPC 11:0", "LPC 11a:0",
                  "LPC 11:0", "LPC 11a:0", "Cer (d18:1/C12:0)",
                  "Cer (d18:1/C12:0)"),
@@ -876,6 +879,7 @@ testthat::test_that("merge xsets", {
     )
     ann_neg <- data.frame(
         group_id = 1,
+        class = "FA",
         name = "FA 17:0",
         formula = "C17H34O2",
         adduct = "[M-H]-",
@@ -916,7 +920,7 @@ testthat::test_that("merge xsets", {
     xset_pos <- xset_neg <- xset
 
     # 1st test: with no peaks
-    merged_results <- merge_xsets(xset_pos, xset_neg)
+    merged_results <- merge_xsets(xset_pos, xset_neg, nsamples = 3)
     testthat::expect_equal(
         merged_results$ann,
         empty_ann
@@ -954,7 +958,7 @@ testthat::test_that("merge xsets", {
     xset_pos@peaks <- peaks_pos
     xset_pos@groupidx <- groupidx_pos
     xset_pos@groups <- groups_pos
-    merged_results <- merge_xsets(xset_pos, xset_neg)
+    merged_results <- merge_xsets(xset_pos, xset_neg, nsamples = 3)
     testthat::expect_equal(
         merged_results$ann,
         empty_ann
@@ -983,7 +987,7 @@ testthat::test_that("merge xsets", {
     xset_neg@peaks <- peaks_neg
     xset_neg@groups <- groups_neg
     xset_neg@groupidx <- groupidx_neg
-    merged_results <- merge_xsets(xset_pos, xset_neg)
+    merged_results <- merge_xsets(xset_pos, xset_neg, nsamples = 3)
     testthat::expect_equal(
         merged_results$ann,
         empty_ann
@@ -1009,7 +1013,7 @@ testthat::test_that("merge xsets", {
     xset_pos@peaks <- peaks_pos
     xset_pos@groupidx <- groupidx_pos
     xset_pos@groups <- groups_pos
-    merged_results <- merge_xsets(xset_pos, xset_neg)
+    merged_results <- merge_xsets(xset_pos, xset_neg, nsamples = 3)
     testthat::expect_equal(
         merged_results$ann,
         empty_ann
@@ -1038,7 +1042,7 @@ testthat::test_that("merge xsets", {
     xset_neg@peaks <- empty_peaklist
     xset_neg@groups <- empty_groups
     xset_neg@groupidx <- list()
-    merged_results <- merge_xsets(xset_pos, xset_neg)
+    merged_results <- merge_xsets(xset_pos, xset_neg, nsamples = 3)
     testthat::expect_equal(
         merged_results$ann,
         ann_pos
@@ -1073,7 +1077,7 @@ testthat::test_that("merge xsets", {
     attributes(xset_neg)$ann <- ann_neg
     attributes(xset_neg)$spectra_infos <- spectra_infos_neg
     attributes(xset_neg)$spectras <- spectras_neg
-    merged_results <- merge_xsets(xset_pos, xset_neg)
+    merged_results <- merge_xsets(xset_pos, xset_neg, nsamples = 3)
     testthat::expect_equal(
         merged_results$ann,
         ann_neg
@@ -1105,7 +1109,7 @@ testthat::test_that("merge xsets", {
     attributes(xset_neg)$ann <- empty_ann
     attributes(xset_neg)$spectra_infos <- empty_spectra_infos
     attributes(xset_neg)$spectras <- empty_spectras
-    merged_results <- merge_xsets(xset_pos, xset_neg)
+    merged_results <- merge_xsets(xset_pos, xset_neg, nsamples = 3)
     testthat::expect_equal(
         merged_results$ann,
         ann_pos
@@ -1137,7 +1141,7 @@ testthat::test_that("merge xsets", {
     # the IDs for groups & feature change because now we have peaks on neg/pos
     ann_neg$group_id <- ann_neg$group_id + nrow(groups_pos)
     spectras_neg$feature_id <- spectras_neg$feature_id + nrow(peaks_pos)
-    merged_results <- merge_xsets(xset_pos, xset_neg)
+    merged_results <- merge_xsets(xset_pos, xset_neg, nsamples = 3)
     testthat::expect_equal(
         merged_results$ann,
         ann_neg
@@ -1164,12 +1168,13 @@ testthat::test_that("merge xsets", {
     attributes(xset_pos)$spectra_infos <- spectra_infos_pos
     attributes(xset_pos)$spectras <- spectra_pos
     # dont forget to update the IDs
-    ann_neg[, 14:ncol(ann_neg)] <- ann_neg[, 14:ncol(ann_neg)] +
-        nrow(spectra_infos_pos)
+    ann_neg[, (ncol(ann_neg) - length(sample_names) + 1):ncol(ann_neg)] <-
+        ann_neg[, (ncol(ann_neg) - length(sample_names) + 1):ncol(ann_neg)] +
+            nrow(spectra_infos_pos)
     spectra_infos_neg$spectra_id <- spectra_infos_neg$spectra_id +
         nrow(spectra_infos_pos)
     spectras_neg$spectra_id <- spectras_neg$spectra_id + nrow(spectra_infos_pos)
-    merged_results <- merge_xsets(xset_pos, xset_neg)
+    merged_results <- merge_xsets(xset_pos, xset_neg, nsamples = 3)
     testthat::expect_equal(
         merged_results$ann,
         rbind(ann_pos, ann_neg)
@@ -1195,6 +1200,7 @@ testthat::test_that("merge xsets", {
 testthat::test_that("workflow", {
     ann <- data.frame(
         group_id = c(1, 1, 2, 2, 9, 9, 10, 11, 13),
+        class = c(rep("LPC", 6), rep("Cer", 2), "FA"),
         name = c("LPC 11:0", "LPC 11a:0", "LPC 11:0", "LPC 11a:0", "LPC 11:0",
                  "LPC 11a:0", "Cer (d18:1/C12:0)", "Cer (d18:1/C12:0)",
                  "FA 17:0"),
@@ -1267,48 +1273,46 @@ testthat::test_that("workflow", {
         spectra_id = c(1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5,
                        5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9,
                        10, 10, 10),
-        feature_id = c(NA, 17, NA, NA, 5, 4, NA, NA, 20, 19, NA, NA, 18, NA, NA,
-                       NA, 1, NA, NA, NA, 14, NA, NA, NA, 2, 3, NA, NA, 15, 13,
-                       NA, NA, 25, NA, NA, 31, 30, 29),
-        mz = c(NA, 408.251325886321, NA, NA, 426.261913381751, 427.265348519813,
-               NA, NA, 426.262333104945, 427.265704881008, NA, NA,
-               448.244170162955, NA, NA, NA, 464.447304014051, NA, NA, NA,
-               464.447454557257, NA, NA, NA, 504.440032161331, 505.443534603,
-               NA, NA, 504.44048100644, 505.44383474773, NA, NA,
-               269.247528218739, NA, NA, 269.248411023224, 270.251620537443,
-               271.255056943515),
-        int = c(NA, 88824.635233072, NA, NA, 6214416.44108707, 1170639.95871094,
-                NA, NA, 6201250.27168528, 1186767.56444882, NA, NA,
-                288290.748778874, NA, NA, NA, 4945601.93026269, NA, NA, NA,
-                5689144.27927454, NA, NA, NA, 1448292.29379181,
+        feature_id = c(17, NA, NA, NA, 5, 4, NA, NA, 20, 19, NA, NA, NA, NA, NA,
+                       18, 1, NA, NA, NA, 14, NA, NA, NA, NA, 2, 3, NA, NA, 15,
+                       13, NA, 25, NA, NA, 31, 30, 29),
+        mz = c(408.251325886321, NA, NA, NA, 426.261913381751, 427.265348519813,
+               NA, NA, 426.262333104945, 427.265704881008, NA, NA, NA, NA, NA,
+               448.244170162955, 464.447304014051, NA, NA, NA, 464.447454557257,
+               NA, NA, NA, NA, 504.440032161331, 505.443534603, NA, NA,
+               504.44048100644, 505.44383474773, NA, 269.247528218739, NA, NA,
+               269.248411023224, 270.251620537443, 271.255056943515),
+        int = c(88824.635233072, NA, NA, NA, 6214416.44108707, 1170639.95871094,
+                NA, NA, 6201250.27168528, 1186767.56444882, NA, NA, NA, NA, NA,
+                288290.748778874, 4945601.93026269, NA, NA, NA,
+                5689144.27927454, NA, NA, NA, NA, 1448292.29379181,
                 401071.227087501, NA, NA, 1662831.19267642, 444083.087307128,
-                NA, NA, 8927664.85468527, NA, NA, 4593482.66518999,
+                NA, 8927664.85468527, NA, NA, 4593482.66518999,
                 899482.748384234, 87688.1346123047),
-        abd = c(NA, 100, NA, NA, 100, 18.8374881182917, NA, NA, 100,
-                19.1375531135642, NA, NA, 100, NA, NA, NA, 100, NA, NA, NA, 100,
-                NA, NA, NA, 100, 27.6926991054717, NA, NA, 100,
-                26.7064443620612, NA, NA, 100, NA, NA, 100, 19.5817164000777,
+        abd = c(100, NA, NA, NA, 100, 18.8374881182917, NA, NA, 100,
+                19.1375531135642, NA, NA, NA, NA, NA, 100, 100, NA, NA, NA, 100,
+                NA, NA, NA, NA, 100, 27.6926991054717, NA, NA, 100,
+                26.7064443620612, NA, 100, NA, NA, 100, 19.5817164000777,
                 1.90896844515855),
-        ion_id_theo = c(62, 62, 62, 62, 66, 66, 66, 66, 66, 66, 66, 66, 64,
-                        64, 64, 64, 278, 278, 278, 278, 278, 278, 278, 278,
-                        281, 281, 281, 281, 281, 281, 281, 281, 8, 8, 8, 8,
-                        8, 8),
-        mz_theo = c(411.25935, 408.25095, 409.25427, 410.25672, 426.26152,
+        ion_id_theo = c(50, 50, 50, 50, 54, 54, 54, 54, 54, 54, 54, 54, 52, 52,
+                        52, 52, 212, 212, 212, 212, 212, 212, 212, 212, 213,
+                        213, 213, 213, 213, 213, 213, 213, 6, 6, 6, 6, 6, 6),
+        mz_theo = c(408.25095, 409.25427, 410.25672, 411.25935, 426.26152,
                     427.26484, 428.26719, 429.26984, 426.26152, 427.26484,
-                    428.26719, 429.26984, 448.24346, 449.24678, 450.24914,
-                    451.25178, 464.44621, 465.44955, 466.45272, 467.45576,
-                    464.44621, 465.44955, 466.45272, 467.45576, 504.43872,
-                    505.44206, 506.44516, 507.44809, 504.43872, 505.44206,
-                    506.44516, 507.44809, 269.2486, 270.25202, 271.25481,
+                    428.26719, 429.26984, 449.24678, 450.24914, 451.25178,
+                    448.24346, 464.44621, 465.44955, 466.45272, 467.45576,
+                    464.44621, 465.44955, 466.45272, 467.45576, 506.44516,
+                    504.43872, 505.44206, 507.44809, 506.44516, 504.43872,
+                    505.44206, 507.44809, 269.2486, 270.25202, 271.25481,
                     269.2486, 270.25202, 271.25481),
-        abd_theo = c(0.38, 100, 21.65, 3.25, 100, 21.7, 3.46, 0.42, 100, 21.7,
-                     3.46, 0.42, 100, 21.69, 3.45, 0.42, 100, 33.55, 5.86, 0.65,
-                     100, 33.55, 5.86, 0.65, 100, 33.67, 6.07, 0.72, 100, 33.67,
-                     6.07, 0.72, 100, 18.84, 2.02, 100, 18.84, 2.02),
-        iso_theo = c("M+3", "M", "M+1", "M+2", "M", "M+1", "M+2", "M+3", "M",
-                     "M+1", "M+2", "M+3", "M", "M+1", "M+2", "M+3", "M", "M+1",
-                     "M+2", "M+3", "M", "M+1", "M+2", "M+3", "M", "M+1", "M+2",
-                     "M+3", "M", "M+1", "M+2", "M+3", "M", "M+1", "M+2", "M",
+        abd_theo = c(100, 21.65, 3.25, 0.38, 100, 21.7, 3.46, 0.42, 100, 21.7,
+                     3.46, 0.42, 21.69, 3.45, 0.42, 100, 100, 33.55, 5.86, 0.65,
+                     100, 33.55, 5.86, 0.65, 6.07, 100, 33.67, 0.72, 6.07, 100,
+                     33.67, 0.72, 100, 18.84, 2.02, 100, 18.84, 2.02),
+        iso_theo = c("M", "M+1", "M+2", "M+3", "M", "M+1", "M+2", "M+3", "M",
+                     "M+1", "M+2", "M+3", "M+1", "M+2", "M+3", "M", "M", "M+1",
+                     "M+2", "M+3", "M", "M+1", "M+2", "M+3", "M+2", "M", "M+1",
+                     "M+3", "M+2", "M", "M+1", "M+3", "M", "M+1", "M+2", "M",
                      "M+1", "M+2")
     )
     peak_groups <- data.frame(
@@ -1545,9 +1549,13 @@ testthat::test_that("workflow", {
         mz_range = c(200, 1000),
         rt_range = c(.7 * 60, 6.3 * 60)
     )
-    filter_params_error <- FilterParam(
+    filter_params_error_mz <- FilterParam(
         mz_range = c(0, 1),
         rt_range = c(.7 * 60, 6.3 * 60)
+    )
+    filter_params_error_rt <- FilterParam(
+        mz_range = c(200, 1000),
+        rt_range = c(12 * 60, 20 * 60)
     )
     cwt_params <- xcms::CentWaveParam(
         ppm = 30,
@@ -1593,16 +1601,17 @@ testthat::test_that("workflow", {
             "[M+H]+",
             "[M-H]-"
         ),
-        instrument = "QTOF_XevoG2-S_R25000@200"
+        instrument = "QTOF_XevoG2-S_R25000@200",
+        cpd_classes = c("LPC", "Cer", "FA")
     )
 
-    # 1st test: create error
+    # 1st test: m/z range out
     testthat::expect_error(
         invisible(capture.output(ms_process(
             raw_files,
             sqlite_path,
             converter,
-            filter_params_error,
+            filter_params_error_mz,
             cwt_params,
             obw_params,
             pd_params,
@@ -1611,7 +1620,22 @@ testthat::test_that("workflow", {
         "none of the file was imported correctly"
     )
 
-    # 2nd test: no parallelization
+    # 2nd test: rT range out
+    testthat::expect_error(
+        invisible(capture.output(ms_process(
+            raw_files,
+            sqlite_path,
+            converter,
+            filter_params_error_rt,
+            cwt_params,
+            obw_params,
+            pd_params,
+            ann_params
+        ))),
+        "none of the file was imported correctly"
+    )
+
+    # 3th test: no parallelization
     invisible(capture.output(ms_process(
         raw_files,
         sqlite_path,
@@ -1646,7 +1670,7 @@ testthat::test_that("workflow", {
     )
     RSQLite::dbDisconnect(db)
 
-    # 3rd test: parallelization
+    # 5th test: parallelization
     capture.output(ms_process(
         raw_files,
         sqlite_path,
@@ -1684,6 +1708,7 @@ testthat::test_that("workflow", {
 testthat::test_that("export annotations", {
     ann <- data.frame(
         group_id = c(1, 1, 2, 2, 9, 9, 10, 11, 13),
+        class = c(rep("LPC", 6), rep("Cer", 2), "FA"),
         name = c("LPC 11:0", "LPC 11a:0", "LPC 11:0", "LPC 11a:0", "LPC 11:0",
                  "LPC 11a:0", "Cer (d18:1/C12:0)", "Cer (d18:1/C12:0)",
                  "FA 17:0"),
@@ -1789,15 +1814,20 @@ testthat::test_that("export annotations", {
 
     # 5th : normal
     export_annotations(sqlite_file2, excel_file)
-    ann_summarised <- summarise_ann(ann$no_conflicts, spectra_infos)
+    ann_summarised <- summarise_ann(
+        ann$no_conflicts,
+        spectra_infos,
+        nsamples = 2
+    )
     ann_summarised$nSamples <- as.numeric(ann_summarised$nSamples)
-    ann_summarised[, "Most intense ion"] <- as.character(
-        ann_summarised[, "Most intense ion"])
+    ann_summarised[, c("class", "Most intense ion")] <- lapply(
+        ann_summarised[, c("class", "Most intense ion")], as.character)
     testthat::expect_equal(
         openxlsx::read.xlsx(excel_file, 1, sep.names = " "),
         ann_summarised
     )
-    int_ann <- get_int_ann(ann$no_conflicts, spectra_infos)
+    int_ann <- get_int_ann(ann$no_conflicts, spectra_infos, nsamples = 2)
+    int_ann$class <- as.character(int_ann$class)
     testthat::expect_equal(
         openxlsx::read.xlsx(excel_file, 2, sep.names = " "),
         data.frame(int_ann, row.names = NULL, check.names = FALSE)

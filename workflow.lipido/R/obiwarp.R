@@ -37,7 +37,9 @@ obiwarp <- function(sqlite_path,
     rtcor <- lapply(xsets, function(xset) xset@rt[[1]])
     mzranges <- lapply(xsets, function(xset) xset@mzrange)
     peakmat <- do.call(rbind, lapply(seq(xsets), function(i)
-        if (nrow(xsets[[i]]@peaks) > 0) {
+        if (nrow(xsets[[i]]@peaks) == 1) {
+            as.matrix(t(c(xsets[[i]]@peaks[, -23], sample = i)))
+        } else if (nrow(xsets[[i]]@peaks) > 1) {
             cbind(xsets[[i]]@peaks[, -23], sample = i)
         } else {
             xsets[[i]]@peaks

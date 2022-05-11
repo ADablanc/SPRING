@@ -21,5 +21,8 @@ theoretical peak will be discarded}
 \item{\code{adduct_names}}{`character vector` adduct names from the enviPat package}
 
 \item{\code{instrument}}{`character(1)` instrument names from the enviPat package}
+
+\item{\code{cpd_classes}}{`character vector` compound classes in database to
+restrict for annotation}
 }}
 

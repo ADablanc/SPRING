@@ -115,6 +115,11 @@ ms_process <- function(raw_files,
         pd_params@minFraction <- 10**-9
         pd_params@minSamples <- 1
         pd_params@maxFeatures <- 500
+        chem_db <- load_chem_db(
+            ann_params@adduct_names,
+            ann_params@instrument,
+            cpd_classes = ann_params@cpd_classes
+        )
 
         if (cores > 1) {
             cl <- parallel::makeCluster(cores)
@@ -246,7 +251,11 @@ ms_process <- function(raw_files,
         if (!is.null(pb_fct)) {
             pb_fct(n = 1, total = 1, title = "Record results")
         }
-        merged_results <- merge_xsets(xset_pos, xset_neg)
+        merged_results <- merge_xsets(
+            xset_pos,
+            xset_neg,
+            nsamples = length(sample_names)
+        )
         db <- db_connect(sqlite_path)
         db_record_xset(db, xset_pos, xset_neg, infos[1, "sample"])
         db_record_ann(
@@ -459,6 +468,8 @@ ms_process_polarity <- function(sqlite_path,
 #'
 #' @param xset_pos `xcmSet` in positive mode
 #' @param xset_neg `xcmSet` in negative mode
+#' @param nsamples `numeric(1)` number of samples (used only to know where the
+#' column of samples begin in the annotation DataFrame)
 #'
 #' @return `list` with items:
 #' \itemize{
@@ -466,6 +477,7 @@ ms_process_polarity <- function(sqlite_path,
 #'     with the columns:
 #'     \itemize{
 #'         \item group_id `integer` group ID
+#'         \item class `character` cpd class
 #'         \item name `character` name
 #'         \item formula `character` chemical formula
 #'         \item adduct `character` adduct form
@@ -567,11 +579,11 @@ ms_process_polarity <- function(sqlite_path,
 #'         feature ID
 #'     }
 #' }
-merge_xsets <- function(xset_pos, xset_neg) {
+merge_xsets <- function(xset_pos, xset_neg, nsamples) {
     ann <- xset_pos@ann
     spectras <- xset_pos@spectras
     spectra_infos <- xset_pos@spectra_infos
-    samples <- colnames(ann)[14:ncol(ann)]
+    samples <- colnames(ann)[(ncol(ann) - nsamples + 1):ncol(ann)]
     peaks <- data.frame(xset_pos@peaks)
     colnames(peaks)[which(colnames(peaks) == "into")] <- "int"
     peak_groups <- data.frame(xset_pos@groups)
@@ -610,7 +622,7 @@ merge_xsets <- function(xset_pos, xset_neg) {
     ann_neg <- xset_neg@ann
     spectras_neg <- xset_neg@spectras
     spectra_infos_neg <- xset_neg@spectra_infos
-    samples <- colnames(ann_neg)[14:ncol(ann_neg)]
+    samples <- colnames(ann_neg)[(ncol(ann) - nsamples + 1):ncol(ann_neg)]
     peaks_neg <- data.frame(xset_neg@peaks)
     colnames(peaks_neg)[which(colnames(peaks_neg) == "into")] <- "int"
     peak_groups_neg <- data.frame(xset_neg@groups)
@@ -645,8 +657,9 @@ merge_xsets <- function(xset_pos, xset_neg) {
 
     if (nrow(ann_neg) > 0) {
         ann_neg$group_id <- ann_neg$group_id + group_id_offset
-        ann_neg[, 14:ncol(ann_neg)] <- ann_neg[, 14:ncol(ann_neg)] +
-            spectra_id_offset
+        ann_neg[, (ncol(ann) - nsamples + 1):ncol(ann_neg)] <-
+            ann_neg[, (ncol(ann) - nsamples + 1):ncol(ann_neg)] +
+                spectra_id_offset
         spectras_neg$spectra_id <- spectras_neg$spectra_id +
             spectra_id_offset
         spectras_neg$feature_id <- spectras_neg$feature_id +
@@ -661,7 +674,7 @@ merge_xsets <- function(xset_pos, xset_neg) {
     peaks <- rbind(peaks, peaks_neg)
     peak_groups <- rbind(peak_groups, peak_groups_neg)
 
-    ann <- filtrate_ann(ann, spectra_infos)
+    ann <- filtrate_ann(ann, spectra_infos, nsamples = nsamples)
     ann <- ann[order(ann$group_id), ]
     rownames(ann) <- NULL
     list(
@@ -711,7 +724,7 @@ export_annotations <- function(sqlite_path, excel_path, polarity = "both") {
     }
     nsamples <- db_get_nsamples(db)
     spectra_ids <- without_na(unlist(
-        ann[, (ncol(ann) - nsamples - 1):ncol(ann)]))
+        ann[, (ncol(ann) - nsamples + 1):ncol(ann)]))
     spectra_infos <- db_get_spectra_infos(db, spectra_ids)
 
     wb <- openxlsx::createWorkbook()
@@ -720,12 +733,12 @@ export_annotations <- function(sqlite_path, excel_path, polarity = "both") {
     openxlsx::writeDataTable(
         wb,
         "Summary",
-        summarise_ann(ann, spectra_infos)
+        summarise_ann(ann, spectra_infos, nsamples)
     )
     openxlsx::writeDataTable(
         wb,
         "Details",
-        get_int_ann(ann, spectra_infos)
+        get_int_ann(ann, spectra_infos, nsamples)
     )
     openxlsx::saveWorkbook(wb, excel_path, overwrite = TRUE)
 }

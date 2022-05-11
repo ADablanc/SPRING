@@ -3,13 +3,16 @@
 #' @description
 #' Get all m/z & relative abundance for the internal database
 #'
-#' @param adduct_names vector of adduct names present in the enviPat list
-#' @param instrument instrument name for enviPat
+#' @param adduct_names `character vector`vector of adduct names present in the
+#' enviPat list
+#' @param instrument `character` instrument name for enviPat
+#' @param cpd_classes `character vector` compound classes to restrict
 #' @param cpd_names name of compounds to restrict
 #'
 #' @return DataFrame with
 #' \itemize{
 #'      \item formula chemical formula
+#'      \item class class of the compound
 #'      \item name of the compound
 #'      \item rt retention time of the compound
 #'      \item ion_id id unique for an entry of the database + adduct associated
@@ -20,38 +23,42 @@
 #'      \item abd relative abundance
 #'      \item iso isotopologue annotation
 #' }
-load_db <- function(adduct_names,
+load_chem_db <- function(adduct_names,
                     instrument,
+                    cpd_classes = NULL,
                     cpd_names = NULL) {
-    db <- utils::read.csv(system.file(
+    chem_db <- utils::read.csv(system.file(
         "extdata",
         "database.csv",
         package = "workflow.lipido"
     ))
     # the rt in the database is in minutes !!
-    db$rt <- db$rt * 60
-    if (!is.null(cpd_names)) {
-        db <- db[db$name %in% cpd_names, , drop = FALSE]
+    chem_db$rt <- chem_db$rt * 60
+    if (!is.null(cpd_classes)) {
+        chem_db <- chem_db[chem_db$class %in% cpd_classes, , drop = FALSE]
     }
-    if (nrow(db) == 0 || length(adduct_names) == 0) {
-        return(data.frame(matrix(, nrow = 0, ncol = 10, dimnames = list(
-            c(), c("formula", "name", "rt", "ion_id", "adduct", "ion_formula",
-                   "charge", "mz", "abd", "iso")
+    if (!is.null(cpd_names)) {
+        chem_db <- chem_db[chem_db$name %in% cpd_names, , drop = FALSE]
+    }
+    if (nrow(chem_db) == 0 || length(adduct_names) == 0) {
+        return(data.frame(matrix(, nrow = 0, ncol = 11, dimnames = list(
+            c(), c("class", "formula", "name", "rt", "ion_id", "adduct",
+                   "ion_formula", "charge", "mz", "abd", "iso")
         ))))
     }
     ions <- do.call(
         rbind,
         lapply(adduct_names, function(adduct_name)
             get_ions(
-                unique(db$formula),
+                unique(chem_db$formula),
                 adducts[which(adducts$Name == adduct_name), ],
                 instrument
             )
         )
     )
     ions <- cbind(ion_id = as.numeric(as.factor(ions$ion_formula)), ions)
-    db <- merge(db, ions, by = "formula", all = TRUE)
-    db[!is.na(db$mz), , drop = FALSE]
+    chem_db <- merge(chem_db, ions, by = "formula", all = TRUE)
+    chem_db[!is.na(chem_db$mz), , drop = FALSE]
 }
 
 #' @title Get ions
@@ -309,4 +316,18 @@ get_mzdev <- function(ms_file, mz_range, rt_range) {
 get_mz_range <- function(mz, ppm) {
     da <- mz * ppm * 10**-6
     mz + c(-da, da)
+}
+
+#' @title Get compound classes
+#'
+#' @description
+#' Get all compound classes recorded in database
+#'
+#' @return `character vector` compound classes
+get_cpd_classes <- function() {
+    unique(utils::read.csv(system.file(
+        "extdata",
+        "database.csv",
+        package = "workflow.lipido"
+    ))$class)
 }

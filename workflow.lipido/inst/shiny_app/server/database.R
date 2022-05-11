@@ -3,11 +3,13 @@
 #' @description
 #' Display the database in a datatable
 output$database_table <- DT::renderDataTable({
-  utils::read.csv(system.file(
+  data <- utils::read.csv(system.file(
     "extdata",
     "database.csv",
     package = "workflow.lipido"
   ))
+  data$class <- as.factor(data$class)
+  data
 }, server = isFALSE(getOption("shiny.testmode")),
   rownames = FALSE,
   selection = "none",

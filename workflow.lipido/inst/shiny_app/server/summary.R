@@ -68,6 +68,7 @@ summary_table_options <- list(
 #'
 #' @return `DataTable` with columns :
 #' \itemize{
+#'     \item class `character` cpd class
 #'     \item name `character` name of the compound
 #'     \item rt (min) `numeric` meanned rT
 #'     \item Diff rT (sec) `numeric` rT difference between observed &
@@ -102,36 +103,38 @@ output$summary_table <- DT::renderDataTable({
         }
         nsamples <- db_get_nsamples(db())
         spectra_ids <- without_na(unlist(
-            ann[, (ncol(ann) - nsamples - 1):ncol(ann)]))
+            ann[, (ncol(ann) - nsamples + 1):ncol(ann)]))
         spectra_infos <- db_get_spectra_infos(db(), spectra_ids)
 
-        ann <- summarise_ann(ann, spectra_infos)
-        ann[, 10:ncol(ann)][ann[, 10:ncol(ann)] == 0] <- NA
+        ann <- summarise_ann(ann, spectra_infos, nsamples)
+        ann[, (ncol(ann) - nsamples + 1):ncol(ann)][
+            ann[, (ncol(ann) - nsamples + 1):ncol(ann)] == 0] <- NA
         ann
     }, invalid = function(i) {
         print("########## check_data_mzdev")
         print(params)
         print(i)
         data.frame(matrix(, nrow = 0, ncol = 10, dimnames = list(c(),
-            c("name", "rT (min)", "Diff rT (sec)", "Adducts",
+            c("class", "name", "rT (min)", "Diff rT (sec)", "Adducts",
               "nSamples", "Most intense ion", "Best score (%)",
-              "Best m/z dev (mDa)", "Max iso", "X"))), check.names = FALSE)
+              "Best m/z dev (mDa)", "Max iso"))), check.names = FALSE)
     }, error = function(e) {
         print("########## check_data_mzdev")
         print(params)
         print(e)
         sweet_alert_error(e$message)
         data.frame(matrix(, nrow = 0, ncol = 10, dimnames = list(c(),
-             c("name", "rT (min)", "Diff rT (sec)", "Adducts",
+             c("class", "name", "rT (min)", "Diff rT (sec)", "Adducts",
                "nSamples", "Most intense ion", "Best score (%)",
-               "Best m/z dev (mDa)", "Max iso", "X"))), check.names = FALSE)
+               "Best m/z dev (mDa)", "Max iso"))), check.names = FALSE)
     })
+    nsamples <- db_get_nsamples(db())
     DT::formatCurrency(
         table = do.call(
             DT::datatable,
             c(list(data = ann), summary_table_options)
         ),
-        columns = 10:ncol(ann),
+        columns = (ncol(ann) - nsamples + 1):ncol(ann),
         mark = " ",
         digits = 0,
         currency = ""

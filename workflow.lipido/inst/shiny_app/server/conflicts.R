@@ -112,10 +112,13 @@ output$conflicts_table <- DT::renderDataTable({
                                  "best_npeak")]
 
         params$ann <- db_get_annotations(db(), names = conflict$name)
+        nsamples <- db_get_nsamples(db())
         ann <- params$ann[!params$ann$group_id %in% conflicts(), , drop = FALSE]
-        spectra_ids <- without_na(unlist(ann[, 14:ncol(ann)]))
+        spectra_ids <- without_na(unlist(
+            ann[, (ncol(ann) - nsamples + 1):ncol(ann)]
+        ))
         spectra_infos <- db_get_spectra_infos(db(), spectra_ids)
-        info_conflict <- summarise_ann(ann, spectra_infos)
+        info_conflict <- summarise_ann(ann, spectra_infos, nsamples)
         info_conflict <- info_conflict[, c("name", "Adducts", "nSamples")]
         conflict <- merge(conflict, info_conflict, all.x = TRUE)
 

@@ -326,23 +326,27 @@ plot_annotation_ms <- function(db, name) {
         stop("name must be only ONE compound")
     }
 
-    annotations <- db_get_annotations(db, names = name)
-    if (nrow(annotations) == 0) {
+    ann <- db_get_annotations(db, names = name)
+    if (nrow(ann) == 0) {
         return(plot_empty_MS(title = "Hybrid mass spectra"))
     }
-    spectra_infos <- db_get_spectra_infos(db)
+    nsamples <- db_get_nsamples(db)
+    spectra_ids <- without_na(unlist(
+        ann[, (ncol(ann) - nsamples + 1):ncol(ann)]
+    ))
+    spectra_infos <- db_get_spectra_infos(db, spectra_ids)
 
     # for each line (adduct) select the most intense spectra
-    annotation_int <- get_int_ann(annotations, spectra_infos)
-    spectras <- lapply(seq(nrow(annotations)), function(i)
+    ann_int <- get_int_ann(ann, spectra_infos, nsamples)
+    spectras <- lapply(seq(nrow(ann)), function(i)
         db_get_spectras(
             db,
-            annotations[i, which.max(
-                annotation_int[i, 9:ncol(annotation_int)]
-            ) + 13]
+            ann[i, which.max(
+                ann_int[i, (ncol(ann_int) - nsamples + 1):ncol(ann_int)]
+            ) + ncol(ann) - nsamples]
         )
     )
-    names(spectras) <- annotations$adduct
+    names(spectras) <- ann$adduct
     plot_composite_ms(spectras)
 }
 
@@ -399,10 +403,13 @@ plot_heatmap <- function(db, names) {
     if (ncol(ann) == 0) {
         return(plot_empty_heatmap())
     }
-    spectra_ids <- without_na(unlist(ann[, 14:ncol(ann)]))
+    nsamples <- db_get_nsamples(db)
+    spectra_ids <- without_na(unlist(
+        ann[, (ncol(ann) - nsamples + 1):ncol(ann)]
+    ))
     spectra_infos <- db_get_spectra_infos(db, spectra_ids)
 
-    int_ann <- summarise_ann(ann, spectra_infos)
+    int_ann <- summarise_ann(ann, spectra_infos, nsamples)
     int_ann <- merge(
         int_ann,
         data.frame(name = names),
@@ -412,16 +419,21 @@ plot_heatmap <- function(db, names) {
     plotly::add_trace(
         plot_empty_heatmap(),
         x = int_ann$name,
-        y = colnames(int_ann)[10:ncol(int_ann)],
-        z = t(int_ann[, 10:ncol(int_ann)]),
+        y = colnames(int_ann)[(ncol(int_ann) - nsamples + 1):ncol(int_ann)],
+        z = t(int_ann[, (ncol(int_ann) - nsamples + 1):ncol(int_ann)]),
         hoverinfo = "text",
         text = matrix(
             sprintf(
                 "sample: %s<br />cpd: %s<br />intensity: %s",
-                rep(colnames(int_ann)[10:ncol(int_ann)], times = nrow(int_ann)),
-                rep(int_ann$name, each = ncol(int_ann) - 9),
+                rep(colnames(int_ann)[
+                    (ncol(int_ann) - nsamples + 1):ncol(int_ann)
+                    ], times = nrow(int_ann)
+                ),
+                rep(int_ann$name, each = nsamples),
                 formatC(
-                    round(unlist(t(int_ann[, 10:ncol(int_ann)]))),
+                    round(unlist(t(
+                        int_ann[, (ncol(int_ann) - nsamples + 1):ncol(int_ann)]
+                    ))),
                     big.mark = " ",
                     format = "d"
                 )
@@ -591,7 +603,11 @@ plot_eic <- function(db, sample_name, name) {
     # get params used in process & load all the basepeaks for the compound name
     params <- db_get_params(db)
     adduct_names <- strsplit(params$ann$adduct_names, ";")[[1]]
-    chem_db <- load_db(adduct_names, params$ann$instrument, name)
+    chem_db <- load_chem_db(
+        adduct_names,
+        params$ann$instrument,
+        cpd_names = name
+    )
     chem_db <- chem_db[chem_db$iso == "M", , drop = FALSE]
 
     max_int <- 0
@@ -836,7 +852,11 @@ plot_mzdev <- function(db, sample_name, name, adduct_name) {
     if (ncol(params$ann) == 0) {
         return(p)
     }
-    chem_db <- load_db(adduct_name, params$ann$instrument, name)
+    chem_db <- load_chem_db(
+        adduct_name,
+        params$ann$instrument,
+        cpd_names = name
+    )
     chem_db <- chem_db[chem_db$iso == "M", ]
 
     # load file
@@ -946,7 +966,11 @@ plot_eic_mzdev <- function(db, sample_name, name) {
 
     adduct_names <- strsplit(params$ann$adduct_names, ";")[[1]]
     colors <- RColorBrewer::brewer.pal(length(adduct_names), "Set2")
-    chem_db <- load_db(adduct_names, params$ann$instrument, name)
+    chem_db <- load_chem_db(
+        adduct_names,
+        params$ann$instrument,
+        cpd_names = name
+    )
     chem_db <- chem_db[chem_db$iso == "M", , drop = FALSE]
 
     # load files

@@ -42,7 +42,7 @@
 
           ]
         ],
-        "container": "<table class=\"display\">\n  <thead>\n    <tr>\n      <th>name<\/th>\n      <th>rT (min)<\/th>\n      <th>Diff rT (sec)<\/th>\n      <th>Adducts<\/th>\n      <th>nSamples<\/th>\n      <th>Most intense ion<\/th>\n      <th>Best score (%)<\/th>\n      <th>Best m/z dev (mDa)<\/th>\n      <th>Max iso<\/th>\n      <th>X<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>",
+        "container": "<table class=\"display\">\n  <thead>\n    <tr>\n      <th>class<\/th>\n      <th>name<\/th>\n      <th>rT (min)<\/th>\n      <th>Diff rT (sec)<\/th>\n      <th>Adducts<\/th>\n      <th>nSamples<\/th>\n      <th>Most intense ion<\/th>\n      <th>Best score (%)<\/th>\n      <th>Best m/z dev (mDa)<\/th>\n      <th>Max iso<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>",
         "options": {
           "dom": "Bfrtip",
           "paging": true,
@@ -73,6 +73,10 @@
           ],
           "fixedColumns": 1,
           "columnDefs": [
+            {
+              "targets": 10,
+              "render": "function(data, type, row, meta) {\n    return type !== 'display' ? data : DTWidget.formatCurrency(data, \"\", 0, 3, \" \", \".\", true);\n  }"
+            },
             {
               "targets": 9,
               "render": "function(data, type, row, meta) {\n    return type !== 'display' ? data : DTWidget.formatCurrency(data, \"\", 0, 3, \" \", \".\", true);\n  }"
@@ -108,6 +112,7 @@
       "evals": [
         "options.buttons.1.action",
         "options.columnDefs.0.render",
+        "options.columnDefs.1.render",
         "options.initComplete"
       ],
       "jsHooks": [

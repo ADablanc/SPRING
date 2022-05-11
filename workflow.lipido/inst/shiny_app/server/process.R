@@ -54,6 +54,14 @@ shiny::updateSelectInput(
     selected = "QTOF_XevoG2-S_R25000@200"
 )
 
+shinyWidgets::updatePickerInput(
+    session,
+    inputId = "process_cpd_classes",
+    label = "Compound classes",
+    choices = get_cpd_classes(),
+    selected = get_cpd_classes()
+)
+
 shiny::updateNumericInput(
     session,
     inputId = "process_cores",
@@ -133,10 +141,12 @@ shiny::updateNumericInput(
 #' @param input$process_abd_tol `numeric(1)` relative abundance tolerance, each
 #'  peak which have an higher difference of relative abundance with its
 #'  corresponding theoretical peak will be discarded
-#' @param input$process_adducts `character(1)` adduct names from the enviPat
+#' @param input$process_adducts `character vector` adduct names from the enviPat
 #'  package
 #' @param input$process_instrument `character(1)` instrument names from the
 #'  enviPat package
+#' @param input$process_cpd_classes `character vector` compound classes to
+#' restrict the annotation from the database
 shiny::observeEvent(input$process_launch, {
     params <- list(
         process_files = input$process_files
@@ -184,7 +194,8 @@ shiny::observeEvent(input$process_launch, {
             `rT tolerance` = input$process_rt_tol,
             `Relative abundance tolerance` = input$process_abd_tol,
             Adducts = input$process_adducts,
-            Instrument = input$process_instrument
+            Instrument = input$process_instrument,
+            `Compound classes` = input$process_cpd_classes
         )
         inputs <- paste("process", c("cores", "files", "filter_mz_min",
             "filter_mz_max", "filter_rt_min", "filter_rt_max", "ppm",
@@ -193,7 +204,8 @@ shiny::observeEvent(input$process_launch, {
             "first_baseline_check", "response", "dist_fun",
             "gap_init", "gap_extend", "factor_diag", "factor_gap",
             "local_alignment", "init_penalty", "bw", "mzwid", "mda_tol",
-            "rt_tol", "abd_tol", "adducts", "instrument"), sep = "_")
+            "rt_tol", "abd_tol", "adducts", "instrument", "cpd_classes"),
+            sep = "_")
 
         # check which are missing
         conditions <- !is.na(params) & lengths(params) > 0
@@ -272,7 +284,8 @@ shiny::observeEvent(input$process_launch, {
             rt_tol = params[["rT tolerance"]],
             abd_tol = params[["Relative abundance tolerance"]],
             adduct_names = params[["Adducts"]],
-            instrument = params[["Instrument"]]
+            instrument = params[["Instrument"]],
+            cpd_classes = params[["Compound classes"]]
         )
 
         shinyWidgets::progressSweetAlert(

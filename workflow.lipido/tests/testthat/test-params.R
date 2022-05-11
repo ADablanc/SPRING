@@ -35,9 +35,9 @@ testthat::test_that("filter_param", {
         mz_range = c(300, 1000),
         rt_range = c(.7 * 60, 6.3 * 60)
     )
-    testthat::expect_equal(obj, FilterParam())
     testthat::expect_equal(obj@mz_range, c(300, 1000))
     testthat::expect_equal(obj@rt_range, c(.7 * 60, 6.3 * 60))
+
     testthat::expect_equal(
         params_to_dataframe(obj),
         data.frame(
@@ -123,11 +123,64 @@ testthat::test_that("annotation_param", {
             da_tol = .015,
             rt_tol = 10,
             abd_tol = 25,
-            adduct_names = "[M+H]+",
+            adduct_names = c(
+                "[M+Na]+",
+                "[M+NH4]+",
+                "[M+H-H2O]+",
+                "[M+H]+",
+                "[M-H]-"
+            ),
             instrument = "orbitrap"
         ),
         "orbitrap doesn't exists in the instrument list"
     )
+    testthat::expect_error(
+        AnnotationParam(
+            da_tol = 0.015,
+            rt_tol = 10,
+            abd_tol = 25,
+            adduct_names = c(
+                "[M+Na]+",
+                "[M+NH4]+",
+                "[M+H-H2O]+",
+                "[M+H]+",
+                "[M-H]-"
+            ),
+            instrument = "QTOF_XevoG2-S_R25000@200",
+            cpd_classes = 1
+        ),
+        "got class \"numeric\", should be or extend class \"character\""
+    )
+    testthat::expect_error(
+        AnnotationParam(
+            da_tol = 0.015,
+            rt_tol = 10,
+            abd_tol = 25,
+            adduct_names = c(
+                "[M+Na]+",
+                "[M+NH4]+",
+                "[M+H-H2O]+",
+                "[M+H]+",
+                "[M-H]-"
+            ),
+            instrument = "QTOF_XevoG2-S_R25000@200",
+            cpd_classes = c("OP", "CC")
+        ),
+        "OP and CC doesn't exists in database"
+    )
+    obj <- AnnotationParam(
+        da_tol = 0.015,
+        rt_tol = 10,
+        abd_tol = 25,
+        instrument = "QTOF_XevoG2-S_R25000@200"
+    )
+    testthat::expect_equal(obj, AnnotationParam())
+    testthat::expect_equal(obj@da_tol, .015)
+    testthat::expect_equal(obj@rt_tol, 10)
+    testthat::expect_equal(obj@abd_tol, 25)
+    testthat::expect_equal(obj@adduct_names, adducts$Name)
+    testthat::expect_equal(obj@instrument, "QTOF_XevoG2-S_R25000@200")
+    testthat::expect_equal(obj@cpd_classes, get_cpd_classes())
     obj <- AnnotationParam(
         da_tol = 0.015,
         rt_tol = 10,
@@ -139,9 +192,9 @@ testthat::test_that("annotation_param", {
             "[M+H]+",
             "[M-H]-"
         ),
-        instrument = "QTOF_XevoG2-S_R25000@200"
+        instrument = "QTOF_XevoG2-S_R25000@200",
+        cpd_classes = c("LPC", "Cer", "FA")
     )
-    testthat::expect_equal(obj, AnnotationParam())
     testthat::expect_equal(obj@da_tol, .015)
     testthat::expect_equal(obj@rt_tol, 10)
     testthat::expect_equal(obj@abd_tol, 25)
@@ -150,6 +203,7 @@ testthat::test_that("annotation_param", {
         c("[M+Na]+", "[M+NH4]+", "[M+H-H2O]+", "[M+H]+", "[M-H]-")
     )
     testthat::expect_equal(obj@instrument, "QTOF_XevoG2-S_R25000@200")
+    testthat::expect_equal(obj@cpd_classes, c("LPC", "Cer", "FA"))
     testthat::expect_error(
         restrict_adducts_polarity(obj, "maybe"),
         "polarity must be set to \"positive\" or \"negative\""
@@ -159,7 +213,8 @@ testthat::test_that("annotation_param", {
         rt_tol = 10,
         abd_tol = 25,
         adduct_names = c("[M+H]+", "[M+NH4]+", "[M+Na]+", "[M+H-H2O]+"),
-        instrument = "QTOF_XevoG2-S_R25000@200"
+        instrument = "QTOF_XevoG2-S_R25000@200",
+        cpd_classes = c("LPC", "Cer", "FA")
     )
     testthat::expect_equal(
         restrict_adducts_polarity(obj, "positive"),
@@ -170,7 +225,8 @@ testthat::test_that("annotation_param", {
         rt_tol = 10,
         abd_tol = 25,
         adduct_names = "[M-H]-",
-        instrument = "QTOF_XevoG2-S_R25000@200"
+        instrument = "QTOF_XevoG2-S_R25000@200",
+        cpd_classes = c("LPC", "Cer", "FA")
     )
     testthat::expect_equal(
         restrict_adducts_polarity(obj, "negative"),
@@ -186,7 +242,8 @@ testthat::test_that("annotation_param", {
                 c("[M+Na]+", "[M+NH4]+", "[M+H-H2O]+", "[M+H]+", "[M-H]-"),
                 collapse = ";"
             ),
-            instrument = "QTOF_XevoG2-S_R25000@200"
+            instrument = "QTOF_XevoG2-S_R25000@200",
+            cpd_classes = paste(c("LPC", "Cer", "FA"), collapse = ";")
         )
     )
 })
@@ -338,7 +395,8 @@ testthat::test_that("check_ms_process_args", {
             "[M+H]+",
             "[M-H]-"
         ),
-        instrument = "QTOF_XevoG2-S_R25000@200"
+        instrument = "QTOF_XevoG2-S_R25000@200",
+        cpd_classes = c("LPC", "Cer", "FA")
     )
 
     testthat::expect_error(

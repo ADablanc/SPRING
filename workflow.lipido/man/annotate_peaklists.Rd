@@ -24,6 +24,7 @@ annotate_peaklists(xset, ann_params, pb_fct = NULL, sigma = 6, perfwhm = 0.6)
     it contains the columns :
     \itemize{
         \item group_id `integer` group ID
+        \item class `character` cpd class
         \item name `character` name
         \item formula `character` chemical formula
         \item adduct `character` adduct form

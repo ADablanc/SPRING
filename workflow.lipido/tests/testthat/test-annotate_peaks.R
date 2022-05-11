@@ -9,7 +9,8 @@ testthat::test_that("annotate peaks", {
             "[M+H-H2O]+",
             "[M+H]+"
         ),
-        instrument = "QTOF_XevoG2-S_R25000@200"
+        instrument = "QTOF_XevoG2-S_R25000@200",
+        cpd_classes = c("LPC", "Cer", "FA")
     )
     xset <- methods::new("xcmsSet")
     sample_names <- c("220221CCM_global_POS_01_ssleu_filtered",
@@ -25,12 +26,12 @@ testthat::test_that("annotate peaks", {
     testthat::expect_equal(
         xset@ann,
         data.frame(
-            matrix(, nrow = 0, ncol = 13 + length(sample_names),
+            matrix(, nrow = 0, ncol = 14 + length(sample_names),
                    dimnames = list(
-                c(), c("group_id", "name", "formula", "adduct", "ion_formula",
-                       "rtdiff", "rt", "rtmin", "rtmax", "nsamples",
-                       "best_score", "best_deviation_mz", "best_npeak",
-                       sample_names))
+                c(), c("group_id", "class", "name", "formula", "adduct",
+                       "ion_formula", "rtdiff", "rt", "rtmin", "rtmax",
+                       "nsamples", "best_score", "best_deviation_mz",
+                       "best_npeak", sample_names))
             ),
             check.names = FALSE
         )
@@ -174,9 +175,9 @@ testthat::test_that("annotate peaks", {
     testthat::expect_equal(
         xset@ann,
         data.frame(
-            matrix(, nrow = 0, ncol = 13 + length(sample_names),
+            matrix(, nrow = 0, ncol = 14 + length(sample_names),
                    dimnames = list(
-                       c(), c("group_id", "name", "formula", "adduct",
+                       c(), c("group_id", "class", "name", "formula", "adduct",
                               "ion_formula", "rtdiff", "rt", "rtmin", "rtmax",
                               "nsamples", "best_score", "best_deviation_mz",
                               "best_npeak", sample_names))
@@ -199,16 +200,48 @@ testthat::test_that("annotate peaks", {
         )))
     )
 
-    # 3rd test: no hits
+    # 4th test : restrict too much on compound class
+    ann_params_no_hits <- ann_params
+    ann_params_no_hits@cpd_classes <- "IPO"
+    xset <- annotate_peaklists(xset, ann_params_no_hits)
+    testthat::expect_equal(
+        xset@ann,
+        data.frame(
+            matrix(, nrow = 0, ncol = 14 + length(sample_names),
+                   dimnames = list(
+                       c(), c("group_id", "class", "name", "formula", "adduct",
+                              "ion_formula", "rtdiff", "rt", "rtmin", "rtmax",
+                              "nsamples", "best_score", "best_deviation_mz",
+                              "best_npeak", sample_names))
+            ),
+            check.names = FALSE
+        )
+    )
+    testthat::expect_equal(
+        xset@spectra_infos,
+        data.frame(matrix(, nrow = 0, ncol = 8, dimnames = list(
+            c(), c("spectra_id", "score", "deviation_mz", "npeak",
+                   "basepeak_int", "sum_int", "sample", "rt")
+        )))
+    )
+    testthat::expect_equal(
+        xset@spectras,
+        data.frame(matrix(, nrow = 0, ncol = 9, dimnames = list(
+            c(), c("spectra_id", "feature_id", "mz", "int", "abd",
+                   "ion_id_theo", "mz_theo", "abd_theo", "iso_theo")
+        )))
+    )
+
+    # 5th test: too restrictive on m/z tolerance
     ann_params_no_hits <- ann_params
     ann_params_no_hits@da_tol <- 10**-9
     xset <- annotate_peaklists(xset, ann_params_no_hits)
     testthat::expect_equal(
         xset@ann,
         data.frame(
-            matrix(, nrow = 0, ncol = 13 + length(sample_names),
+            matrix(, nrow = 0, ncol = 14 + length(sample_names),
                    dimnames = list(
-                       c(), c("group_id", "name", "formula", "adduct",
+                       c(), c("group_id", "class", "name", "formula", "adduct",
                               "ion_formula", "rtdiff", "rt", "rtmin", "rtmax",
                               "nsamples", "best_score", "best_deviation_mz",
                               "best_npeak", sample_names))
@@ -231,125 +264,162 @@ testthat::test_that("annotate peaks", {
         )))
     )
 
-    # 4th test: normal
-    xset <- annotate_peaklists(xset, ann_params)
+    # 6th test : with a rT tolerance too restrictive
+    ann_params_no_hits <- ann_params
+    ann_params_no_hits@rt_tol <- 10**-9
+    xset <- annotate_peaklists(xset, ann_params_no_hits)
     testthat::expect_equal(
         xset@ann,
         data.frame(
-            group_id = c(1, 1, 2, 2, 9, 9, 10, 11),
-            name = c("LPC 11:0", "LPC 11a:0", "LPC 11:0", "LPC 11a:0",
-                     "LPC 11:0", "LPC 11a:0", "Cer (d18:1/C12:0)",
-                     "Cer (d18:1/C12:0)"),
-            formula = c("C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
-                        "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
-                        "C30H59N1O3", "C30H59N1O3"),
-            adduct = c("[M+H-H2O]+", "[M+H-H2O]+", "[M+H]+", "[M+H]+",
-                       "[M+Na]+", "[M+Na]+", "[M+H-H2O]+", "[M+Na]+"),
-            ion_formula = c("C19H39N1O6P1", "C19H39N1O6P1", "C19H41N1O7P1",
-                            "C19H41N1O7P1", "C19H40N1O7P1Na1",
-                            "C19H40N1O7P1Na1", "C30H58N1O2", "C30H59N1O3Na1"),
-            rtdiff = c(9.52199999999993, 4.72199999999998, 8.99149999999997,
-                       4.19150000000002, 8.99299999999994, 4.19299999999998,
-                       5.97300000000001, 5.70850000000002),
-            rt = c(286.278, 286.278, 286.8085, 286.8085, 286.807, 286.807,
-                   201.573, 201.3085),
-            rtmin = c(284.692, 284.692, 284.692, 284.692, 282.048, 282.048,
-                      196.386, 178.178),
-            rtmax = c(287.864, 287.864, 292.098, 292.098, 292.095, 292.095,
-                      206.729, 215.038),
-            nsamples = c(1, 1, 2, 2, 1, 1, 2, 2),
-            best_score = c(79.8211975097656, 79.8211975097656, 95.1391906738281,
-                           95.1391906738281, 79.6432037353516, 79.6432037353516,
-                           71.3979721069336, 89.4345550537109),
-            best_deviation_mz = c(0.0003662109375, 0.0003662109375,
-                                  0.0008544921875, 0.0008544921875,
-                                  0.000701904296875, 0.000701904296875,
-                                  0.0010986328125, 0.00140380859375),
-            best_npeak = c(1, 1, 2, 2, 1, 1, 1, 2),
-            `220221CCM_global_POS_01_ssleu_filtered` = c(NA, NA, 2, 2, NA, NA,
-                                                         5, 7),
-            `220221CCM_global_POS_02_ssleu_filtered` = c(1, 1, 3, 3, 4, 4, 6,
-                                                         8),
-            `220221CCM_global_POS_03_ssleu_filtered` = c(NA, NA, NA, NA, NA, NA,
-                                                         NA, NA),
+            matrix(, nrow = 0, ncol = 14 + length(sample_names),
+                   dimnames = list(
+                       c(), c("group_id", "class", "name", "formula", "adduct",
+                              "ion_formula", "rtdiff", "rt", "rtmin", "rtmax",
+                              "nsamples", "best_score", "best_deviation_mz",
+                              "best_npeak", sample_names))
+            ),
             check.names = FALSE
         )
     )
     testthat::expect_equal(
         xset@spectra_infos,
-        data.frame(
-            spectra_id = c(1, 2, 3, 4, 5, 6, 7, 8),
-            score = c(79.8211975097656, 94.9317855834961, 95.1391906738281,
-                      79.6432037353516, 71.3979721069336, 71.3979721069336,
-                      89.4345550537109, 88.4888916015625),
-            deviation_mz = c(0.0003662109375, 0.000457763671875,
-                             0.0008544921875, 0.000701904296875,
-                             0.0010986328125, 0.001251220703125,
-                             0.00140380859375, 0.0017852783203125),
-            npeak = c(1, 2, 2, 1, 1, 1, 2, 2),
-            basepeak_int = c(88824.635233072, 6214416.44108707,
-                             6201250.27168528, 288290.748778874,
-                             4945601.93026269, 5689144.27927454,
-                             1448292.29379181, 1662831.19267642),
-            sum_int = c(88824.635233072, 7385056.39979801, 7388017.8361341,
-                        288290.748778874, 4945601.93026269, 5689144.27927454,
-                        1849363.52087931, 2106914.27998355),
-            sample = c("220221CCM_global_POS_02_ssleu_filtered",
-                       "220221CCM_global_POS_01_ssleu_filtered",
-                       "220221CCM_global_POS_02_ssleu_filtered",
-                       "220221CCM_global_POS_02_ssleu_filtered",
-                       "220221CCM_global_POS_01_ssleu_filtered",
-                       "220221CCM_global_POS_02_ssleu_filtered",
-                       "220221CCM_global_POS_01_ssleu_filtered",
-                       "220221CCM_global_POS_02_ssleu_filtered"),
-            rt = c(286.278, 286.81, 286.807, 286.807, 197.973, 205.173, 197.444,
-                   205.173)
-        )
+        data.frame(matrix(, nrow = 0, ncol = 8, dimnames = list(
+            c(), c("spectra_id", "score", "deviation_mz", "npeak",
+                   "basepeak_int", "sum_int", "sample", "rt")
+        )))
     )
     testthat::expect_equal(
         xset@spectras,
-        data.frame(
-            spectra_id = c(1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5,
-                           5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8),
-            feature_id = c(NA, NA, NA, 17, NA, NA, 5, 4, NA, NA, 20, 19, NA, NA,
-                           18, NA, 1, NA, NA, NA, 14, NA, NA, NA, 3, 2, NA, NA,
-                           13, 15, NA, NA),
-            mz = c(NA, NA, NA, 408.251325886321, NA, NA, 426.261913381751,
-                   427.265348519813, NA, NA, 426.262333104945, 427.265704881008,
-                   NA, NA, 448.244170162955, NA, 464.447304014051, NA, NA, NA,
-                   464.447454557257, NA, NA, NA, 505.443534603,
-                   504.440032161331, NA, NA, 505.44383474773, 504.44048100644,
-                   NA, NA),
-            int = c(NA, NA, NA, 88824.635233072, NA, NA, 6214416.44108707,
-                    1170639.95871094, NA, NA, 6201250.27168528,
-                    1186767.56444882, NA, NA, 288290.748778874, NA,
-                    4945601.93026269, NA, NA, NA, 5689144.27927454, NA, NA, NA,
-                    401071.227087501, 1448292.29379181, NA, NA,
-                    444083.087307128, 1662831.19267642, NA, NA),
-            abd = c(NA, NA, NA, 100, NA, NA, 100, 18.8374881182917, NA, NA, 100,
-                    19.1375531135643, NA, NA, 100, NA, 100, NA, NA, NA, 100, NA,
-                    NA, NA, 27.6926991054718, 100, NA, NA, 26.7064443620613,
-                    100, NA, NA),
-            ion_id_theo = c(62, 62, 62, 62, 66, 66, 66, 66, 66, 66, 66, 66, 64,
-                            64, 64, 64, 278, 278, 278, 278, 278, 278, 278, 278,
-                            281, 281, 281, 281, 281, 281, 281, 281),
-            mz_theo = c(409.25427, 410.25672, 411.25935, 408.25095, 428.26719,
-                        429.26984, 426.26152, 427.26484, 428.26719, 429.26984,
-                        426.26152, 427.26484, 450.24914, 451.25178, 448.24346,
-                        449.24678, 464.44621, 465.44955, 466.45272, 467.45576,
-                        464.44621, 465.44955, 466.45272, 467.45576, 505.44206,
-                        504.43872, 506.44516, 507.44809, 505.44206, 504.43872,
-                        506.44516, 507.44809),
-            abd_theo = c(21.65, 3.25, 0.38, 100, 3.46, 0.42, 100, 21.7, 3.46,
-                         0.42, 100, 21.7, 3.45, 0.42, 100, 21.69, 100, 33.55,
-                         5.86, 0.65, 100, 33.55, 5.86, 0.65, 33.67, 100, 6.07,
-                         0.72, 33.67, 100, 6.07, 0.72),
-            iso_theo = c("M+1", "M+2", "M+3", "M", "M+2", "M+3", "M", "M+1",
-                         "M+2", "M+3", "M", "M+1", "M+2", "M+3", "M", "M+1",
-                         "M", "M+1", "M+2", "M+3", "M", "M+1", "M+2", "M+3",
-                         "M+1", "M", "M+2", "M+3", "M+1", "M", "M+2", "M+3")
-        )
+        data.frame(matrix(, nrow = 0, ncol = 9, dimnames = list(
+            c(), c("spectra_id", "feature_id", "mz", "int", "abd",
+                   "ion_id_theo", "mz_theo", "abd_theo", "iso_theo")
+        )))
     )
+
+
+    # 7th test : with a restriction on compound class
+    ann <- data.frame(
+        group_id = c(1, 1, 2, 2, 9, 9, 10, 11),
+        class = c(rep("LPC", 6), rep("Cer", 2)),
+        name = c(rep(c("LPC 11:0", "LPC 11a:0"), times = 3),
+                 rep("Cer (d18:1/C12:0)", 2)),
+        formula = c(rep("C19H40N1O7P1", 6), rep("C30H59N1O3", 2)),
+        adduct = c(rep(c("[M+H-H2O]+", "[M+H]+", "[M+Na]+"), each = 2),
+                   "[M+H-H2O]+", "[M+Na]+"),
+        ion_formula = c(rep("C19H39N1O6P1", 2), rep("C19H41N1O7P1", 2),
+                        rep("C19H40N1O7P1Na1", 2), "C30H58N1O2",
+                        "C30H59N1O3Na1"),
+        rtdiff = c(9.52199999999993, 4.72199999999998, 8.99149999999997,
+                   4.19150000000002, 8.99299999999994, 4.19299999999998,
+                   5.97300000000001, 5.70850000000002),
+        rt = c(286.278, 286.278, 286.8085, 286.8085, 286.807, 286.807,
+               201.573, 201.3085),
+        rtmin = c(284.692, 284.692, 284.692, 284.692, 282.048, 282.048,
+                  196.386, 178.178),
+        rtmax = c(287.864, 287.864, 292.098, 292.098, 292.095, 292.095,
+                  206.729, 215.038),
+        nsamples = c(1, 1, 2, 2, 1, 1, 2, 2),
+        best_score = c(79.8211975097656, 79.8211975097656, 95.1391906738281,
+                       95.1391906738281, 79.6432037353516, 79.6432037353516,
+                       71.3979721069336, 89.4345550537109),
+        best_deviation_mz = c(0.0003662109375, 0.0003662109375,
+                              0.0008544921875, 0.0008544921875,
+                              0.000701904296875, 0.000701904296875,
+                              0.0010986328125, 0.00140380859375),
+        best_npeak = c(1, 1, 2, 2, 1, 1, 1, 2),
+        `220221CCM_global_POS_01_ssleu_filtered` = c(NA, NA, 2, 2, NA, NA,
+                                                     5, 7),
+        `220221CCM_global_POS_02_ssleu_filtered` = c(1, 1, 3, 3, 4, 4, 6,
+                                                     8),
+        `220221CCM_global_POS_03_ssleu_filtered` = c(NA, NA, NA, NA, NA, NA,
+                                                     NA, NA),
+        check.names = FALSE
+    )
+    spectra_infos <- data.frame(
+        spectra_id = c(1, 2, 3, 4, 5, 6, 7, 8),
+        score = c(79.8211975097656, 94.9317855834961, 95.1391906738281,
+                  79.6432037353516, 71.3979721069336, 71.3979721069336,
+                  89.4345550537109, 88.4888916015625),
+        deviation_mz = c(0.0003662109375, 0.000457763671875,
+                         0.0008544921875, 0.000701904296875,
+                         0.0010986328125, 0.001251220703125,
+                         0.00140380859375, 0.0017852783203125),
+        npeak = c(1, 2, 2, 1, 1, 1, 2, 2),
+        basepeak_int = c(88824.635233072, 6214416.44108707,
+                         6201250.27168528, 288290.748778874,
+                         4945601.93026269, 5689144.27927454,
+                         1448292.29379181, 1662831.19267642),
+        sum_int = c(88824.635233072, 7385056.39979801, 7388017.8361341,
+                    288290.748778874, 4945601.93026269, 5689144.27927454,
+                    1849363.52087931, 2106914.27998355),
+        sample = c("220221CCM_global_POS_02_ssleu_filtered",
+                   "220221CCM_global_POS_01_ssleu_filtered",
+                   "220221CCM_global_POS_02_ssleu_filtered",
+                   "220221CCM_global_POS_02_ssleu_filtered",
+                   "220221CCM_global_POS_01_ssleu_filtered",
+                   "220221CCM_global_POS_02_ssleu_filtered",
+                   "220221CCM_global_POS_01_ssleu_filtered",
+                   "220221CCM_global_POS_02_ssleu_filtered"),
+        rt = c(286.278, 286.81, 286.807, 286.807, 197.973, 205.173, 197.444,
+               205.173)
+    )
+    spectras <- data.frame(
+        spectra_id = c(1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5,
+                       5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8),
+        feature_id = c(NA, NA, NA, 17, 5, 4, NA, NA, 20, 19, NA, NA, 18, NA, NA,
+                       NA, NA, 1, NA, NA, NA, 14, NA, NA, NA, 2, 3, NA, NA, 15,
+                       13, NA),
+        mz = c(NA, NA, NA, 408.251325886321, 426.261913381751, 427.265348519813,
+               NA, NA, 426.262333104945, 427.265704881008, NA, NA,
+               448.244170162955, NA, NA, NA, NA, 464.447304014051, NA, NA, NA,
+               464.447454557257, NA, NA, NA, 504.440032161331, 505.443534603,
+               NA, NA, 504.44048100644, 505.44383474773, NA),
+        int = c(NA, NA, NA, 88824.635233072, 6214416.44108707, 1170639.95871094,
+                NA, NA, 6201250.27168528, 1186767.56444882, NA, NA,
+                288290.748778874, NA, NA, NA, NA, 4945601.93026269, NA, NA, NA,
+                5689144.27927454, NA, NA, NA, 1448292.29379181,
+                401071.227087501, NA, NA, 1662831.19267642, 444083.087307128,
+                NA),
+        abd = c(NA, NA, NA, 100, 100, 18.8374881182917, NA, NA, 100,
+                19.1375531135643, NA, NA, 100, NA, NA, NA, NA, 100, NA, NA, NA,
+                100, NA, NA, NA, 100, 27.6926991054718, NA, NA, 100,
+                26.7064443620613, NA),
+        ion_id_theo = c(50, 50, 50, 50, 54, 54, 54, 54, 54, 54, 54, 54, 52, 52,
+                        52, 52, 212, 212, 212, 212, 212, 212, 212, 212, 213,
+                        213, 213, 213, 213, 213, 213, 213),
+        mz_theo = c(409.25427, 410.25672, 411.25935, 408.25095, 426.26152,
+                    427.26484, 428.26719, 429.26984, 426.26152, 427.26484,
+                    428.26719, 429.26984, 448.24346, 449.24678, 450.24914,
+                    451.25178, 466.45272, 464.44621, 465.44955, 467.45576,
+                    466.45272, 464.44621, 465.44955, 467.45576, 506.44516,
+                    504.43872, 505.44206, 507.44809, 506.44516, 504.43872,
+                    505.44206, 507.44809),
+        abd_theo = c(21.65, 3.25, 0.38, 100, 100, 21.7, 3.46, 0.42, 100, 21.7,
+                     3.46, 0.42, 100, 21.69, 3.45, 0.42, 5.86, 100, 33.55, 0.65,
+                     5.86, 100, 33.55, 0.65, 6.07, 100, 33.67, 0.72, 6.07, 100,
+                     33.67, 0.72),
+        iso_theo = c("M+1", "M+2", "M+3", "M", "M", "M+1", "M+2", "M+3", "M",
+                     "M+1", "M+2", "M+3", "M", "M+1", "M+2", "M+3", "M+2", "M",
+                     "M+1", "M+3", "M+2", "M", "M+1", "M+3", "M+2", "M", "M+1",
+                     "M+3", "M+2", "M", "M+1", "M+3")
+    )
+    ann_params2 <- ann_params
+    ann_params2@cpd_classes <- "LPC"
+    xset <- annotate_peaklists(xset, ann_params2)
+    testthat::expect_equal(xset@ann, ann[1:6, ])
+    testthat::expect_equal(xset@spectra_infos, spectra_infos[1:4, ])
+    testthat::expect_equal(
+        xset@spectras[, -which(colnames(xset@spectras) == "ion_id_theo")],
+        data.frame(spectras[
+            c(4, 1:3, 5:12, 14, 13, 15:16),
+            -which(colnames(xset@spectras) == "ion_id_theo")
+        ], row.names = NULL)
+    )
+
+    xset <- annotate_peaklists(xset, ann_params)
+    testthat::expect_equal(xset@ann, ann)
+    testthat::expect_equal(xset@spectra_infos, spectra_infos)
+    testthat::expect_equal(xset@spectras, spectras)
 })
 
 testthat::test_that("filtrate annotations", {
@@ -357,9 +427,9 @@ testthat::test_that("filtrate annotations", {
                       "220221CCM_global_POS_02_ssleu_filtered",
                       "220221CCM_global_POS_03_ssleu_filtered")
     empty_ann <- data.frame(
-        matrix(, nrow = 0, ncol = 13 + length(sample_names),
+        matrix(, nrow = 0, ncol = 14 + length(sample_names),
                dimnames = list(
-                   c(), c("group_id", "name", "formula", "adduct",
+                   c(), c("group_id", "class", "name", "formula", "adduct",
                           "ion_formula", "rtdiff", "rt", "rtmin", "rtmax",
                           "nsamples", "best_score", "best_deviation_mz",
                           "best_npeak", sample_names))
@@ -367,13 +437,14 @@ testthat::test_that("filtrate annotations", {
         check.names = FALSE
     )
     testthat::expect_equal(
-        filtrate_ann(empty_ann, data.frame()),
+        filtrate_ann(empty_ann, data.frame(), nsamples = 3),
         empty_ann
     )
 
     # check if only compound seen with only one adduct
     ann <- data.frame(
         group_id = 1,
+        class = "LPC",
         name = "LPC 11:0",
         formula = "C19H40N1O7P1",
         adduct = "[M+H-H2O]+",
@@ -402,7 +473,7 @@ testthat::test_that("filtrate annotations", {
         rt = 286.278
     )
     testthat::expect_equal(
-        filtrate_ann(ann, spectra_infos),
+        filtrate_ann(ann, spectra_infos, nsamples = 3),
         ann
     )
 
@@ -413,6 +484,7 @@ testthat::test_that("filtrate annotations", {
     # the [M+H-H2O]+ is kept cause the rT is at 286 sec
     ann <- data.frame(
         group_id = c(2, 1, 9),
+        class = rep("LPC", 3),
         name = c("LPC 11:0", "LPC 11:0", "LPC 11:0"),
         formula = c("C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1"),
         adduct = c("[M+H]+", "[M+H-H2O]+", "[M+Na]+"),
@@ -450,7 +522,7 @@ testthat::test_that("filtrate annotations", {
         rt = c(286.278, 286.81, 286.807, 286.807)
     )
     testthat::expect_equal(
-        filtrate_ann(ann, spectra_infos),
+        filtrate_ann(ann, spectra_infos, nsamples = 3),
         ann[1:2, ]
     )
 
@@ -460,6 +532,7 @@ testthat::test_that("filtrate annotations", {
         filtrate_ann(
             data.frame(
                 group_id = c(1, 2, 3),
+                class = rep("LPC", 3),
                 name = c("LPC 11:0", "LPC 11:0", "LPC 11:0"),
                 formula = c("C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1"),
                 adduct = c("[M+H]+", "[M+H]+", "[M+Na]+"),
@@ -494,10 +567,12 @@ testthat::test_that("filtrate annotations", {
                            "220221CCM_global_POS_02_ssleu_filtered",
                            "220221CCM_global_POS_02_ssleu_filtered"),
                 rt = c(286.81, 286.807, 286.807)
-            )
+            ),
+            nsamples = 3
         ),
         data.frame(
             group_id = c(2, 3),
+            class = rep("LPC", 2),
             name = c("LPC 11:0", "LPC 11:0"),
             formula = c("C19H40N1O7P1", "C19H40N1O7P1"),
             adduct = c("[M+H]+", "[M+Na]+"),
@@ -523,6 +598,7 @@ testthat::test_that("filtrate annotations", {
         filtrate_ann(
             data.frame(
                 group_id = c(1, 2, 3),
+                class = rep("LPC", 3),
                 name = c("LPC 11:0", "LPC 11:0", "LPC 11:0"),
                 formula = c("C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1"),
                 adduct = c("[M+H]+", "[M+H]+", "[M+Na]+"),
@@ -559,10 +635,12 @@ testthat::test_that("filtrate annotations", {
                            "220221CCM_global_POS_02_ssleu_filtered",
                            "220221CCM_global_POS_02_ssleu_filtered"),
                 rt = c(286.81, 286.807, 286.807, 286.807)
-            )
+            ),
+            nsamples = 3
         ),
         data.frame(
             group_id = c(2, 3),
+            class = rep("LPC", 2),
             name = c("LPC 11:0", "LPC 11:0"),
             formula = c("C19H40N1O7P1", "C19H40N1O7P1"),
             adduct = c("[M+H]+", "[M+Na]+"),
@@ -585,6 +663,7 @@ testthat::test_that("filtrate annotations", {
 testthat::test_that("split conflicts", {
     ann <- data.frame(
         group_id = c(1, 1, 10, 11),
+        class = c(rep("LPC", 2), rep("Cer", 2)),
         name = c("LPC 11a:0", "LPC 11:0", "Cer (d18:1/C12:0)",
                  "Cer (d18:1/C12:0)"),
         formula = c("C19H40N1O7P1", "C19H40N1O7P1", "C30H59N1O3", "C30H59N1O3"),
@@ -644,13 +723,14 @@ testthat::test_that("get int in annotation df", {
     testthat::expect_equal(
         get_int_ann(
             data.frame(),
-            data.frame()
+            data.frame(),
+            nsamples = 0
         ),
-        data.frame(matrix(, nrow = 0, ncol = 8,
+        data.frame(matrix(, nrow = 0, ncol = 9,
             dimnames = list(c(),
-                          c("name", "rT (min)", "Diff rT (sec)", "Adduct",
-                            "nSamples", "Best score (%)", "Best m/z dev (mDa)",
-                            "Max iso")
+                          c("class", "name", "rT (min)", "Diff rT (sec)",
+                            "Adduct", "nSamples", "Best score (%)",
+                            "Best m/z dev (mDa)", "Max iso")
             )
         ), check.names = FALSE)
     )
@@ -658,6 +738,7 @@ testthat::test_that("get int in annotation df", {
         get_int_ann(
             data.frame(
                 group_id = 1,
+                class = "LPC",
                 name = "LPC 11:0",
                 formula = "C19H40N1O7P1",
                 adduct = "[M+H-H2O]+",
@@ -684,9 +765,11 @@ testthat::test_that("get int in annotation df", {
                 sum_int = 88824.635233072,
                 sample = "220221CCM_global_POS_02_ssleu_filtered",
                 rt = 286.278
-            )
+            ),
+            nsamples = 3
         ),
         data.frame(
+            class = factor("LPC", levels = "LPC"),
             name = "LPC 11:0",
             `rT (min)` = 4.77,
             `Diff rT (sec)` = 10,
@@ -706,6 +789,7 @@ testthat::test_that("get int in annotation df", {
 testthat::test_that("summarise ann df", {
     ann <- data.frame(
         group_id = c(1, 2),
+        class = c("LPC", "LPC"),
         name = c("LPC 11:0", "LPC 11:0"),
         formula = c("C19H40N1O7P1", "C19H40N1O7P1"),
         adduct = c("[M+H-H2O]+", "[M+H]+"),
@@ -739,25 +823,26 @@ testthat::test_that("summarise ann df", {
     )
 
     testthat::expect_equal(
-        summarise_ann(ann[0, ], spectras[0, ]),
+        summarise_ann(ann[0, ], spectras[0, ], nsamples = 3),
         data.frame(matrix(, nrow = 0, ncol = 10,
             dimnames = list(c(),
-                          c("name", "rT (min)", "Diff rT (sec)", "Adducts",
-                            "nSamples", "Most intense ion", "Best score (%)",
-                            "Best m/z dev (mDa)", "Max iso", "X")
+                          c("class", "name", "rT (min)", "Diff rT (sec)",
+                            "Adducts", "nSamples", "Most intense ion",
+                            "Best score (%)", "Best m/z dev (mDa)", "Max iso")
             )
         ), check.names = FALSE)
     )
 
     testthat::expect_equal(
-        summarise_ann(ann[1, ], spectra_infos[1, ]),
+        summarise_ann(ann[1, ], spectra_infos[1, ], nsamples = 3),
         data.frame(
+            class = factor("LPC", levels = "LPC"),
             name = "LPC 11:0",
             `rT (min)` = 4.77,
             `Diff rT (sec)` = 10,
             Adducts = "[M+H-H2O]+",
             nSamples = 1,
-            `Most intense ion` = as.factor("[M+H-H2O]+"),
+            `Most intense ion` = factor("[M+H-H2O]+", levels = "[M+H-H2O]+"),
             `Best score (%)` = 80,
             `Best m/z dev (mDa)` = 0,
             `Max iso` = 1,
@@ -769,14 +854,15 @@ testthat::test_that("summarise ann df", {
     )
 
     testthat::expect_equal(
-        summarise_ann(ann, spectra_infos),
+        summarise_ann(ann, spectra_infos, nsamples = 3),
         data.frame(
+            class = factor("LPC", levels = "LPC"),
             name = "LPC 11:0",
             `rT (min)` = 4.78,
             `Diff rT (sec)` = 9,
             Adducts = "[M+H-H2O]+ [M+H]+",
             nSamples = 2,
-            `Most intense ion` = as.factor("[M+H]+"),
+            `Most intense ion` = factor("[M+H]+", levels = "[M+H]+"),
             `Best score (%)` = 95,
             `Best m/z dev (mDa)` = 0,
             `Max iso` = 2,

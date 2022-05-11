@@ -33,6 +33,7 @@
 #'     it contains the columns :
 #'     \itemize{
 #'         \item group_id `integer` group ID
+#'         \item class `character` cpd class
 #'         \item name `character` name
 #'         \item formula `character` chemical formula
 #'         \item adduct `character` adduct form
@@ -88,12 +89,16 @@ annotate_peaklists <- function(xset,
     if (!is.null(pb_fct)) {
         pb_fct(n = 0, total = 1, title = "Annotate")
     }
-    db <- load_db(ann_params@adduct_names, ann_params@instrument)
-    l_spectras <- unique(db[, c("ion_id", "mz", "abd", "iso")])
+    chem_db <- load_chem_db(
+        ann_params@adduct_names,
+        ann_params@instrument,
+        cpd_classes = ann_params@cpd_classes
+    )
+    l_spectras <- unique(chem_db[, c("ion_id", "mz", "abd", "iso")])
     l_spectras <- split(l_spectras, l_spectras$ion_id)
-    db <- unique(db[db$abd == 100,
-                    c("name", "formula", "adduct", "ion_formula",
-                      "mz", "rt", "ion_id")])
+    chem_db <- unique(chem_db[chem_db$abd == 100,
+                    c("class", "name", "formula", "adduct", "ion_formula", "mz",
+                      "rt", "ion_id")])
 
     spectra_id <- 0
     samples <- rownames(xset@phenoData)
@@ -106,10 +111,10 @@ annotate_peaklists <- function(xset,
                "sum_int", "sample", "rt")
     )))
     ann <- data.frame(
-        matrix(, nrow = 0, ncol = 13 + length(samples), dimnames = list(
-            c(), c("group_id", "name", "formula", "adduct", "ion_formula",
-                   "rtdiff", "rt", "rtmin", "rtmax", "nsamples", "best_score",
-                   "best_deviation_mz", "best_npeak", samples))
+        matrix(, nrow = 0, ncol = 14 + length(samples), dimnames = list(
+            c(), c("group_id", "class", "name", "formula", "adduct",
+                   "ion_formula", "rtdiff", "rt", "rtmin", "rtmax", "nsamples",
+                   "best_score", "best_deviation_mz", "best_npeak", samples))
         ),
         check.names = FALSE
     )
@@ -117,7 +122,7 @@ annotate_peaklists <- function(xset,
                             dimnames = list(c(), samples))
 
     peaks <- data.frame(xset@peaks)
-    if (nrow(peaks) == 0 || nrow(db) == 0) {
+    if (nrow(peaks) == 0 || nrow(chem_db) == 0) {
         attributes(xset)$ann <- ann
         attributes(xset)$spectra_infos <- spectra_infos
         attributes(xset)$spectras <- spectras
@@ -140,17 +145,17 @@ annotate_peaklists <- function(xset,
             }
         }
         # check if we have a match in the database with basepeaks
-        db_match <- db[which(
-            db$mz >= peak_groups[i, "mzmed"] - ann_params@da_tol &
-                db$mz <= peak_groups[i, "mzmed"] + ann_params@da_tol &
-                db$rt >= peak_groups[i, "rtmed"] - ann_params@rt_tol &
-                db$rt <= peak_groups[i, "rtmed"] + ann_params@rt_tol),
+        chem_db_match <- chem_db[which(
+            chem_db$mz >= peak_groups[i, "mzmed"] - ann_params@da_tol &
+                chem_db$mz <= peak_groups[i, "mzmed"] + ann_params@da_tol &
+                chem_db$rt >= peak_groups[i, "rtmed"] - ann_params@rt_tol &
+                chem_db$rt <= peak_groups[i, "rtmed"] + ann_params@rt_tol),
             , drop = FALSE]
-        if (nrow(db_match) == 0) {
+        if (nrow(chem_db_match) == 0) {
             next
         }
         # get the corresponding spectras
-        l_spectras2 <- l_spectras[unique(db_match$ion_id)]
+        l_spectras2 <- l_spectras[unique(chem_db_match$ion_id)]
 
         # get the feature_ids of all basepeaks
         peak_rows <- unlist(peak_groups[i, 8:ncol(peak_groups)])
@@ -162,8 +167,9 @@ annotate_peaklists <- function(xset,
         # create the same base for the annotation DataFrame for all basepeaks
         tmp_ann <- cbind(
             group_id = i,
-            db_match[, c("name", "formula", "adduct", "ion_formula")],
-            rtdiff = abs(peak_groups[i, "rtmed"] - db_match$rt),
+            chem_db_match[, c("class", "name", "formula", "adduct",
+                              "ion_formula")],
+            rtdiff = abs(peak_groups[i, "rtmed"] - chem_db_match$rt),
             rt = peak_groups[i, "rtmed"],
             rtmin = min(basepeaks$rtmin),
             rtmax = max(basepeaks$rtmax),
@@ -186,7 +192,7 @@ annotate_peaklists <- function(xset,
             # get the mz range where all isotopologue must fall
             # it corresponds to 10 times the maximum deviation observed
             # between the basepeaks & the theoretical
-            da_tol_iso <- max(abs(basepeak$mz - db_match$mz)) * 10
+            da_tol_iso <- max(abs(basepeak$mz - chem_db_match$mz)) * 10
             mz_range <- c(l_mz_ranges[1] - da_tol_iso,
                           l_mz_ranges[2] + da_tol_iso)
 
@@ -211,7 +217,7 @@ annotate_peaklists <- function(xset,
             # dont forget that there is the possibility where
             # tmp_ann contains multiple time the same formula
             # and tmp contains only a UNIQUE formula
-            k_2 <- split(seq(nrow(tmp_ann)), db_match$ion_id)
+            k_2 <- split(seq(nrow(tmp_ann)), chem_db_match$ion_id)
             # k represent ONE ion formula, so multiple rows on tmp_ann
             for (k in seq(length(tmp))) {
                 if (tmp[[k]]$score == 0) {
@@ -239,7 +245,8 @@ annotate_peaklists <- function(xset,
                         rt = basepeak$rt
                     )
                 )
-                tmp_ann[k_2[[k]], j + 13] <- spectra_id
+                tmp_ann[k_2[[k]], ncol(tmp_ann) - length(samples) + j] <-
+                    spectra_id
                 if (tmp[[k]]$score > tmp_ann[k_2[[k]][1], "best_score"]) {
                     tmp_ann[k_2[[k]], "best_score"] <- tmp[[k]]$score
                     tmp_ann[k_2[[k]], "best_deviation_mz"] <-
@@ -281,6 +288,7 @@ annotate_peaklists <- function(xset,
 #' with the columns:
 #' \itemize{
 #'     \item group_id `integer` group ID
+#'     \item class `character` cpd class
 #'     \item name `character` name
 #'     \item formula `character` chemical formula
 #'     \item adduct `character` adduct form
@@ -310,12 +318,14 @@ annotate_peaklists <- function(xset,
 #'     isotopologues annotated
 #'     \item rt `numeric` retention time
 #' }
-
+#' @param nsamples `numeric(1)` number of samples (used to determine where the
+#' column of samples begin in the DataFrame ann)
 #' @param sigma `numeric(1)` ignore
 #' @param perfwhm `numeric(1)` ignore
 #'
 #' @return the annotation dataframe filtered & regrouped
-filtrate_ann <- function(ann, spectra_infos, sigma = 6, perfwhm = .6) {
+filtrate_ann <- function(ann, spectra_infos, nsamples, sigma = 6,
+                         perfwhm = .6) {
     if (nrow(ann) == 0) {
         return(ann)
     }
@@ -363,8 +373,9 @@ filtrate_ann <- function(ann, spectra_infos, sigma = 6, perfwhm = .6) {
                     # for each sample select the spectra which is not
                     # missing (if there is multiple it will select the
                     # one with the best score)
-                    new_y[, 14:ncol(y)] <- apply(y[, 14:ncol(y),
-                           drop = FALSE], 2, function(z) {
+                    new_y[, (ncol(y) - nsamples + 1):ncol(y)] <- apply(
+                            y[, (ncol(y) - nsamples + 1):ncol(y), drop = FALSE],
+                            2, function(z) {
                         if (length(which(!is.na(z))) == 1) {
                             z[!is.na(z)]
                         } else {
@@ -374,7 +385,9 @@ filtrate_ann <- function(ann, spectra_infos, sigma = 6, perfwhm = .6) {
                                     z[!is.na(z)], "score"])]
                         }
                     })
-                    new_y$nsamples <- sum(!is.na(new_y[, 14:ncol(new_y)]))
+                    new_y$nsamples <- sum(!is.na(
+                        new_y[, (ncol(y) - nsamples + 1):ncol(y)]
+                    ))
                     new_y
                 })
             )
@@ -397,6 +410,7 @@ filtrate_ann <- function(ann, spectra_infos, sigma = 6, perfwhm = .6) {
 #' with the columns:
 #' \itemize{
 #'     \item group_id `integer` group ID
+#'     \item class `character` cpd class
 #'     \item name `character` name
 #'     \item formula `character` chemical formula
 #'     \item adduct `character` adduct form
@@ -421,6 +435,7 @@ filtrate_ann <- function(ann, spectra_infos, sigma = 6, perfwhm = .6) {
 #'     with the columns:
 #'     \itemize{
 #'         \item group_id `integer` group ID
+#'         \item class `character` cpd class
 #'         \item name `character` name
 #'         \item formula `character` chemical formula
 #'         \item adduct `character` adduct form
@@ -446,6 +461,7 @@ filtrate_ann <- function(ann, spectra_infos, sigma = 6, perfwhm = .6) {
 #'     columns :
 #'     \itemize{
 #'         \item group_id `integer` group ID
+#'         \item class `character` cpd class
 #'         \item name `character` name
 #'         \item formula `character` chemical formula
 #'         \item adduct `character` adduct form
@@ -490,6 +506,7 @@ split_conflicts <- function(ann) {
 #' with the columns:
 #' \itemize{
 #'     \item group_id `integer` group ID
+#'     \item class `character` cpd class
 #'     \item name `character` name
 #'     \item formula `character` chemical formula
 #'     \item adduct `character` adduct form
@@ -519,9 +536,12 @@ split_conflicts <- function(ann) {
 #'     isotopologues annotated
 #'     \item rt `numeric` retention time
 #' }
+#' @param nsamples `integer` the number of samples processed in total, it is use
+#'  as an offset on the DataFrame
 #'
 #' @return `DataFrame` each line represent a compound with the columns
 #' \itemize{
+#'     \item class `character` cpd class
 #'     \item name `character` name of the compound
 #'     \item rt (min) `numeric` meanned rT
 #'     \item Diff rT (sec) `numeric` rT difference between observed &
@@ -539,49 +559,52 @@ split_conflicts <- function(ann) {
 #'     \item ... `integer` a column for each sample which contain the summed
 #'     intensity of ALL basepeaks
 #' }
-summarise_ann <- function(ann, spectra_infos) {
-    int_ann <- get_int_ann(ann, spectra_infos)
+summarise_ann <- function(ann, spectra_infos, nsamples) {
+    int_ann <- get_int_ann(ann, spectra_infos, nsamples)
     if (nrow(int_ann) == 0) {
         return(data.frame(matrix(, nrow = 0, ncol = 10,
             dimnames = list(c(),
-                c("name", "rT (min)", "Diff rT (sec)", "Adducts",
+                c("class", "name", "rT (min)", "Diff rT (sec)", "Adducts",
                   "nSamples", "Most intense ion", "Best score (%)",
-                  "Best m/z dev (mDa)", "Max iso", "X"))), check.names = FALSE))
+                  "Best m/z dev (mDa)", "Max iso")
+            )), check.names = FALSE))
     }
     int_ann <- split(int_ann, int_ann$name)
     names(int_ann) <- NULL
-    do.call(rbind, lapply(int_ann, function(x) {
+    sum_ann <- do.call(rbind, lapply(int_ann, function(x) {
         data.frame(
+            class = x[1, "class"],
             name = x[1, "name"],
             `rT (min)` = round(mean(x[, "rT (min)"]), 2),
             `Diff rT (sec)` = min(x[, "Diff rT (sec)"]),
             Adducts = paste(x$Adduct, collapse = " "),
             nSamples = sum(
                 sapply(
-                    x[, 9:ncol(x), drop = FALSE],
+                    x[, (ncol(x) - nsamples + 1):ncol(x), drop = FALSE],
                     function(y)
                         any(!is.na(y))
                 )
             ),
-            `Most intense ion` = as.factor(x[which.max(
+            `Most intense ion` = x[which.max(
                 apply(
-                    x[, 9:ncol(x), drop = FALSE],
+                    x[, (ncol(x) - nsamples + 1):ncol(x), drop = FALSE],
                     1,
                     max,
                     na.rm = TRUE
-                )), "Adduct"]
-            ),
+                )), "Adduct"],
             `Best score (%)` = max(x[, "Best score (%)"]),
             `Best m/z dev (mDa)` = min(x[, "Best m/z dev (mDa)"]),
             `Max iso` = max(x[, "Max iso"]),
             lapply(
-                x[, 9:ncol(x), drop = FALSE],
+                x[, (ncol(x) - nsamples + 1):ncol(x), drop = FALSE],
                 sum,
                 na.rm = TRUE
             ),
             check.names = FALSE
         )
     }))
+    sum_ann[, "Most intense ion"] <- as.factor(sum_ann[, "Most intense ion"])
+    sum_ann
 }
 
 #' @title Get annotations with intensity
@@ -594,6 +617,7 @@ summarise_ann <- function(ann, spectra_infos) {
 #' with the columns:
 #' \itemize{
 #'     \item group_id `integer` group ID
+#'     \item class `character` cpd class
 #'     \item name `character` name
 #'     \item formula `character` chemical formula
 #'     \item adduct `character` adduct form
@@ -623,9 +647,12 @@ summarise_ann <- function(ann, spectra_infos) {
 #'     isotopologues annotated
 #'     \item rt `numeric` retention time
 #' }
+#' @param nsamples `integer` the number of samples processed in total, it is use
+#'  as an offset on the "ann" DataFrame
 #'
 #' @return `DataFrame` each line represent an ion with the columns
 #' \itemize{
+#'     \item class `character` cpd class
 #'     \item name `character` name of the compound
 #'     \item rt (min) `numeric` meanned rT
 #'     \item Diff rT (sec) `numeric` rT difference between observed &
@@ -641,17 +668,18 @@ summarise_ann <- function(ann, spectra_infos) {
 #'     \item ... `integer` a column for each sample which contain the
 #'     intensity the basepeak
 #' }
-get_int_ann <- function(ann, spectra_infos) {
+get_int_ann <- function(ann, spectra_infos, nsamples) {
     if (nrow(ann) == 0) {
-        return(data.frame(matrix(, nrow = 0, ncol = 8,
+        return(data.frame(matrix(, nrow = 0, ncol = 9,
             dimnames = list(c(),
-                c("name", "rT (min)", "Diff rT (sec)", "Adduct",
+                c("class", "name", "rT (min)", "Diff rT (sec)", "Adduct",
                   "nSamples", "Best score (%)", "Best m/z dev (mDa)", "Max iso")
             )
         ), check.names = FALSE))
     }
     # extract intensity of basepeaks
     data.frame(
+        class = as.factor(ann$class),
         name = ann$name,
         `rT (min)` = round(ann$rt / 60, 2),
         `Diff rT (sec)` = round(ann$rtdiff),
@@ -660,7 +688,8 @@ get_int_ann <- function(ann, spectra_infos) {
         `Best score (%)` = round(ann$best_score),
         `Best m/z dev (mDa)` = round(ann$best_deviation_mz),
         `Max iso` = ann$best_npeak,
-        apply(ann[, 14:ncol(ann), drop = FALSE], c(1, 2), function(x) {
+        apply(ann[, (ncol(ann) - nsamples + 1):ncol(ann), drop = FALSE],
+              c(1, 2), function(x) {
             if (is.na(x)) {
                 NA
             } else {
