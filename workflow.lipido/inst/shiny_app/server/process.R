@@ -80,10 +80,6 @@ shiny::updateNumericInput(
 #' @param sqlite_path,
 #' @param input$process_cores `numeric(1)` number of cores to use
 #' @param input$process_files `character` filepath to the files
-#' @param input$process_filter_mz_min `numeric(1)` m/z range min
-#' @param input$process_filter_mz_max `numeric(1)` m/z range max
-#' @param input$process_filter_rt_min `numeric(1)` rT range min
-#' @param input$process_filter_rt_max `numeric(1)` rT range max
 #' @param input$process_ppm `numeric(1)` Maximal tolerated m/z deviation in
 #' consecutive scans in parts sper million (ppm)
 #' @param input$process_peakwidth_min `numeric(1)` Expected approximate peak
@@ -165,10 +161,6 @@ shiny::observeEvent(input$process_launch, {
                 volumes,
                 input$process_files
             )$datapath,
-            `m/z min` = input$process_filter_mz_min,
-            `m/z max` = input$process_filter_mz_max,
-            `rT min` = input$process_filter_rt_min,
-            `rT max` = input$process_filter_rt_max,
             `m/z tolerance (peakpicking)` = input$process_ppm,
             `Peakwidth min` = input$process_peakwidth_min,
             `Peakwidth max` = input$process_peakwidth_max,
@@ -197,15 +189,13 @@ shiny::observeEvent(input$process_launch, {
             Instrument = input$process_instrument,
             `Compound classes` = input$process_cpd_classes
         )
-        inputs <- paste("process", c("cores", "files", "filter_mz_min",
-            "filter_mz_max", "filter_rt_min", "filter_rt_max", "ppm",
-            "peakwidth_min", "peakwidth_max", "snthresh", "prefilter_step",
-            "prefilter_level", "mz_center_fun", "integrate", "mzdiff", "noise",
-            "first_baseline_check", "response", "dist_fun",
-            "gap_init", "gap_extend", "factor_diag", "factor_gap",
-            "local_alignment", "init_penalty", "bw", "mzwid", "mda_tol",
-            "rt_tol", "abd_tol", "adducts", "instrument", "cpd_classes"),
-            sep = "_")
+        inputs <- paste("process", c("cores", "files", "ppm", "peakwidth_min",
+            "peakwidth_max", "snthresh", "prefilter_step", "prefilter_level",
+            "mz_center_fun", "integrate", "mzdiff", "noise",
+            "first_baseline_check", "response", "dist_fun", "gap_init",
+            "gap_extend", "factor_diag", "factor_gap", "local_alignment",
+            "init_penalty", "bw", "mzwid", "mda_tol", "rt_tol", "abd_tol",
+            "adducts", "instrument", "cpd_classes"), sep = "_")
 
         # check which are missing
         conditions <- !is.na(params) & lengths(params) > 0
@@ -213,19 +203,18 @@ shiny::observeEvent(input$process_launch, {
         check_inputs(inputs, conditions, msgs)
 
         # check which is negative
-        idx <- which(names(params) %in% c("Cores", "m/z min", "m/z max",
-            "rT min", "rT max", "m/z tolerance (peakpicking)",
-            "Peakwidth min", "Peakwidth max", "s/n", "Prefilter step",
-            "Prefilter level", "Noise", "Gap init", "Gap extend",
-            "Factor diag", "Factor gap", "Initiating penalty", "rT deviation",
-            "m/z group slices", "m/z tolerance (annotation)", "rT tolerance"))
+        idx <- which(names(params) %in% c("Cores",
+            "m/z tolerance (peakpicking)", "Peakwidth min", "Peakwidth max",
+            "s/n", "Prefilter step", "Prefilter level", "Noise", "Gap init",
+            "Gap extend", "Factor diag", "Factor gap", "Initiating penalty",
+            "rT deviation", "m/z group slices", "m/z tolerance (annotation)",
+            "rT tolerance"))
         conditions <- unlist(params[idx]) >= 0
         msgs <- paste(names(params[idx]), "need to be a positive number or 0")
         check_inputs(inputs[idx], conditions, msgs)
 
         # check parameters ranges
-        idx <- which(names(params) %in% c("m/z min", "m/z max", "rT min",
-            "rT max", "Peakwidth min", "Peakwidth max"))
+        idx <- which(names(params) %in% c("Peakwidth min", "Peakwidth max"))
         conditions <- rep(sapply(
             split(params[idx], ceiling(seq(length(idx)) / 2)),
                 function(x) x[[1]] < x[[2]]), each = 2)
@@ -237,11 +226,6 @@ shiny::observeEvent(input$process_launch, {
             ))
         check_inputs(inputs[idx], conditions, msgs)
 
-        # create the parameters objects
-        filter_params <- FilterParam(
-            mz_range = c(params[["m/z min"]], params[["m/z max"]]),
-            rt_range = c(params[["rT min"]] * 60, params[["rT max"]] * 60)
-        )
         cwt_params <- xcms::CentWaveParam(
             ppm = params[["m/z tolerance (peakpicking)"]],
             peakwidth = c(
@@ -298,7 +282,6 @@ shiny::observeEvent(input$process_launch, {
             params$Files,
             params$sqlite_path,
             .workflow_lipido_env$converter,
-            filter_params,
             cwt_params,
             obw_params,
             pd_params,

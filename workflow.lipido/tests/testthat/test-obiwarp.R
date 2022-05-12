@@ -23,10 +23,6 @@ testthat::test_that("obiwarp", {
     converter <- tools::file_path_as_absolute(
         "~/GitHub/workflow.lipido/pwiz/msconvert.exe"
     )
-    filter_params <- FilterParam(
-        mz_range = c(200, 1000),
-        rt_range = c(.7 * 60, 6.3 * 60)
-    )
     cwt_params <- xcms::CentWaveParam(
         ppm = 30,
         peakwidth = c(4, 39),
@@ -52,6 +48,20 @@ testthat::test_that("obiwarp", {
         localAlignment = FALSE,
         initPenalty = 0
     )
+    ann_params <- AnnotationParam(
+        da_tol = .015,
+        rt_tol = 10,
+        abd_tol = 25,
+        adduct_names = c(
+            "[M+Na]+",
+            "[M+NH4]+",
+            "[M+H-H2O]+",
+            "[M+H]+"
+        ),
+        instrument = "QTOF_XevoG2-S_R25000@200",
+        cpd_classes = c("LPC", "Cer", "FA")
+    )
+    filter_params <- FilterParam(cwt_params, ann_params)
 
     # record files
     db <- db_connect(sqlite_path)

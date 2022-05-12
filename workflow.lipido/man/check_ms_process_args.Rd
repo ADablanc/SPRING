@@ -8,7 +8,6 @@ check_ms_process_args(
   raw_files,
   sqlite_path,
   converter,
-  filter_params,
   cwt_params,
   obw_params,
   pd_params,
@@ -23,8 +22,6 @@ check_ms_process_args(
 save the process results}
 
 \item{converter}{`character(1)` filepath to the msconvert application}
-
-\item{filter_params}{`FilterParam`}
 
 \item{cwt_params}{`CentWaveParam`}
 

@@ -1,54 +1,3 @@
-testthat::test_that("filter_param", {
-    testthat::expect_error(
-        FilterParam(mz_range = "a"),
-        "got class \"character\", should be or extend class \"numeric\""
-    )
-    testthat::expect_error(
-        FilterParam(mz_range = 1),
-        "mz_range must contain two positive number"
-    )
-    testthat::expect_error(
-        FilterParam(mz_range = c(-1, 1)),
-        "mz_range must contain two positive number"
-    )
-    testthat::expect_error(
-        FilterParam(mz_range = c(2, 1)),
-        "mz_range born min must be lower than the born max"
-    )
-    testthat::expect_error(
-        FilterParam(mz_range = c(300, 1000), rt_range = "a"),
-        "got class \"character\", should be or extend class \"numeric\""
-    )
-    testthat::expect_error(
-        FilterParam(mz_range = c(300, 1000), rt_range = 1),
-        "rt_range must contain two positive number"
-    )
-    testthat::expect_error(
-        FilterParam(mz_range = c(300, 1000), rt_range = c(-1, 1)),
-        "rt_range must contain two positive number"
-    )
-    testthat::expect_error(
-        FilterParam(mz_range = c(300, 1000), rt_range = c(2, 1)),
-        "rt_range born min must be lower than the born max"
-    )
-    obj <- FilterParam(
-        mz_range = c(300, 1000),
-        rt_range = c(.7 * 60, 6.3 * 60)
-    )
-    testthat::expect_equal(obj@mz_range, c(300, 1000))
-    testthat::expect_equal(obj@rt_range, c(.7 * 60, 6.3 * 60))
-
-    testthat::expect_equal(
-        params_to_dataframe(obj),
-        data.frame(
-            mz_range_min = 300,
-            mz_range_max = 1000,
-            rt_range_min = 42,
-            rt_range_max = 378
-        )
-    )
-})
-
 testthat::test_that("annotation_param", {
     testthat::expect_error(
         AnnotationParam(da_tol = "a"),
@@ -347,10 +296,6 @@ testthat::test_that("check_ms_process_args", {
     )
     sqlite_path <- tempfile(fileext = ".sqlite")
     converter <- "~/GitHub/workflow.lipido/pwiz/msconvert.exe"
-    filter_params <- FilterParam(
-        mz_range = c(200, 1000),
-        rt_range = c(.7 * 60, 6.3 * 60)
-    )
     cwt_params <- xcms::CentWaveParam(
         ppm = 30,
         peakwidth = c(4, 39),
@@ -449,16 +394,6 @@ testthat::test_that("check_ms_process_args", {
             converter,
             NULL
         ),
-        "filter_params argument must be a FilterParam object"
-    )
-    testthat::expect_error(
-        check_ms_process_args(
-            raw_files,
-            sqlite_path,
-            converter,
-            filter_params,
-            NULL
-        ),
         "cwt_params argument must be a CentWaveParam object"
     )
     testthat::expect_error(
@@ -466,7 +401,6 @@ testthat::test_that("check_ms_process_args", {
             raw_files,
             sqlite_path,
             converter,
-            filter_params,
             cwt_params,
             NULL
         ),
@@ -477,7 +411,6 @@ testthat::test_that("check_ms_process_args", {
             raw_files,
             sqlite_path,
             converter,
-            filter_params,
             cwt_params,
             obw_params,
             NULL
@@ -489,7 +422,6 @@ testthat::test_that("check_ms_process_args", {
             raw_files,
             sqlite_path,
             converter,
-            filter_params,
             cwt_params,
             obw_params,
             pd_params,
@@ -502,7 +434,6 @@ testthat::test_that("check_ms_process_args", {
             raw_files,
             sqlite_path,
             converter,
-            filter_params,
             cwt_params,
             obw_params,
             pd_params,
@@ -516,7 +447,6 @@ testthat::test_that("check_ms_process_args", {
             raw_files,
             sqlite_path,
             converter,
-            filter_params,
             cwt_params,
             obw_params,
             pd_params,
@@ -530,7 +460,6 @@ testthat::test_that("check_ms_process_args", {
             raw_files,
             sqlite_path,
             converter,
-            filter_params,
             cwt_params,
             obw_params,
             pd_params,
@@ -544,7 +473,6 @@ testthat::test_that("check_ms_process_args", {
             raw_files,
             sqlite_path,
             converter,
-            filter_params,
             cwt_params,
             obw_params,
             pd_params,
@@ -558,7 +486,6 @@ testthat::test_that("check_ms_process_args", {
             raw_files,
             sqlite_path,
             converter,
-            filter_params,
             cwt_params,
             obw_params,
             pd_params,
@@ -572,7 +499,6 @@ testthat::test_that("check_ms_process_args", {
             raw_files,
             sqlite_path,
             converter,
-            filter_params,
             cwt_params,
             obw_params,
             pd_params,

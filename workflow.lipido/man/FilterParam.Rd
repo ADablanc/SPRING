@@ -4,12 +4,12 @@
 \alias{FilterParam}
 \title{FilterParam}
 \usage{
-FilterParam(mz_range = c(300, 1000), rt_range = c(0.7 * 60, 6.3 * 60))
+FilterParam(cwt_params, ann_params)
 }
 \arguments{
-\item{mz_range}{`numeric(2)` a m/z range}
+\item{cwt_params}{`CentWaveParam`}
 
-\item{rt_range}{`numeric(2)` a rT range in min}
+\item{ann_params}{`AnnotationParam`}
 }
 \value{
 `FilterParam` object

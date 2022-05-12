@@ -8,7 +8,6 @@
 #' @param sqlite_path `character(1)` filepath to the sqlite database used to
 #' save the process results
 #' @param converter `character(1)` filepath to the msconvert application
-#' @param filter_params `FilterParam`
 #' @param cwt_params `CentWaveParam`
 #' @param obw_params `ObiwarpParam`
 #' @param pd_params `PeakDensityParam`
@@ -18,7 +17,6 @@
 check_ms_process_args <- function(raw_files,
                                   sqlite_path,
                                   converter,
-                                  filter_params,
                                   cwt_params,
                                   obw_params,
                                   pd_params,
@@ -75,9 +73,7 @@ check_ms_process_args <- function(raw_files,
         stop(sprintf("converter is not found at %s", converter))
     }
 
-    if (class(filter_params) != "FilterParam") {
-        stop("filter_params argument must be a FilterParam object")
-    } else if (class(cwt_params) != "CentWaveParam") {
+    if (class(cwt_params) != "CentWaveParam") {
         stop("cwt_params argument must be a CentWaveParam object")
     } else if (class(obw_params) != "ObiwarpParam") {
         stop("obw_params argument must be a ObiwarpParam object")
@@ -111,29 +107,7 @@ setClass(
     slots = c(
         mz_range = "numeric",
         rt_range = "numeric"
-    ),
-    prototype = prototype(
-        mz_range = c(300, 1000),
-        rt_range = c(.7 * 60, 6.3 * 60)
-    ),
-    validity = function(object) {
-        msg <- character()
-        if (length(object@mz_range) < 2 || any(object@mz_range < 0)) {
-            msg <- c(msg, "mz_range must contain two positive number")
-        } else if (diff(object@mz_range) <= 0) {
-            msg <- c(msg, "mz_range born min must be lower than the born max")
-        }
-        if (length(object@rt_range) < 2 || any(object@rt_range < 0)) {
-            msg <- c(msg, "rt_range must contain two positive number")
-        } else if (diff(object@rt_range) <= 0) {
-            msg <- c(msg, "rt_range born min must be lower than the born max")
-        }
-        if (length(msg) > 0) {
-            paste(msg, collapse = "\n  ")
-        } else {
-            TRUE
-        }
-    }
+    )
 )
 
 #' @title FilterParam
@@ -141,12 +115,35 @@ setClass(
 #' @description
 #' Construct a FilterParam object
 #'
-#' @param mz_range `numeric(2)` a m/z range
-#' @param rt_range `numeric(2)` a rT range in min
+#' @param cwt_params `CentWaveParam`
+#' @param ann_params `AnnotationParam`
 #'
 #' @return `FilterParam` object
-FilterParam <- function(mz_range = c(300, 1000),
-                        rt_range = c(.7 * 60, 6.3 * 60)) {
+FilterParam <- function(cwt_params, ann_params) {
+    chem_db <- load_chem_db(
+        ann_params@adduct_names,
+        ann_params@instrument,
+        cpd_classes = ann_params@cpd_classes
+    )
+
+    # xcms define noiserange as peakwidth * 3 !
+    rt_range <- range(chem_db$rt)
+    rt_tol <- max(cwt_params@peakwidth[2] * 3, ann_params@rt_tol)
+    rt_range[1] <- rt_range[1] - rt_tol
+    rt_range[2] <- rt_range[2] + rt_tol
+
+    mz_range <- range(chem_db$mz)
+    mz_range <- c(
+        mz_range[1] - max(
+            convert_ppm_da(cwt_params@ppm, mz_range[1]),
+            ann_params@da_tol
+        ),
+        mz_range[2] + max(
+            convert_ppm_da(cwt_params@ppm, mz_range[2]),
+            ann_params@da_tol
+        )
+    )
+
     methods::new("FilterParam", mz_range = mz_range, rt_range = rt_range)
 }
 

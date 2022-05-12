@@ -8,7 +8,8 @@ testthat::test_that("filter ms file", {
     ms_file <- xcms::xcmsRaw(filepath, profstep = 0)
 
     # test with an rt range outside of the ms file
-    filter_params <- FilterParam(
+    filter_params <- methods::new(
+        "FilterParam",
         mz_range = c(200, 2000),
         rt_range = c(5, 6)
     )
@@ -18,7 +19,8 @@ testthat::test_that("filter ms file", {
     )
 
     # test to get only the first scan with a restrictive rt range
-    filter_params <- FilterParam(
+    filter_params <- methods::new(
+        "FilterParam",
         mz_range = c(200, 2000),
         rt_range = c(0.2, 0.3)
     )
@@ -28,7 +30,8 @@ testthat::test_that("filter ms file", {
     )
 
     # test with a non restrictive rt range
-    filter_params <- FilterParam(
+    filter_params <- methods::new(
+        "FilterParam",
         mz_range = c(200, 2000),
         rt_range = c(0, 0.5)
     )
@@ -84,7 +87,8 @@ testthat::test_that("conversion", {
     converter <- tools::file_path_as_absolute(
         "~/GitHub/workflow.lipido/pwiz/msconvert.exe"
     )
-    filter_params <- FilterParam(
+    filter_params <- methods::new(
+        "FilterParam",
         mz_range = c(200, 2000),
         rt_range = c(0, 0.5)
     )
@@ -136,7 +140,8 @@ testthat::test_that("conversion", {
     )
 
     # test with a too restrictive m/z range
-    filter_params <- FilterParam(
+    filter_params <- methods::new(
+        "FilterParam",
         mz_range = c(3000, 4000),
         rt_range = c(0, 0.5)
     )
@@ -146,7 +151,8 @@ testthat::test_that("conversion", {
     )
 
     # test with a too restrictive rT range
-    filter_params <- FilterParam(
+    filter_params <- methods::new(
+        "FilterParam",
         mz_range = c(200, 2000),
         rt_range = c(50, 1000)
     )
@@ -156,7 +162,8 @@ testthat::test_that("conversion", {
     )
 
     # test the conversion of RAW file to mzXML
-    filter_params <- FilterParam(
+    filter_params <- methods::new(
+        "FilterParam",
         mz_range = c(200, 2001),
         rt_range = c(0, 0.5)
     )

@@ -168,7 +168,8 @@ testthat::test_that("import ms file", {
     converter <- tools::file_path_as_absolute(
         "~/GitHub/workflow.lipido/pwiz/msconvert.exe"
     )
-    filter_params <- FilterParam(
+    filter_params <- methods::new(
+        "FilterParam",
         mz_range = c(200, 2001),
         rt_range = c(0, 0.5)
     )
@@ -567,9 +568,10 @@ testthat::test_that("db record ann", {
 })
 
 testthat::test_that("record params", {
-    filter_params <- FilterParam(
-        mz_range = c(200, 1000),
-        rt_range = c(.7 * 60, 6.3 * 60)
+    filter_params <- methods::new(
+        "FilterParam",
+        mz_range = c(211.1906400, 706.7080906),
+        rt_range = c(61.8, 412.8)
     )
     cwt_params <- xcms::CentWaveParam(
         ppm = 30,
@@ -910,9 +912,10 @@ testthat::test_that("get spectras", {
 })
 
 testthat::test_that("get params", {
-    filter_params <- FilterParam(
-        mz_range = c(200, 1000),
-        rt_range = c(.7 * 60, 6.3 * 60)
+    filter_params <- methods::new(
+        "FilterParam",
+        mz_range = c(211.1906400, 706.7080906),
+        rt_range = c(61.8, 412.8)
     )
     cwt_params <- xcms::CentWaveParam(
         ppm = 30,

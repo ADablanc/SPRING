@@ -7,15 +7,15 @@
 #'     the result will be recorded
 #'     \item convert each raw file in "positive" & "negative" mode with
 #'     msConvert. It also trim the file according the rt range and m/z range
-#'     specified in the filter_params with msconvert. Check with XCMS package
-#'     if the file can be converted. If the file is a CDF it will copy the file
-#'     instead. If the conversion failed & the file is a mzML or mzXML it will
-#'     copy the file instead and try to trim only the rt range. Record then a
-#'     `xcmsRaw` file and its corresponding profile matrix in the database, this
-#'      two object are compress into a blob object before inserting in the
-#'      database. These object are recorded in their corresponding "polarity"
-#'      column (a sample could contain a `xcmsRaw` in positive AND a `xcmsRaw`
-#'      in negative !).
+#'     according the m/z & rT of compounds to discover with msconvert. Check
+#'     with XCMS package if the file can be converted. If the file is a CDF it
+#'     will copy the file instead. If the conversion failed & the file is a mzML
+#'      or mzXML it will copy the file instead and try to trim only the rt
+#'     range. Record then a `xcmsRaw` file and its corresponding profile matrix
+#'     in the database, this two object are compress into a blob object before
+#'     inserting in the database. These object are recorded in their
+#'     corresponding "polarity" column (a sample could contain a `xcmsRaw` in
+#'     positive AND a `xcmsRaw` in negative !).
 #'      \item launch workflow foreach polarity, this workflow consist of the
 #'      steps:
 #'      \itemize{
@@ -62,7 +62,6 @@
 #' @param raw_files `character vector` filepaths to the raw files
 #' @param sqlite_path `character(1)` filepath to the database to create
 #' @param converter `character(1)` filepath to the msconvert.exe
-#' @param filter_params `FilterParam` object
 #' @param cwt_params `CentwaveParam` object
 #' @param obw_params `ObiwarpParam` object
 #' @param pd_params `PeakdensityParam` object
@@ -76,7 +75,6 @@
 ms_process <- function(raw_files,
                        sqlite_path,
                        converter,
-                       filter_params,
                        cwt_params,
                        obw_params,
                        pd_params,
@@ -89,7 +87,6 @@ ms_process <- function(raw_files,
             raw_files,
             sqlite_path,
             converter,
-            filter_params,
             cwt_params,
             obw_params,
             pd_params,
@@ -115,11 +112,7 @@ ms_process <- function(raw_files,
         pd_params@minFraction <- 10**-9
         pd_params@minSamples <- 1
         pd_params@maxFeatures <- 500
-        chem_db <- load_chem_db(
-            ann_params@adduct_names,
-            ann_params@instrument,
-            cpd_classes = ann_params@cpd_classes
-        )
+        filter_params <- FilterParam(cwt_params, ann_params)
 
         if (cores > 1) {
             cl <- parallel::makeCluster(cores)

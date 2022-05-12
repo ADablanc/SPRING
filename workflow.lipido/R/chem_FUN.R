@@ -304,6 +304,19 @@ get_mzdev <- function(ms_file, mz_range, rt_range) {
     }
 }
 
+#' @title Convert ppm to Da
+#'
+#' @description
+#' Convert ppm to Dalton according a mass
+#'
+#' @param ppm `numeric(1)` ppm tolerance
+#' @param mass `numeric(1)` mass
+#'
+#' @return `numeric(1)` ppm tolerance converted in Dalton
+convert_ppm_da <- function(ppm, mass) {
+    mass * ppm * 10**-6
+}
+
 #' @title Get m/z range
 #'
 #' @description
@@ -314,7 +327,7 @@ get_mzdev <- function(ms_file, mz_range, rt_range) {
 #'
 #' @return `numeric(2)` m/z range
 get_mz_range <- function(mz, ppm) {
-    da <- mz * ppm * 10**-6
+    da <- convert_ppm_da(ppm, mz)
     mz + c(-da, da)
 }
 

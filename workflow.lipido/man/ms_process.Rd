@@ -8,7 +8,6 @@ ms_process(
   raw_files,
   sqlite_path,
   converter,
-  filter_params,
   cwt_params,
   obw_params,
   pd_params,
@@ -24,8 +23,6 @@ ms_process(
 \item{sqlite_path}{`character(1)` filepath to the database to create}
 
 \item{converter}{`character(1)` filepath to the msconvert.exe}
-
-\item{filter_params}{`FilterParam` object}
 
 \item{cwt_params}{`CentwaveParam` object}
 
@@ -49,15 +46,15 @@ Launch the workflow on the raw files, which consist of the steps :
     the result will be recorded
     \item convert each raw file in "positive" & "negative" mode with
     msConvert. It also trim the file according the rt range and m/z range
-    specified in the filter_params with msconvert. Check with XCMS package
-    if the file can be converted. If the file is a CDF it will copy the file
-    instead. If the conversion failed & the file is a mzML or mzXML it will
-    copy the file instead and try to trim only the rt range. Record then a
-    `xcmsRaw` file and its corresponding profile matrix in the database, this
-     two object are compress into a blob object before inserting in the
-     database. These object are recorded in their corresponding "polarity"
-     column (a sample could contain a `xcmsRaw` in positive AND a `xcmsRaw`
-     in negative !).
+    according the m/z & rT of compounds to discover with msconvert. Check
+    with XCMS package if the file can be converted. If the file is a CDF it
+    will copy the file instead. If the conversion failed & the file is a mzML
+     or mzXML it will copy the file instead and try to trim only the rt
+    range. Record then a `xcmsRaw` file and its corresponding profile matrix
+    in the database, this two object are compress into a blob object before
+    inserting in the database. These object are recorded in their
+    corresponding "polarity" column (a sample could contain a `xcmsRaw` in
+    positive AND a `xcmsRaw` in negative !).
      \item launch workflow foreach polarity, this workflow consist of the
      steps:
      \itemize{

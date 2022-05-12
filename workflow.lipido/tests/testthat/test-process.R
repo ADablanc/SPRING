@@ -40,10 +40,6 @@ testthat::test_that("workflow polarity", {
     converter <- tools::file_path_as_absolute(
         "~/GitHub/workflow.lipido/pwiz/msconvert.exe"
     )
-    filter_params <- FilterParam(
-        mz_range = c(200, 1000),
-        rt_range = c(.7 * 60, 6.3 * 60)
-    )
     cwt_params <- xcms::CentWaveParam(
         ppm = 30,
         peakwidth = c(4, 39),
@@ -91,6 +87,7 @@ testthat::test_that("workflow polarity", {
         instrument = "QTOF_XevoG2-S_R25000@200",
         cpd_classes = c("LPC", "Cer", "FA")
     )
+    filter_params <- FilterParam(cwt_params, ann_params)
 
     # record files
     db <- db_connect(sqlite_path)
@@ -1545,18 +1542,6 @@ testthat::test_that("workflow", {
     converter <- tools::file_path_as_absolute(
         "~/GitHub/workflow.lipido/pwiz/msconvert.exe"
     )
-    filter_params <- FilterParam(
-        mz_range = c(200, 1000),
-        rt_range = c(.7 * 60, 6.3 * 60)
-    )
-    filter_params_error_mz <- FilterParam(
-        mz_range = c(0, 1),
-        rt_range = c(.7 * 60, 6.3 * 60)
-    )
-    filter_params_error_rt <- FilterParam(
-        mz_range = c(200, 1000),
-        rt_range = c(12 * 60, 20 * 60)
-    )
     cwt_params <- xcms::CentWaveParam(
         ppm = 30,
         peakwidth = c(4, 39),
@@ -1604,6 +1589,9 @@ testthat::test_that("workflow", {
         instrument = "QTOF_XevoG2-S_R25000@200",
         cpd_classes = c("LPC", "Cer", "FA")
     )
+    ann_params_error1 <- ann_params_error2 <- ann_params
+    ann_params_error1@cpd_classes <- "PS"
+    ann_params_error2@cpd_classes <- "PI"
 
     # 1st test: m/z range out
     testthat::expect_error(
@@ -1611,11 +1599,10 @@ testthat::test_that("workflow", {
             raw_files,
             sqlite_path,
             converter,
-            filter_params_error_mz,
             cwt_params,
             obw_params,
             pd_params,
-            ann_params
+            ann_params_error2
         ))),
         "none of the file was imported correctly"
     )
@@ -1626,11 +1613,10 @@ testthat::test_that("workflow", {
             raw_files,
             sqlite_path,
             converter,
-            filter_params_error_rt,
             cwt_params,
             obw_params,
             pd_params,
-            ann_params
+            ann_params_error2
         ))),
         "none of the file was imported correctly"
     )
@@ -1640,7 +1626,6 @@ testthat::test_that("workflow", {
         raw_files,
         sqlite_path,
         converter,
-        filter_params,
         cwt_params,
         obw_params,
         pd_params,
@@ -1675,7 +1660,6 @@ testthat::test_that("workflow", {
         raw_files,
         sqlite_path,
         converter,
-        filter_params,
         cwt_params,
         obw_params,
         pd_params,

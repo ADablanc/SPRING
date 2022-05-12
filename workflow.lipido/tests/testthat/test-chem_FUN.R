@@ -585,6 +585,13 @@ testthat::test_that("get mzdev", {
     )
 })
 
+testthat::test_that("convert ppm to Da", {
+    testthat::expect_equal(
+        convert_ppm_da(5, 464.447304014051),
+        0.00232223652
+    )
+})
+
 testthat::test_that("get_mz_range", {
     testthat::expect_equal(
         get_mz_range(464.447304014051, 5),
