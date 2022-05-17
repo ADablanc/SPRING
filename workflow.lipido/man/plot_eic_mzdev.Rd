@@ -35,3 +35,8 @@ A JS function is added to hide the annotation when the trace is hidden
 If available it will use the retention time corrected in the slot
 `scantime_corrected` added by the function `obiwarp`
 }
+\examples{
+\dontrun{
+plot_eic_mzdev(db, "220221CCM_global__01_ssleu_filtered", "LPC 11:0")
+}
+}

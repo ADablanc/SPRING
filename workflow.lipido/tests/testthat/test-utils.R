@@ -23,3 +23,23 @@ testthat::test_that("without NA", {
         c(1, 3)
     )
 })
+
+testthat::test_that("get_available_database", {
+    # move all databases files for the test
+    tmp_dir <- tempdir()
+    databases <- list.files(system.file(
+        "extdata",
+        "database",
+        package = "workflow.lipido"
+    ), full.names = TRUE)
+    file.copy(databases, tmp_dir)
+    file.remove(databases)
+    testthat::expect_error(
+        get_available_database(),
+        "No database is available in application "
+    )
+
+    # normal test
+    file.copy(file.path(tmp_dir, basename(databases)), dirname(databases[1]))
+    testthat::expect_gt(length(get_available_database()), 0)
+})

@@ -103,6 +103,9 @@ db_get_params(db)
         collapsed with the character ";"
         \item instrument `character` instrument names from the enviPat
         package
+        \item database `character(1)` name of the database used
+        \item cpd_classes `character vector` compound classes in database to
+         used to restrict the annotations, collapsed with the character ";"
     }
 }
 }

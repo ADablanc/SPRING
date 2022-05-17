@@ -120,11 +120,15 @@ setClass(
 #'
 #' @return `FilterParam` object
 FilterParam <- function(cwt_params, ann_params) {
-    chem_db <- load_chem_db(
+    chem_db <- load_ion_db(
         ann_params@adduct_names,
         ann_params@instrument,
+        ann_params@database,
         cpd_classes = ann_params@cpd_classes
     )
+    if (nrow(chem_db) == 0) {
+        stop("no chemical compounds can be loaded with the given parameters")
+    }
 
     # xcms define noiserange as peakwidth * 3 !
     rt_range <- range(chem_db$rt)
@@ -156,6 +160,7 @@ FilterParam <- function(cwt_params, ann_params) {
 #' theoretical peak will be discarded
 #' @slot adduct_names `character vector` adduct names from the enviPat package
 #' @slot instrument `character(1)` instrument names from the enviPat package
+#' @slot database `character(1)` name of the database to load
 #' @slot cpd_classes `character vector` compound classes in database to
 #' restrict for annotation
 setClass(
@@ -166,15 +171,8 @@ setClass(
         abd_tol = "numeric",
         adduct_names = "character",
         instrument = "character",
+        database = "character",
         cpd_classes = "character"
-    ),
-    prototype = prototype(
-        da_tol = .015,
-        rt_tol = 10,
-        abd_tol = 25,
-        adduct_names = "[M+H]+",
-        instrument = "QTOF_XevoG2-S_R25000@200",
-        cpd_classes = "LPC"
     ),
     validity = function(object) {
         msg <- character()
@@ -209,15 +207,23 @@ setClass(
                 object@instrument
             ))
         }
-        test <- which(!object@cpd_classes %in% get_cpd_classes())
-        if (length(test) > 0) {
+        if (!object@database %in% get_available_database()) {
             msg <- c(msg, sprintf(
-                "%s doesn't exists in database",
-                paste(
-                    object@cpd_classes[test],
-                    collapse = " and "
-                )
+                "%s doesn't exist in software",
+                object@database
             ))
+        } else {
+            test <- which(!object@cpd_classes %in%
+                              unique(load_chem_db(object@database)$class))
+            if (length(test) > 0) {
+                msg <- c(msg, sprintf(
+                    "%s doesn't exists in database",
+                    paste(
+                        object@cpd_classes[test],
+                        collapse = " and "
+                    )
+                ))
+            }
         }
         if (length(msg) > 0) {
             paste(msg, collapse = "\n  ")
@@ -240,21 +246,38 @@ setClass(
 #' @param adduct_names `character vector` adduct names from the enviPat package
 #' (optional)
 #' @param instrument `character(1)` instrument names from the enviPat package
+#' @param database `character(1)` name of the database to load
 #' @param cpd_classes `character vector` compound classes in database to
 #' restrict for annotation
 #'
 #' @return `AnnotationParam` object
+#' @export
+#' @examples
+#' \dontrun{
+#' AnnotationParam(
+#'      da_tol = .015,
+#'      rt_tol = 10,
+#'      abd_tol = 25,
+#'      adduct_name = c("[M+H]+", "[M+Na]+", "[M+H-H2O]+", "[M+NH4]+",
+#'                      "[M-H]-"),
+#'      instrument = "QTOF_XevoG2-S_R25000@200",
+#'      database = "test"
+#' )}
 AnnotationParam <- function(da_tol = 0.015,
                             rt_tol = 10,
                             abd_tol = 25,
                             adduct_names = NULL,
                             instrument = "QTOF_XevoG2-S_R25000@200",
+                            database = NULL,
                             cpd_classes = NULL) {
     if (length(adduct_names) == 0) {
         adduct_names <- adducts$Name
     }
+    if (length(database) == 0) {
+        database <- get_available_database()[1]
+    }
     if (length(cpd_classes) == 0) {
-        cpd_classes <- get_cpd_classes()
+        cpd_classes <- unique(load_chem_db(database)$class)
     }
     methods::new(
         "AnnotationParam",
@@ -263,6 +286,7 @@ AnnotationParam <- function(da_tol = 0.015,
         abd_tol = abd_tol,
         adduct_names = adduct_names,
         instrument = instrument,
+        database = database,
         cpd_classes = cpd_classes
     )
 }
@@ -495,6 +519,7 @@ setMethod(
 #'     \item adduct_names `character` adduct names from the enviPat package
 #'     collapsed with the character ";"
 #'     \item instrument `character` instrument names from the enviPat package
+#'     \item database `character(1)` name of the database to load
 #'     \item cpd_classes `character` compound classes in database to restrict
 #'     for annotation collapsed with the character ";"
 #' }
@@ -511,6 +536,7 @@ setMethod(
                 collapse = ";"
             ),
             instrument = object@instrument,
+            database = object@database,
             cpd_classes = paste(
                 object@cpd_classes,
                 collapse = ";"

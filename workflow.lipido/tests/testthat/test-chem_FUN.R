@@ -1,3 +1,293 @@
+testthat::test_that("load_chem_db", {
+    testthat::expect_error(
+        load_chem_db("toto"),
+        "toto doesn't exist in software"
+    )
+
+    empty_file <- file.path(
+        system.file("extdata", "database", package = "workflow.lipido"),
+        "empty_db.csv"
+    )
+    write.csv(
+        matrix(, nrow = 0, ncol = 4, dimnames = list(
+            c(), c("class", "name", "formula", "rt"))),
+        empty_file,
+        row.names = FALSE
+    )
+    testthat::expect_error(
+        load_chem_db("empty_db"),
+        "no compound in database"
+    )
+    file.remove(empty_file)
+
+    testthat::expect_equal(
+        load_chem_db("test"),
+        data.frame(
+            class = c("FA", "Cer", "LPC", "LPC"),
+            name = c("FA 17:0", "Cer (d18:1/C12:0)", "LPC 11:0", "LPC 11a:0"),
+            formula = c("C17H34O2", "C30H59N1O3", "C19H40N1O7P1",
+                        "C19H40N1O7P1"),
+            rt = c(3.01, 3.26, 4.93, 4.85)
+        )
+    )
+})
+
+testthat::test_that("load_ion_db", {
+    empty_db <- data.frame(matrix(, nrow = 0, ncol = 11, dimnames = list(
+        c(), c("class", "formula", "name", "rt", "ion_id", "adduct",
+               "ion_formula", "charge", "mz", "abd", "iso")
+    )))
+
+    # 1st test : with an empty database
+    empty_file <- file.path(
+        system.file("extdata", "database", package = "workflow.lipido"),
+        "empty_database.csv"
+    )
+    write.csv(
+        matrix(, nrow = 0, ncol = 4, dimnames = list(
+            c(), c("class", "name", "formula", "rt"))),
+        empty_file,
+        row.names = FALSE
+    )
+    testthat::expect_error(
+        load_ion_db(c(), "QTOF_XevoG2-S_R25000@200", "empty_database"),
+        "no compound in database"
+    )
+    file.remove(empty_file)
+
+    # 2nd test : without adducts
+    testthat::expect_equal(
+        load_ion_db(c(), "QTOF_XevoG2-S_R25000@200", "test"),
+        empty_db
+    )
+
+    # 3rd test : normal
+    testthat::expect_equal(
+        data.frame(load_ion_db(
+            c("[2M+H]+", "[M-H]-"),
+            "QTOF_XevoG2-S_R25000@200",
+            "test"
+        ), row.names = NULL),
+        data.frame(
+            formula = c("C30H59N1O3", "C30H59N1O3", "C30H59N1O3", "C30H59N1O3",
+                       "C30H59N1O3", "C30H59N1O3", "C30H59N1O3", "C30H59N1O3",
+                       "C30H59N1O3", "C17H34O2", "C17H34O2", "C17H34O2",
+                       "C17H34O2", "C17H34O2", "C17H34O2", "C17H34O2",
+                       "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
+                       "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
+                       "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
+                       "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
+                       "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
+                       "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1"),
+            class = c("Cer", "Cer", "Cer", "Cer", "Cer", "Cer", "Cer", "Cer",
+                      "Cer", "FA", "FA", "FA", "FA", "FA", "FA", "FA", "LPC",
+                      "LPC", "LPC", "LPC", "LPC", "LPC", "LPC", "LPC", "LPC",
+                      "LPC", "LPC", "LPC", "LPC", "LPC", "LPC", "LPC", "LPC",
+                      "LPC"),
+            name = c("Cer (d18:1/C12:0)", "Cer (d18:1/C12:0)",
+                     "Cer (d18:1/C12:0)", "Cer (d18:1/C12:0)",
+                     "Cer (d18:1/C12:0)", "Cer (d18:1/C12:0)",
+                     "Cer (d18:1/C12:0)", "Cer (d18:1/C12:0)",
+                     "Cer (d18:1/C12:0)", "FA 17:0", "FA 17:0", "FA 17:0",
+                     "FA 17:0", "FA 17:0", "FA 17:0", "FA 17:0", "LPC 11:0",
+                     "LPC 11:0", "LPC 11:0", "LPC 11:0", "LPC 11:0", "LPC 11:0",
+                     "LPC 11:0", "LPC 11:0", "LPC 11:0", "LPC 11a:0",
+                     "LPC 11a:0", "LPC 11a:0", "LPC 11a:0", "LPC 11a:0",
+                     "LPC 11a:0", "LPC 11a:0", "LPC 11a:0", "LPC 11a:0"),
+            rt = c(195.6, 195.6, 195.6, 195.6, 195.6, 195.6, 195.6, 195.6,
+                   195.6, 180.6, 180.6, 180.6, 180.6, 180.6, 180.6, 180.6,
+                   295.8, 295.8, 295.8, 295.8, 295.8, 295.8, 295.8, 295.8,
+                   295.8, 291, 291, 291, 291, 291, 291, 291, 291, 291),
+            ion_id = c(6, 6, 6, 6, 6, 3, 3, 3, 3, 4, 4, 4, 4, 1, 1, 1, 5, 5, 5,
+                       5, 5, 2, 2, 2, 2, 5, 5, 5, 5, 5, 2, 2, 2, 2),
+            adduct = c("[2M+H]+", "[2M+H]+", "[2M+H]+", "[2M+H]+", "[2M+H]+",
+                       "[M-H]-", "[M-H]-", "[M-H]-", "[M-H]-", "[2M+H]+",
+                       "[2M+H]+", "[2M+H]+", "[2M+H]+", "[M-H]-", "[M-H]-",
+                       "[M-H]-", "[2M+H]+", "[2M+H]+", "[2M+H]+", "[2M+H]+",
+                       "[2M+H]+", "[M-H]-", "[M-H]-", "[M-H]-", "[M-H]-",
+                       "[2M+H]+", "[2M+H]+", "[2M+H]+", "[2M+H]+", "[2M+H]+",
+                       "[M-H]-", "[M-H]-", "[M-H]-", "[M-H]-"),
+            ion_formula = c("C60H119N2O6", "C60H119N2O6", "C60H119N2O6",
+                            "C60H119N2O6", "C60H119N2O6", "C30H58N1O3",
+                            "C30H58N1O3", "C30H58N1O3", "C30H58N1O3",
+                            "C34H69O4", "C34H69O4", "C34H69O4", "C34H69O4",
+                            "C17H33O2", "C17H33O2", "C17H33O2", "C38H81N2O14P2",
+                            "C38H81N2O14P2", "C38H81N2O14P2", "C38H81N2O14P2",
+                            "C38H81N2O14P2", "C19H39N1O7P1", "C19H39N1O7P1",
+                            "C19H39N1O7P1", "C19H39N1O7P1", "C38H81N2O14P2",
+                            "C38H81N2O14P2", "C38H81N2O14P2", "C38H81N2O14P2",
+                            "C38H81N2O14P2", "C19H39N1O7P1", "C19H39N1O7P1",
+                            "C19H39N1O7P1", "C19H39N1O7P1"),
+            charge = c(1, 1, 1, 1, 1, -1, -1, -1, -1, 1, 1, 1, 1, -1, -1, -1, 1,
+                       1, 1, 1, 1, -1, -1, -1, -1, 1, 1, 1, 1, 1, -1, -1, -1,
+                       -1),
+            mz = c(963.90627, 964.90961, 965.91283, 966.91595, 967.919,
+                   480.44222, 481.44557, 482.44866, 483.45159, 541.51904,
+                   542.52246, 543.52559, 544.5284, 269.2486, 270.25202,
+                   271.25481, 851.51575, 852.51908, 853.52182, 854.52452,
+                   855.52745, 424.24696, 425.25028, 426.25264, 427.25529,
+                   851.51575, 852.51908, 853.52182, 854.52452, 855.52745,
+                   424.24696, 425.25028, 426.25264, 427.25529),
+            abd = c(100, 67.29, 23.5, 5.58, 0.93, 100, 33.66, 6.07, 0.72, 100,
+                    37.79, 7.7, 1.07, 100, 18.84, 2.02, 100, 43.35, 12.03, 2.26,
+                    0.34, 100, 21.68, 3.46, 0.42, 100, 43.35, 12.03, 2.26, 0.34,
+                    100, 21.68, 3.46, 0.42),
+            iso = c("M", "M+1", "M+2", "M+3", "M+4", "M", "M+1", "M+2", "M+3",
+                    "M", "M+1", "M+2", "M+3", "M", "M+1", "M+2", "M", "M+1",
+                    "M+2", "M+3", "M+4", "M", "M+1", "M+2", "M+3", "M", "M+1",
+                    "M+2", "M+3", "M+4", "M", "M+1", "M+2", "M+3")
+        )
+    )
+
+    # 4th test : with a compound name which doesn't exists
+    testthat::expect_equal(
+        load_ion_db(
+            c("[2M+H]+", "[M-H]-"),
+            "QTOF_XevoG2-S_R25000@200",
+            "test",
+            "toto"
+        ),
+        empty_db
+    )
+
+    # 5th test : by compound name restriction
+    testthat::expect_equal(
+        load_ion_db(
+            c("[2M+H]+", "[M-H]-"),
+            "QTOF_XevoG2-S_R25000@200",
+            "test",
+            cpd_names = "FA 17:0"
+        ),
+        data.frame(
+            formula = c("C17H34O2", "C17H34O2", "C17H34O2", "C17H34O2",
+                        "C17H34O2", "C17H34O2", "C17H34O2"),
+            class = c("FA", "FA", "FA", "FA", "FA", "FA", "FA"),
+            name = c("FA 17:0", "FA 17:0", "FA 17:0", "FA 17:0", "FA 17:0",
+                     "FA 17:0", "FA 17:0"),
+            rt = c(180.6, 180.6, 180.6, 180.6, 180.6, 180.6, 180.6),
+            ion_id = c(2, 2, 2, 2, 1, 1, 1),
+            adduct = c("[2M+H]+", "[2M+H]+", "[2M+H]+", "[2M+H]+", "[M-H]-",
+                       "[M-H]-", "[M-H]-"),
+            ion_formula = c("C34H69O4", "C34H69O4", "C34H69O4", "C34H69O4",
+                            "C17H33O2", "C17H33O2", "C17H33O2"),
+            charge = c(1, 1, 1, 1, -1, -1, -1),
+            mz = c(541.51904, 542.52246, 543.52559, 544.5284, 269.2486,
+                   270.25202, 271.25481),
+            abd = c(100, 37.79, 7.7, 1.07, 100, 18.84, 2.02),
+            iso = c("M", "M+1", "M+2", "M+3", "M", "M+1", "M+2")
+        )
+    )
+
+    # 6th test : with a compound class which doesn't exists
+    testthat::expect_equal(
+        load_ion_db(
+            c("[2M+H]+", "[M-H]-"),
+            "QTOF_XevoG2-S_R25000@200",
+            "test",
+            cpd_classes = "IPO"
+        ),
+        empty_db
+    )
+
+    # 7th test : compound class restriction
+    testthat::expect_equal(
+        load_ion_db(
+            c("[2M+H]+", "[M-H]-"),
+            "QTOF_XevoG2-S_R25000@200",
+            "test",
+            cpd_classes = "LPC"
+        ),
+        data.frame(
+            formula = c("C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
+                        "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
+                        "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
+                        "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
+                        "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
+                        "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1"),
+            class = c("LPC", "LPC", "LPC", "LPC", "LPC", "LPC", "LPC", "LPC",
+                      "LPC", "LPC", "LPC", "LPC", "LPC", "LPC", "LPC", "LPC",
+                      "LPC", "LPC"),
+            name = c("LPC 11:0", "LPC 11:0", "LPC 11:0", "LPC 11:0", "LPC 11:0",
+                     "LPC 11:0", "LPC 11:0", "LPC 11:0", "LPC 11:0",
+                     "LPC 11a:0", "LPC 11a:0", "LPC 11a:0", "LPC 11a:0",
+                     "LPC 11a:0", "LPC 11a:0", "LPC 11a:0", "LPC 11a:0",
+                     "LPC 11a:0"),
+            rt = c(295.8, 295.8, 295.8, 295.8, 295.8, 295.8, 295.8, 295.8,
+                   295.8, 291, 291, 291, 291, 291, 291, 291, 291, 291),
+            ion_id = c(2, 2, 2, 2, 2, 1, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 1),
+            adduct = c("[2M+H]+", "[2M+H]+", "[2M+H]+", "[2M+H]+", "[2M+H]+",
+                       "[M-H]-", "[M-H]-", "[M-H]-", "[M-H]-", "[2M+H]+",
+                       "[2M+H]+", "[2M+H]+", "[2M+H]+", "[2M+H]+", "[M-H]-",
+                       "[M-H]-", "[M-H]-", "[M-H]-"),
+            ion_formula = c("C38H81N2O14P2", "C38H81N2O14P2", "C38H81N2O14P2",
+                            "C38H81N2O14P2", "C38H81N2O14P2", "C19H39N1O7P1",
+                            "C19H39N1O7P1", "C19H39N1O7P1", "C19H39N1O7P1",
+                            "C38H81N2O14P2", "C38H81N2O14P2", "C38H81N2O14P2",
+                            "C38H81N2O14P2", "C38H81N2O14P2", "C19H39N1O7P1",
+                            "C19H39N1O7P1", "C19H39N1O7P1", "C19H39N1O7P1"),
+            charge = c(1, 1, 1, 1, 1, -1, -1, -1, -1, 1, 1, 1, 1, 1, -1, -1, -1,
+                       -1),
+            mz = c(851.51575, 852.51908, 853.52182, 854.52452, 855.52745,
+                   424.24696, 425.25028, 426.25264, 427.25529, 851.51575,
+                   852.51908, 853.52182, 854.52452, 855.52745, 424.24696,
+                   425.25028, 426.25264, 427.25529),
+            abd = c(100, 43.35, 12.03, 2.26, 0.34, 100, 21.68, 3.46, 0.42, 100,
+                    43.35, 12.03, 2.26, 0.34, 100, 21.68, 3.46, 0.42),
+            iso = c("M", "M+1", "M+2", "M+3", "M+4", "M", "M+1", "M+2", "M+3",
+                    "M", "M+1", "M+2", "M+3", "M+4", "M", "M+1", "M+2", "M+3")
+        )
+    )
+
+    # 8th test : with a NULL compound name & a compound class
+    testthat::expect_equal(
+        load_ion_db(
+            c("[2M+H]+", "[M-H]-"),
+            "QTOF_XevoG2-S_R25000@200",
+            "test",
+            cpd_name = "OCO",
+            cpd_classes = "LPC"
+        ),
+        empty_db
+    )
+
+    # 9th test : with a compound name & a NULL compound class
+    testthat::expect_equal(
+        load_ion_db(
+            c("[2M+H]+", "[M-H]-"),
+            "QTOF_XevoG2-S_R25000@200",
+            "test",
+            cpd_name = "LPC 11a:0",
+            cpd_classes = "IPO"
+        ),
+        empty_db
+    )
+
+    # 10th test : with a compound name & a compound class
+    testthat::expect_equal(
+        load_ion_db(
+            c("[2M+H]+", "[M-H]-"),
+            "QTOF_XevoG2-S_R25000@200",
+            "test",
+            cpd_names = "LPC 11a:0",
+            cpd_classes = "LPC"
+        ),
+        data.frame(
+            formula = rep("C19H40N1O7P1", 9),
+            class = rep("LPC", 9),
+            name = rep("LPC 11a:0", 9),
+            rt = rep(291, 9),
+            ion_id = c(rep(2, 5), rep(1, 4)),
+            adduct = c(rep("[2M+H]+", 5), rep("[M-H]-", 4)),
+            ion_formula = c(rep("C38H81N2O14P2", 5), rep("C19H39N1O7P1", 4)),
+            charge = c(rep(1, 5), rep(-1, 4)),
+            mz = c(851.51575, 852.51908, 853.52182, 854.52452, 855.52745,
+                   424.24696, 425.25028, 426.25264, 427.25529),
+            abd = c(100, 43.35, 12.03, 2.26, 0.34, 100, 21.68, 3.46, 0.42),
+            iso = c("M", "M+1", "M+2", "M+3", "M+4", "M", "M+1", "M+2", "M+3")
+        )
+    )
+})
+
 testthat::test_that("get_ions", {
     instrument <- "QTOF_XevoG2-S_R25000@200"
     empty_df_ions <- data.frame(matrix(, nrow = 0, ncol = 6, dimnames = list(
@@ -61,167 +351,6 @@ testthat::test_that("get_ions", {
             mz = c(823.48445, 824.48777, 825.49047, 826.49316, 827.49541),
             abd = c(100, 41.14, 11.11, 2.03, 0.21),
             iso = c("M", "M+1", "M+2", "M+3", "M+4")
-        )
-    )
-})
-
-testthat::test_that("load_chem_db", {
-    empty_db <- data.frame(matrix(, nrow = 0, ncol = 11, dimnames = list(
-        c(), c("class", "formula", "name", "rt", "ion_id", "adduct",
-               "ion_formula", "charge", "mz", "abd", "iso")
-    )))
-
-    # 1st test : without adducts
-    testthat::expect_equal(
-        load_chem_db(c(), "QTOF_XevoG2-S_R25000@200"),
-        empty_db
-    )
-
-    # 2nd test : normal
-    testthat::expect_equal(
-        load_chem_db(
-            c("[2M+H]+", "[M-H]-"),
-            "QTOF_XevoG2-S_R25000@200"
-        )[1:10, ],
-        data.frame(
-            formula = c(rep("C10H19N1O4", 7), rep("C13H23N1O4", 3)),
-            class = rep("Car", 10),
-            name = c(rep("CAR 3:0", 7), rep("CAR 6:1", 3)),
-            rt = c(rep(314.4, 7), rep(322.8, 3)),
-            ion_id = c(99, 99, 99, 99, 42, 42, 42, 130, 75, 130),
-            adduct = c(rep("[2M+H]+", 4), rep("[M-H]-", 3), "[2M+H]+", "[M-H]-",
-                       "[2M+H]+"),
-            ion_formula = c(rep("C20H39N2O8", 4), rep("C10H18N1O4", 3),
-                            "C26H47N2O8", "C13H22N1O4", "C26H47N2O8"),
-            charge = c(rep(1, 4), rep(-1, 3), 1, -1, 1),
-            mz = c(435.27009, 436.27332, 437.27555, 438.2784, 216.12413,
-                   217.12735, 218.12934, 515.33269, 256.15543, 516.33595),
-            abd = c(100, 23.17, 4.04, 0.5, 100, 11.59, 1.36, 100, 100, 29.75),
-            iso = c("M", "M+1", "M+2", "M+3", "M", "M+1", "M+2", "M", "M",
-                    "M+1")
-        )
-    )
-
-    # 3rd test : with a compound name which doesn't exists
-    testthat::expect_equal(
-        load_chem_db(
-            c("[2M+H]+", "[M-H]-"),
-            "QTOF_XevoG2-S_R25000@200",
-            "toto"
-        ),
-        empty_db
-    )
-
-    # 4th test : by compound name restriction
-    testthat::expect_equal(
-        load_chem_db(
-            c("[2M+H]+", "[M-H]-"),
-            "QTOF_XevoG2-S_R25000@200",
-            cpd_names = c("LPE 13:0", "CE 16:0")
-        ),
-        data.frame(
-            formula = c(rep("C18H38N1O7P1", 9), rep("C43H76O2", 11)),
-            class = c(rep("LPE", 9), rep("CE", 11)),
-            name = c(rep("LPE 13:0", 9), rep("CE 16:0", 11)),
-            rt = c(rep(372.6, 9), rep(49.2, 11)),
-            ion_id = c(rep(2, 5), rep(1, 4), rep(4, 6), rep(3, 5)),
-            adduct = c(rep("[2M+H]+", 5), rep("[M-H]-", 4),
-                       rep("[2M+H]+", 6), rep("[M-H]-", 5)),
-            ion_formula = c(rep("C36H77N2O14P2", 5), rep("C18H37N1O7P1", 4),
-                            rep("C86H153O4", 6), rep("C43H75O2", 5)),
-            charge = c(rep(1, 5), rep(-1, 4), rep(1, 6), rep(-1, 5)),
-            mz = c(823.48445, 825.49047, 826.49316, 827.49541, 824.48777,
-                   410.23131, 411.23463, 412.23692, 413.23958, 1250.17634,
-                   1251.17975, 1252.18311, 1253.18643, 1254.1897, 1255.19269,
-                   626.58705, 623.57726, 624.58066, 625.58398, 627.59067),
-            abd = c(100, 11.11, 2.03, 0.21, 41.14, 100, 20.58, 3.24, 0.39, 100,
-                    95, 45.43, 14.5, 3.5, 0.62, 1.76, 100, 47.45, 11.41, 0.17),
-            iso = c("M", "M+2", "M+3", "M+4", "M+1", "M", "M+1", "M+2", "M+3",
-                    "M", "M+1", "M+2", "M+3", "M+4", "M+5", "M+3", "M", "M+1",
-                    "M+2", "M+4")
-        )
-    )
-
-    # 5th test : with a compound class which doesn't exists
-    testthat::expect_equal(
-        load_chem_db(
-            c("[2M+H]+", "[M-H]-"),
-            "QTOF_XevoG2-S_R25000@200",
-            cpd_classes = "IPO"
-        ),
-        empty_db
-    )
-
-    # 6th test : compound class restriction
-    testthat::expect_equal(
-        load_chem_db(
-            c("[2M+H]+", "[M-H]-"),
-            "QTOF_XevoG2-S_R25000@200",
-            cpd_classes = "LPC"
-        )[1:12, ],
-        data.frame(
-            formula = rep("C19H40N1O7P1", 12),
-            class = rep("LPC", 12),
-            name = c(rep("LPC 11:0", 9), rep("LPC 11a:0", 3)),
-            rt = c(rep(295.8, 9), rep(291, 3)),
-            ion_id = c(rep(24, 5), rep(1, 4), rep(24, 3)),
-            adduct = c(rep("[2M+H]+", 5), rep("[M-H]-", 4), rep("[2M+H]+", 3)),
-            ion_formula = c(rep("C38H81N2O14P2", 5), rep("C19H39N1O7P1", 4),
-                            rep("C38H81N2O14P2", 3)),
-            charge = c(rep(1, 5), rep(-1, 4), rep(1, 3)),
-            mz = c(851.51575, 852.51908, 853.52182, 854.52452, 855.52745,
-                   424.24696, 425.25028, 426.25264, 427.25529, 851.51575,
-                   852.51908, 853.52182),
-            abd = c(100, 43.35, 12.03, 2.26, 0.34, 100, 21.68, 3.46, 0.42, 100,
-                    43.35, 12.03),
-            iso = c("M", "M+1", "M+2", "M+3", "M+4", "M", "M+1", "M+2", "M+3",
-                    "M", "M+1", "M+2")
-        )
-    )
-
-    # 7th test : with a NULL compound name & a compound class
-    testthat::expect_equal(
-        load_chem_db(
-            c("[2M+H]+", "[M-H]-"),
-            "QTOF_XevoG2-S_R25000@200",
-            cpd_name = "OCO",
-            cpd_classes = "LPC"
-        ),
-        empty_db
-    )
-
-    # 8th test : with a compound name & a NULL compound class
-    testthat::expect_equal(
-        load_chem_db(
-            c("[2M+H]+", "[M-H]-"),
-            "QTOF_XevoG2-S_R25000@200",
-            cpd_name = "LPC 11a:0",
-            cpd_classes = "IPO"
-        ),
-        empty_db
-    )
-
-    # 9th test : with a compound name & a compound class
-    testthat::expect_equal(
-        load_chem_db(
-            c("[2M+H]+", "[M-H]-"),
-            "QTOF_XevoG2-S_R25000@200",
-            cpd_names = "LPC 11a:0",
-            cpd_classes = "LPC"
-        ),
-        data.frame(
-            formula = rep("C19H40N1O7P1", 9),
-            class = rep("LPC", 9),
-            name = rep("LPC 11a:0", 9),
-            rt = rep(291, 9),
-            ion_id = c(rep(2, 5), rep(1, 4)),
-            adduct = c(rep("[2M+H]+", 5), rep("[M-H]-", 4)),
-            ion_formula = c(rep("C38H81N2O14P2", 5), rep("C19H39N1O7P1", 4)),
-            charge = c(rep(1, 5), rep(-1, 4)),
-            mz = c(851.51575, 852.51908, 853.52182, 854.52452, 855.52745,
-                   424.24696, 425.25028, 426.25264, 427.25529),
-            abd = c(100, 43.35, 12.03, 2.26, 0.34, 100, 21.68, 3.46, 0.42),
-            iso = c("M", "M+1", "M+2", "M+3", "M+4", "M", "M+1", "M+2", "M+3")
         )
     )
 })
@@ -596,13 +725,5 @@ testthat::test_that("get_mz_range", {
     testthat::expect_equal(
         get_mz_range(464.447304014051, 5),
         c(464.4449818, 464.4496263)
-    )
-})
-
-testthat::test_that("get cpd classes", {
-    testthat::expect_equal(
-        get_cpd_classes(),
-        c("CE", "FA", "Cer", "SM", "LPC", "PE", "LPE", "TG", "PC", "MHCer",
-          "PG", "PI", "PS", "Car", "DG", "GlcCer", "LacCer")
     )
 })

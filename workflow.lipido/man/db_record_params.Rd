@@ -24,7 +24,7 @@ db_record_params(
 
 \item{pd_params}{`PeakDensityParam`}
 
-\item{ann_params}{`AnnParam`}
+\item{ann_params}{`AnnotationParam`}
 }
 \description{
 Record processing parameters in the database

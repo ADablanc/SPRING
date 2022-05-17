@@ -22,6 +22,8 @@ theoretical peak will be discarded}
 
 \item{\code{instrument}}{`character(1)` instrument names from the enviPat package}
 
+\item{\code{database}}{`character(1)` name of the database to load}
+
 \item{\code{cpd_classes}}{`character vector` compound classes in database to
 restrict for annotation}
 }}

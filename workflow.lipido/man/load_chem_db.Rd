@@ -2,36 +2,22 @@
 % Please edit documentation in R/chem_FUN.R
 \name{load_chem_db}
 \alias{load_chem_db}
-\title{Get all ions of chemical database}
+\title{Load cpd database}
 \usage{
-load_chem_db(adduct_names, instrument, cpd_classes = NULL, cpd_names = NULL)
+load_chem_db(database)
 }
 \arguments{
-\item{adduct_names}{`character vector`vector of adduct names present in the
-enviPat list}
-
-\item{instrument}{`character` instrument name for enviPat}
-
-\item{cpd_classes}{`character vector` compound classes to restrict}
-
-\item{cpd_names}{name of compounds to restrict}
+\item{database}{`character(1)` database name}
 }
 \value{
-DataFrame with
+`DataFrame` with columns:
 \itemize{
-     \item formula chemical formula
-     \item class class of the compound
-     \item name of the compound
-     \item rt retention time of the compound
-     \item ion_id id unique for an entry of the database + adduct associated
-     \item adduct adduct name
-     \item ion_formula ion chemical formula
-     \item charge charge of the ion
-     \item mz m/z
-     \item abd relative abundance
-     \item iso isotopologue annotation
+   \item class `character` compound class
+   \item name `character` compound name
+   \item formula `character` chemical formula
+   \item rt `numeric` retention time
 }
 }
 \description{
-Get all m/z & relative abundance for the internal database
+Load chemical database
 }

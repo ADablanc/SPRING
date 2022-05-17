@@ -1,3 +1,35 @@
+#' @title Load cpd database
+#'
+#' @description
+#' Load chemical database
+#' @param database `character(1)` database name
+#'
+#' @return `DataFrame` with columns:
+#' \itemize{
+#'    \item class `character` compound class
+#'    \item name `character` compound name
+#'    \item formula `character` chemical formula
+#'    \item rt `numeric` retention time
+#' }
+load_chem_db <- function(database) {
+    if (!database %in% get_available_database()) {
+        stop(sprintf(
+            "%s doesn't exist in software",
+            database
+        ))
+    }
+    database <- utils::read.csv(system.file(
+        "extdata",
+        "database",
+        paste(database, "csv", sep = "."),
+        package = "workflow.lipido"
+    ))
+    if (nrow(database) == 0) {
+        stop("no compound in database")
+    }
+    database
+}
+
 #' @title Get all ions of chemical database
 #'
 #' @description
@@ -5,7 +37,8 @@
 #'
 #' @param adduct_names `character vector`vector of adduct names present in the
 #' enviPat list
-#' @param instrument `character` instrument name for enviPat
+#' @param instrument `character(1)` instrument name for enviPat
+#' @param database `character(1)` name of the database to load
 #' @param cpd_classes `character vector` compound classes to restrict
 #' @param cpd_names name of compounds to restrict
 #'
@@ -23,15 +56,15 @@
 #'      \item abd relative abundance
 #'      \item iso isotopologue annotation
 #' }
-load_chem_db <- function(adduct_names,
+load_ion_db <- function(adduct_names,
                     instrument,
+                    database,
                     cpd_classes = NULL,
                     cpd_names = NULL) {
-    chem_db <- utils::read.csv(system.file(
-        "extdata",
-        "database.csv",
-        package = "workflow.lipido"
-    ))
+    chem_db <- load_chem_db(database)
+    if (nrow(chem_db) == 0) {
+        stop("no compound available in database !")
+    }
     # the rt in the database is in minutes !!
     chem_db$rt <- chem_db$rt * 60
     if (!is.null(cpd_classes)) {
@@ -56,9 +89,14 @@ load_chem_db <- function(adduct_names,
             )
         )
     )
-    ions <- cbind(ion_id = as.numeric(as.factor(ions$ion_formula)), ions)
+    ions <- cbind(
+        ion_id = as.numeric(as.factor(ions$ion_formula)),
+        ions,
+        order_id = seq(nrow(ions))
+    )
     chem_db <- merge(chem_db, ions, by = "formula", all = TRUE)
-    chem_db[!is.na(chem_db$mz), , drop = FALSE]
+    chem_db <- chem_db[order(chem_db$name, chem_db$order_id), ]
+    chem_db[!is.na(chem_db$mz), -ncol(chem_db), drop = FALSE]
 }
 
 #' @title Get ions
@@ -329,18 +367,4 @@ convert_ppm_da <- function(ppm, mass) {
 get_mz_range <- function(mz, ppm) {
     da <- convert_ppm_da(ppm, mz)
     mz + c(-da, da)
-}
-
-#' @title Get compound classes
-#'
-#' @description
-#' Get all compound classes recorded in database
-#'
-#' @return `character vector` compound classes
-get_cpd_classes <- function() {
-    unique(utils::read.csv(system.file(
-        "extdata",
-        "database.csv",
-        package = "workflow.lipido"
-    ))$class)
 }

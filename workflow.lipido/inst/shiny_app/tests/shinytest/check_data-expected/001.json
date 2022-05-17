@@ -1,4 +1,7 @@
 {
+  "input": {
+    "check_data_cpd": null
+  },
   "output": {
     "check_data_eic_mzdev": {
       "x": {

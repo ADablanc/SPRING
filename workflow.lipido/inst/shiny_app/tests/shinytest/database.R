@@ -7,10 +7,11 @@ app$snapshotInit("database")
 
 app$executeScript("$(\"a[href=\\\"#shiny-tab-database\\\"]\").click()")
 app$waitForValue(
-    "database_table",
+    "database_name",
     iotype = "output",
-    ignore = list(NULL)
+    ignore = list("")
 )
+app$setInputs(database_name = "test")
 app$snapshot(
     items = list(
         output = "database_table" # contain all database entries

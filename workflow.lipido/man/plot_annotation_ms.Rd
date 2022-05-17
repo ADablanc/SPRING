@@ -34,3 +34,8 @@ It have two JS functions :
     force the relayout between the xaxis range +/- 1
 }
 }
+\examples{
+\dontrun{
+plot_annotation_ms(db, "LPC 11a:0")
+}
+}

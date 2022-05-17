@@ -105,7 +105,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 14th test : test with missing ppm
+# 4th test : test with missing ppm
 app$setInputs(process_ppm = "")
 app$setInputs(process_launch = "click")
 app$snapshot(
@@ -115,7 +115,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 15th test : test with ppm < 0
+# 5th test : test with ppm < 0
 app$setInputs(process_ppm = -2)
 app$setInputs(process_launch = "click")
 app$snapshot(
@@ -125,7 +125,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 16th test : test with missing peakwidth min
+# 6th test : test with missing peakwidth min
 app$setInputs(process_ppm = 30)
 app$setInputs(process_peakwidth_min = "")
 app$setInputs(process_launch = "click")
@@ -136,7 +136,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 17th test : test with peakwidth min < 0
+# 7th test : test with peakwidth min < 0
 app$setInputs(process_peakwidth_min = -2)
 app$setInputs(process_launch = "click")
 app$snapshot(
@@ -146,7 +146,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 18th test : test with missing peakwidth max
+# 8th test : test with missing peakwidth max
 app$setInputs(process_peakwidth_min = 4)
 app$setInputs(process_peakwidth_max = "")
 app$setInputs(process_launch = "click")
@@ -157,7 +157,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 19th test : test with peakwidth max < 0
+# 9th test : test with peakwidth max < 0
 app$setInputs(process_peakwidth_max = -2)
 app$setInputs(process_launch = "click")
 app$snapshot(
@@ -167,7 +167,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 20th test : test with peakwidth max < rt min
+# 10th test : test with peakwidth max < rt min
 app$setInputs(process_peakwidth_max = 2)
 app$setInputs(process_launch = "click")
 app$snapshot(
@@ -177,7 +177,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 21th test : test with missing snthresh
+# 11th test : test with missing snthresh
 app$setInputs(process_peakwidth_max = 39)
 app$setInputs(process_snthresh = "")
 app$setInputs(process_launch = "click")
@@ -188,7 +188,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 22th test : test with snthresh < 0
+# 12th test : test with snthresh < 0
 app$setInputs(process_snthresh = -2)
 app$setInputs(process_launch = "click")
 app$snapshot(
@@ -198,7 +198,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 23th test : test with missing prefilter step
+# 13th test : test with missing prefilter step
 app$setInputs(process_snthresh = 1)
 app$setInputs(process_prefilter_step = "")
 app$setInputs(process_launch = "click")
@@ -209,7 +209,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 24th test : test with prefilter step < 0
+# 14th test : test with prefilter step < 0
 app$setInputs(process_prefilter_step = -2)
 app$setInputs(process_launch = "click")
 app$snapshot(
@@ -219,7 +219,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 25th test : test with missing prefilter level
+# 15th test : test with missing prefilter level
 app$setInputs(process_prefilter_step = 2)
 app$setInputs(process_prefilter_level = "")
 app$setInputs(process_launch = "click")
@@ -230,7 +230,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 26th test : test with prefilter level < 0
+# 16th test : test with prefilter level < 0
 app$setInputs(process_prefilter_level = -2)
 app$setInputs(process_launch = "click")
 app$snapshot(
@@ -240,7 +240,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 27th test : test with missing m/z diff
+# 17th test : test with missing m/z diff
 app$setInputs(process_prefilter_level = 815)
 app$setInputs(process_mzdiff = "")
 app$setInputs(process_launch = "click")
@@ -251,7 +251,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 28th test : test with missing noise
+# 18th test : test with missing noise
 app$setInputs(process_mzdiff = .041)
 app$setInputs(process_noise = "")
 app$setInputs(process_launch = "click")
@@ -262,7 +262,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 29th test : test with missing gap init
+# 19th test : test with missing gap init
 app$setInputs(process_noise = 0)
 app$setInputs(process_gap_init = "")
 app$setInputs(process_launch = "click")
@@ -273,7 +273,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 30th test : test with gap init < 0
+# 20th test : test with gap init < 0
 app$setInputs(process_gap_init = -2)
 app$setInputs(process_launch = "click")
 app$snapshot(
@@ -283,7 +283,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 31th test : test with missing gap extend
+# 21th test : test with missing gap extend
 app$setInputs(process_gap_init = .3)
 app$setInputs(process_gap_extend = "")
 app$setInputs(process_launch = "click")
@@ -294,7 +294,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 32th test : test with gap extend < 0
+# 22th test : test with gap extend < 0
 app$setInputs(process_gap_extend = -2)
 app$setInputs(process_launch = "click")
 app$snapshot(
@@ -304,7 +304,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 33th test : test with missing factor diag
+# 23th test : test with missing factor diag
 app$setInputs(process_gap_extend = 2.4)
 app$setInputs(process_factor_diag = "")
 app$setInputs(process_launch = "click")
@@ -315,7 +315,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 34th test : test with factor diag < 0
+# 24th test : test with factor diag < 0
 app$setInputs(process_factor_diag = -2)
 app$setInputs(process_launch = "click")
 app$snapshot(
@@ -325,7 +325,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 35th test : test with missing factor gap
+# 25th test : test with missing factor gap
 app$setInputs(process_factor_diag = 2)
 app$setInputs(process_factor_gap = "")
 app$setInputs(process_launch = "click")
@@ -336,7 +336,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 36th test : test with factor gap < 0
+# 26th test : test with factor gap < 0
 app$setInputs(process_factor_gap = -2)
 app$setInputs(process_launch = "click")
 app$snapshot(
@@ -346,7 +346,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 37th test : test with missing init penalty
+# 27th test : test with missing init penalty
 app$setInputs(process_factor_gap = 1)
 app$setInputs(process_init_penalty = "")
 app$setInputs(process_launch = "click")
@@ -357,7 +357,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 38th test : test with init penalty < 0
+# 28th test : test with init penalty < 0
 app$setInputs(process_init_penalty = -2)
 app$setInputs(process_launch = "click")
 app$snapshot(
@@ -367,7 +367,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 39th test : test with missing bw
+# 29th test : test with missing bw
 app$setInputs(process_init_penalty = 0)
 app$setInputs(process_bw = "")
 app$setInputs(process_launch = "click")
@@ -378,7 +378,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 40th test : test with bw < 0
+# 30th test : test with bw < 0
 app$setInputs(process_bw = -2)
 app$setInputs(process_launch = "click")
 app$snapshot(
@@ -388,7 +388,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 41th test : test with missing mzwid
+# 31th test : test with missing mzwid
 app$setInputs(process_bw = 5)
 app$setInputs(process_mzwid = "")
 app$setInputs(process_launch = "click")
@@ -399,7 +399,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 42th test : test with mzwid < 0
+# 32th test : test with mzwid < 0
 app$setInputs(process_mzwid = -2)
 app$setInputs(process_launch = "click")
 app$snapshot(
@@ -409,7 +409,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 43th test : test with missing mda tol
+# 33th test : test with missing mda tol
 app$setInputs(process_mzwid = 10)
 app$setInputs(process_mda_tol = "")
 app$setInputs(process_launch = "click")
@@ -420,7 +420,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 44th test : test with mda tol < 0
+# 34th test : test with mda tol < 0
 app$setInputs(process_mda_tol = -2)
 app$setInputs(process_launch = "click")
 app$snapshot(
@@ -430,7 +430,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 45th test : test with missing rt tol
+# 35th test : test with missing rt tol
 app$setInputs(process_mda_tol = 15)
 app$setInputs(process_rt_tol = "")
 app$setInputs(process_launch = "click")
@@ -441,7 +441,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 46th test : test with rt tol < 0
+# 36th test : test with rt tol < 0
 app$setInputs(process_rt_tol = -2)
 app$setInputs(process_launch = "click")
 app$snapshot(
@@ -451,7 +451,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 47th test : test with missing adducts
+# 37th test : test with missing adducts
 app$setInputs(process_rt_tol = 10)
 app$setInputs(process_adducts = NULL)
 app$setInputs(process_launch = "click")
@@ -462,9 +462,17 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 48th test : test with missing compound classes
+# 38th test : check that the compound classes is updated
 app$setInputs(process_adducts = c("[M+H]+", "[M+NH4]+", "[M+Na]+", "[M-H]-",
                                   "[M+H-H2O]+"))
+app$setInputs(process_database = "test")
+app$snapshot(
+    items = list(
+        input = "process_cpd_classes" # must be "FA", "Cer", "LPC"
+    )
+)
+
+# 39th test : test with missing compound classes
 app$setInputs(process_cpd_classes = NULL)
 app$setInputs(process_launch = "click")
 app$snapshot(
@@ -474,8 +482,8 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 49th test : normal test
-app$setInputs(process_cpd_classes = c("LPC", "Cer", "FA"))
+# 40th test : normal test
+app$setInputs(process_cpd_classes = c("FA", "Cer", "LPC"))
 app$setInputs(process_launch = "click", wait_ = FALSE, values_ = FALSE)
 app$snapshot(
     items = list(

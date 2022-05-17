@@ -372,14 +372,9 @@
         "config.modeBarButtons.0.0.icon",
         "config.modeBarButtons.0.0.click"
       ],
-      "jsHooks": {
-        "render": [
-          {
-            "code": "function(el, x) {\n                el.on(\"plotly_click\", function(data) {\n                    Shiny.onInputChange(\"check_data_heatmap_click\", {\n                        sample: data.points[0].y,\n                        cpd_name: data.points[0].x\n                    })\n                })\n            }",
-            "data": null
-          }
-        ]
-      },
+      "jsHooks": [
+
+      ],
       "deps": [
         {
           "name": "setprototypeof",

@@ -89,9 +89,10 @@ annotate_peaklists <- function(xset,
     if (!is.null(pb_fct)) {
         pb_fct(n = 0, total = 1, title = "Annotate")
     }
-    chem_db <- load_chem_db(
+    chem_db <- load_ion_db(
         ann_params@adduct_names,
         ann_params@instrument,
+        ann_params@database,
         cpd_classes = ann_params@cpd_classes
     )
     l_spectras <- unique(chem_db[, c("ion_id", "mz", "abd", "iso")])

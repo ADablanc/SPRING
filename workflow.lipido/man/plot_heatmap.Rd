@@ -18,3 +18,8 @@ plot_heatmap(db, names)
 Plot a heamap with in x compounds, in y samples and in z their cumulated
 intensities of their basepeaks
 }
+\examples{
+\dontrun{
+plot_heatmap(db, c("LPC 11:0", "PS 24:0"))
+}
+}

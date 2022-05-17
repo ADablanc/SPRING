@@ -317,6 +317,10 @@ plot_composite_ms <- function(spectras) {
 #' @return `plotly` a plotly object
 #'
 #' @export
+#' @examples
+#' \dontrun{
+#' plot_annotation_ms(db, "LPC 11a:0")
+#' }
 plot_annotation_ms <- function(db, name) {
     if (class(db) != "SQLiteConnection") {
         stop("db must be a connection to the sqlite database")
@@ -390,6 +394,10 @@ plot_empty_heatmap <- function() {
 #' @return `plotly`
 #'
 #' @export
+#' @examples
+#' \dontrun{
+#' plot_heatmap(db, c("LPC 11:0", "PS 24:0"))
+#' }
 plot_heatmap <- function(db, names) {
     if (class(db) != "SQLiteConnection") {
         stop("db must be a connection to the sqlite database")
@@ -577,6 +585,10 @@ plot_empty_chromato <- function(title = "Total Ion Chromatogram(s)") {
 #' @return `plotly`
 #'
 #' @export
+#' @examples
+#' \dontrun{
+#' plot_eic(db, "220221CCM_global__01_ssleu_filtered", "LPC 11:0")
+#' }
 plot_eic <- function(db, sample_name, name) {
     if (class(db) != "SQLiteConnection") {
         stop("db must be a connection to the sqlite database")
@@ -603,9 +615,10 @@ plot_eic <- function(db, sample_name, name) {
     # get params used in process & load all the basepeaks for the compound name
     params <- db_get_params(db)
     adduct_names <- strsplit(params$ann$adduct_names, ";")[[1]]
-    chem_db <- load_chem_db(
+    chem_db <- load_ion_db(
         adduct_names,
         params$ann$instrument,
+        params$ann$database,
         cpd_names = name
     )
     chem_db <- chem_db[chem_db$iso == "M", , drop = FALSE]
@@ -827,6 +840,16 @@ plot_empty_mzdev <- function(title = "m/z deviation") {
 #' identification step
 #'
 #' @return `plotly`
+#' @export
+#' @examples
+#' \dontrun{
+#' plot_mzdev(
+#'      db,
+#'      "220221CCM_global__01_ssleu_filtered",
+#'      "LPC 11:0",
+#'      "[M+H]+"
+#' )
+#' }
 plot_mzdev <- function(db, sample_name, name, adduct_name) {
     if (class(db) != "SQLiteConnection") {
         stop("db must be a connection to the sqlite database")
@@ -852,9 +875,10 @@ plot_mzdev <- function(db, sample_name, name, adduct_name) {
     if (ncol(params$ann) == 0) {
         return(p)
     }
-    chem_db <- load_chem_db(
+    chem_db <- load_ion_db(
         adduct_name,
         params$ann$instrument,
+        params$ann$database,
         cpd_names = name
     )
     chem_db <- chem_db[chem_db$iso == "M", ]
@@ -939,6 +963,10 @@ plot_mzdev <- function(db, sample_name, name, adduct_name) {
 #' @return `plotly`
 #'
 #' @export
+#' @examples
+#' \dontrun{
+#' plot_eic_mzdev(db, "220221CCM_global__01_ssleu_filtered", "LPC 11:0")
+#' }
 plot_eic_mzdev <- function(db, sample_name, name) {
     if (class(db) != "SQLiteConnection") {
         stop("db must be a connection to the sqlite database")
@@ -966,9 +994,10 @@ plot_eic_mzdev <- function(db, sample_name, name) {
 
     adduct_names <- strsplit(params$ann$adduct_names, ";")[[1]]
     colors <- RColorBrewer::brewer.pal(length(adduct_names), "Set2")
-    chem_db <- load_chem_db(
+    chem_db <- load_ion_db(
         adduct_names,
         params$ann$instrument,
+        params$ann$database,
         cpd_names = name
     )
     chem_db <- chem_db[chem_db$iso == "M", , drop = FALSE]

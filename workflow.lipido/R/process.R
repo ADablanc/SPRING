@@ -72,6 +72,48 @@
 #' intend to use a specific progress bar you created !!!
 #'
 #' @export
+#' @examples
+#' \dontrun{
+#' # initialize parameters
+#' raw_files <- c("file1.raw", "file2.raw")
+#' sqlite_path <- "20220513_global_test.sqlite"
+#' converter <- "pwiz/msconvert.exe"
+#' cwt_params <- xcms::CentWaveParam(
+#'      ppm = 3,
+#'      peakwidth = c(4, 39),
+#'      snthresh = 10,
+#'      prefilter = c(2, 1000),
+#'      mzdiff = .01
+#' )
+#' obw_params <- xcms::ObiwarpParam()
+#' pd_params <- xcms::PeakDensityParam(
+#'      bw = 5,
+#'      binSize = 0.01,
+#' )
+#' ann_params <- AnnotationParam(
+#'      da_tol = .015,
+#'      rt_tol = 10,
+#'      abd_tol = 25,
+#'      adduct_names = c(
+#'           "[M+Na]+",
+#'           "[M+NH4]+",
+#'           "[M+H-H2O]+",
+#'           "[M+H]+",
+#'           "[M-H]-"
+#'      ),
+#'      database = "test",
+#'      instrument = "QTOF_XevoG2-S_R25000@200",
+#' )
+#' ms_process(
+#'      raw_files,
+#'      sqlite_path,
+#'      converter,
+#'      cwt_params,
+#'      obw_params,
+#'      pd_params,
+#'      ann_params
+#' )
+#' }
 ms_process <- function(raw_files,
                        sqlite_path,
                        converter,

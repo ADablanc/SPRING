@@ -38,6 +38,13 @@ output$process_dt_files_imported <- DT::renderDataTable({
     )
 )
 
+shiny::updateSelectInput(
+    session,
+    inputId = "process_database",
+    label = "Database",
+    choices = get_available_database()
+)
+
 shinyWidgets::updatePickerInput(
     session,
     inputId = "process_adducts",
@@ -54,13 +61,19 @@ shiny::updateSelectInput(
     selected = "QTOF_XevoG2-S_R25000@200"
 )
 
-shinyWidgets::updatePickerInput(
-    session,
-    inputId = "process_cpd_classes",
-    label = "Compound classes",
-    choices = get_cpd_classes(),
-    selected = get_cpd_classes()
-)
+observeEvent(input$process_database, {
+    if (input$process_database == "") {
+        return(0)
+    }
+    cpd_classes <- unique(load_chem_db(input$process_database)$class)
+    shinyWidgets::updatePickerInput(
+        session,
+        inputId = "process_cpd_classes",
+        label = "Compound classes",
+        choices = cpd_classes,
+        selected = cpd_classes
+    )
+})
 
 shiny::updateNumericInput(
     session,
@@ -137,6 +150,7 @@ shiny::updateNumericInput(
 #' @param input$process_abd_tol `numeric(1)` relative abundance tolerance, each
 #'  peak which have an higher difference of relative abundance with its
 #'  corresponding theoretical peak will be discarded
+#' @param input$process_database `character` database to use for annotation
 #' @param input$process_adducts `character vector` adduct names from the enviPat
 #'  package
 #' @param input$process_instrument `character(1)` instrument names from the
@@ -185,6 +199,7 @@ shiny::observeEvent(input$process_launch, {
             `m/z tolerance (annotation)` = input$process_mda_tol * 10**-3,
             `rT tolerance` = input$process_rt_tol,
             `Relative abundance tolerance` = input$process_abd_tol,
+            Database = input$process_database,
             Adducts = input$process_adducts,
             Instrument = input$process_instrument,
             `Compound classes` = input$process_cpd_classes
@@ -195,7 +210,7 @@ shiny::observeEvent(input$process_launch, {
             "first_baseline_check", "response", "dist_fun", "gap_init",
             "gap_extend", "factor_diag", "factor_gap", "local_alignment",
             "init_penalty", "bw", "mzwid", "mda_tol", "rt_tol", "abd_tol",
-            "adducts", "instrument", "cpd_classes"), sep = "_")
+            "database", "adducts", "instrument", "cpd_classes"), sep = "_")
 
         # check which are missing
         conditions <- !is.na(params) & lengths(params) > 0
@@ -269,6 +284,7 @@ shiny::observeEvent(input$process_launch, {
             abd_tol = params[["Relative abundance tolerance"]],
             adduct_names = params[["Adducts"]],
             instrument = params[["Instrument"]],
+            database = params[["Database"]],
             cpd_classes = params[["Compound classes"]]
         )
 

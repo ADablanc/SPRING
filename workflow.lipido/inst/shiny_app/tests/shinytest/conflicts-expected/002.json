@@ -211,24 +211,24 @@
             "mode": "lines",
             "type": "scatter",
             "x": [
-              411.25935,
-              411.25935,
-              null,
               409.25427,
               409.25427,
               null,
               410.25672,
-              410.25672
+              410.25672,
+              null,
+              411.25935,
+              411.25935
             ],
             "y": [
-              0,
-              -337.533613885674,
-              null,
               0,
               -19230.5335279601,
               null,
               0,
-              -2886.80064507484
+              -2886.80064507484,
+              null,
+              0,
+              -337.533613885674
             ],
             "legendgroup": "[M+H-H2O]+",
             "showlegend": false,
@@ -243,14 +243,14 @@
               "text"
             ],
             "text": [
-              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M+3<br />m/z: 411.25935<br />abd: 0%",
-              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M+3<br />m/z: 411.25935<br />abd: 0%",
-              null,
               "theoretical<br />adduct: [M+H-H2O]+<br />iso: M+1<br />m/z: 409.25427<br />abd: 22%",
               "theoretical<br />adduct: [M+H-H2O]+<br />iso: M+1<br />m/z: 409.25427<br />abd: 22%",
               null,
               "theoretical<br />adduct: [M+H-H2O]+<br />iso: M+2<br />m/z: 410.25672<br />abd: 3%",
-              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M+2<br />m/z: 410.25672<br />abd: 3%"
+              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M+2<br />m/z: 410.25672<br />abd: 3%",
+              null,
+              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M+3<br />m/z: 411.25935<br />abd: 0%",
+              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M+3<br />m/z: 411.25935<br />abd: 0%"
             ],
             "marker": {
               "color": "rgba(0,0,0,1)",

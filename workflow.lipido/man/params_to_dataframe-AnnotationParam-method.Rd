@@ -20,6 +20,7 @@
     \item adduct_names `character` adduct names from the enviPat package
     collapsed with the character ";"
     \item instrument `character` instrument names from the enviPat package
+    \item database `character(1)` name of the database to load
     \item cpd_classes `character` compound classes in database to restrict
     for annotation collapsed with the character ";"
 }

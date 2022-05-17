@@ -79,7 +79,7 @@ testthat::test_that("annotation_param", {
                 "[M+H]+",
                 "[M-H]-"
             ),
-            instrument = "orbitrap"
+            instrument = "orbitrap",
         ),
         "orbitrap doesn't exists in the instrument list"
     )
@@ -96,6 +96,24 @@ testthat::test_that("annotation_param", {
                 "[M-H]-"
             ),
             instrument = "QTOF_XevoG2-S_R25000@200",
+            database = 1
+        ),
+        "1 doesn't exist in software"
+    )
+    testthat::expect_error(
+        AnnotationParam(
+            da_tol = 0.015,
+            rt_tol = 10,
+            abd_tol = 25,
+            adduct_names = c(
+                "[M+Na]+",
+                "[M+NH4]+",
+                "[M+H-H2O]+",
+                "[M+H]+",
+                "[M-H]-"
+            ),
+            instrument = "QTOF_XevoG2-S_R25000@200",
+            database = "test",
             cpd_classes = 1
         ),
         "got class \"numeric\", should be or extend class \"character\""
@@ -113,6 +131,7 @@ testthat::test_that("annotation_param", {
                 "[M-H]-"
             ),
             instrument = "QTOF_XevoG2-S_R25000@200",
+            database = "test",
             cpd_classes = c("OP", "CC")
         ),
         "OP and CC doesn't exists in database"
@@ -129,7 +148,11 @@ testthat::test_that("annotation_param", {
     testthat::expect_equal(obj@abd_tol, 25)
     testthat::expect_equal(obj@adduct_names, adducts$Name)
     testthat::expect_equal(obj@instrument, "QTOF_XevoG2-S_R25000@200")
-    testthat::expect_equal(obj@cpd_classes, get_cpd_classes())
+    testthat::expect_equal(obj@database, get_available_database()[1])
+    testthat::expect_equal(
+        obj@cpd_classes,
+        unique(load_chem_db(obj@database)$class)
+    )
     obj <- AnnotationParam(
         da_tol = 0.015,
         rt_tol = 10,
@@ -142,6 +165,7 @@ testthat::test_that("annotation_param", {
             "[M-H]-"
         ),
         instrument = "QTOF_XevoG2-S_R25000@200",
+        database = "test",
         cpd_classes = c("LPC", "Cer", "FA")
     )
     testthat::expect_equal(obj@da_tol, .015)
@@ -152,6 +176,7 @@ testthat::test_that("annotation_param", {
         c("[M+Na]+", "[M+NH4]+", "[M+H-H2O]+", "[M+H]+", "[M-H]-")
     )
     testthat::expect_equal(obj@instrument, "QTOF_XevoG2-S_R25000@200")
+    testthat::expect_equal(obj@database, "test")
     testthat::expect_equal(obj@cpd_classes, c("LPC", "Cer", "FA"))
     testthat::expect_error(
         restrict_adducts_polarity(obj, "maybe"),
@@ -163,6 +188,7 @@ testthat::test_that("annotation_param", {
         abd_tol = 25,
         adduct_names = c("[M+H]+", "[M+NH4]+", "[M+Na]+", "[M+H-H2O]+"),
         instrument = "QTOF_XevoG2-S_R25000@200",
+        database = "test",
         cpd_classes = c("LPC", "Cer", "FA")
     )
     testthat::expect_equal(
@@ -175,6 +201,7 @@ testthat::test_that("annotation_param", {
         abd_tol = 25,
         adduct_names = "[M-H]-",
         instrument = "QTOF_XevoG2-S_R25000@200",
+        database = "test",
         cpd_classes = c("LPC", "Cer", "FA")
     )
     testthat::expect_equal(
@@ -192,6 +219,7 @@ testthat::test_that("annotation_param", {
                 collapse = ";"
             ),
             instrument = "QTOF_XevoG2-S_R25000@200",
+            database = "test",
             cpd_classes = paste(c("LPC", "Cer", "FA"), collapse = ";")
         )
     )
@@ -341,6 +369,7 @@ testthat::test_that("check_ms_process_args", {
             "[M-H]-"
         ),
         instrument = "QTOF_XevoG2-S_R25000@200",
+        database = "test",
         cpd_classes = c("LPC", "Cer", "FA")
     )
 

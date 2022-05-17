@@ -488,6 +488,11 @@ shinydashboard::tabItem(
                             considered part of the isotopic profile"
                     )
                 ),
+                shiny::selectInput(
+                    inputId = "process_database",
+                    label = "Database",
+                    choices = ""
+                ),
                 shinyWidgets::pickerInput(
                     inputId = "process_adducts",
                     label = "Adducts",

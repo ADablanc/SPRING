@@ -298,15 +298,20 @@ import_ms_file <- function(db,
                            polarity,
                            filter_params) {
     ms_file <- tryCatch({
-            convert_file(raw_file, converter, polarity, filter_params)
+            ms_file <- convert_file(
+                raw_file,
+                converter,
+                polarity,
+                filter_params
+            )
+            attributes(ms_file)$scantime_corrected <- ms_file@scantime
+            filter_ms_file(ms_file, filter_params)
         },
         error = function(e) {
             e$message
         }
     )
     if (class(ms_file) == "xcmsRaw") {
-        attributes(ms_file)$scantime_corrected <- ms_file@scantime
-        ms_file <- filter_ms_file(ms_file, filter_params)
         db_record_ms_file(db, sample_name, polarity, ms_file)
         "success"
     } else {
@@ -478,7 +483,7 @@ db_record_ann <- function(db,
 #' @param cwt_params `CentwaveParam`
 #' @param obw_params `ObiwarpParam`
 #' @param pd_params `PeakDensityParam`
-#' @param ann_params `AnnParam`
+#' @param ann_params `AnnotationParam`
 db_record_params <- function(db,
                              filter_params,
                              cwt_params,
@@ -734,6 +739,10 @@ db_get_spectras <- function(db, spectra_ids = NULL) {
 #'         collapsed with the character ";"
 #'         \item instrument `character` instrument names from the enviPat
 #'         package
+#'         \item database `character(1)` name of the database used
+#'         \item cpd_classes `character vector` compound classes in database to
+#'          used to restrict the annotations, collapsed with the character ";"
+
 #'     }
 #' }
 db_get_params <- function(db) {

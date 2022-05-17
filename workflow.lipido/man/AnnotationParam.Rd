@@ -10,6 +10,7 @@ AnnotationParam(
   abd_tol = 25,
   adduct_names = NULL,
   instrument = "QTOF_XevoG2-S_R25000@200",
+  database = NULL,
   cpd_classes = NULL
 )
 }
@@ -27,6 +28,8 @@ theoretical peak will be discarded}
 
 \item{instrument}{`character(1)` instrument names from the enviPat package}
 
+\item{database}{`character(1)` name of the database to load}
+
 \item{cpd_classes}{`character vector` compound classes in database to
 restrict for annotation}
 }
@@ -35,4 +38,16 @@ restrict for annotation}
 }
 \description{
 Create an AnnotationParam object
+}
+\examples{
+\dontrun{
+AnnotationParam(
+     da_tol = .015,
+     rt_tol = 10,
+     abd_tol = 25,
+     adduct_name = c("[M+H]+", "[M+Na]+", "[M+H-H2O]+", "[M+NH4]+",
+                     "[M-H]-"),
+     instrument = "QTOF_XevoG2-S_R25000@200",
+     database = "test"
+)}
 }

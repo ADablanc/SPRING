@@ -1,15 +1,47 @@
+# shiny::updateSelectizeInput(
+shinyWidgets::updatePickerInput(
+  session = session,
+  inputId = "database_name",
+  label = "Database",
+  choices = get_available_database()
+)
+
 #' @title Database table
 #'
 #' @description
 #' Display the database in a datatable
 output$database_table <- DT::renderDataTable({
-  data <- utils::read.csv(system.file(
-    "extdata",
-    "database.csv",
-    package = "workflow.lipido"
+  default_table <- matrix(, nrow = 0, ncol = 4, dimnames = list(
+    c(), c("class", "name", "formula", "rt")
   ))
-  data$class <- as.factor(data$class)
-  data
+  params <- list(
+    database = input$database_name
+  )
+  tryCatch({
+    if (input$database_name == "") {
+      custom_stop("invalid", "no database selected")
+    }
+    data <- utils::read.csv(system.file(
+      "extdata",
+      "database",
+      paste(input$database_name, "csv", sep = "."),
+      package = "workflow.lipido"
+    ))
+    data$class <- as.factor(data$class)
+    data
+  }, invalid = function(i) {
+    print("########## DATABASE_TABLE")
+    print(params)
+    print(i)
+    default_table
+  }, error = function(e) {
+    print("########## DATABASE_TABLE")
+    print(params)
+    print(e)
+    shinyWidgets::closeSweetAlert()
+    sweet_alert_error(e$message)
+    default_table
+  })
 }, server = isFALSE(getOption("shiny.testmode")),
   rownames = FALSE,
   selection = "none",

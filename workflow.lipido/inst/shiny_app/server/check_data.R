@@ -1,11 +1,14 @@
-shinyWidgets::updatePickerInput(
-    session,
-    inputId = "check_data_cpd",
-    label = "Choose compound(s)",
-    choices = utils::read.csv(
-        system.file("extdata", "database.csv", package = "workflow.lipido")
-    )$name
-)
+observeEvent(db(), {
+    cpd_database <- db_get_params(db())$ann$database
+    if (!is.null(cpd_database)) {
+        shinyWidgets::updatePickerInput(
+            session,
+            inputId = "check_data_cpd",
+            label = "Choose compound(s)",
+            choices = load_chem_db(cpd_database)$name
+        )
+    }
+})
 
 #' @title Compound heatmap
 #'

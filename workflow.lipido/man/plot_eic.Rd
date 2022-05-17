@@ -33,3 +33,8 @@ It draw also annotation to better view to which adduct correspond the trace
 (the annotation is placed at the most intense point for the trace)
 A JS function is added to hide the annotation when the trace is hidden
 }
+\examples{
+\dontrun{
+plot_eic(db, "220221CCM_global__01_ssleu_filtered", "LPC 11:0")
+}
+}

@@ -59,6 +59,7 @@ testthat::test_that("obiwarp", {
             "[M+H]+"
         ),
         instrument = "QTOF_XevoG2-S_R25000@200",
+        database = "test",
         cpd_classes = c("LPC", "Cer", "FA")
     )
     filter_params <- FilterParam(cwt_params, ann_params)

@@ -8,23 +8,24 @@
       "[M+H-H2O]+"
     ],
     "process_cpd_classes": [
+      "CAR",
       "CE",
-      "FA",
       "Cer",
-      "SM",
+      "Cholesterol",
+      "FA",
+      "DHCER",
       "LPC",
-      "PE",
       "LPE",
-      "TG",
-      "PC",
       "MHCer",
+      "PC",
+      "PE",
       "PG",
       "PI",
       "PS",
-      "Car",
-      "DG",
-      "GlcCer",
-      "LacCer"
+      "SM",
+      "TG",
+      "Cl",
+      "DG"
     ]
   }
 }
