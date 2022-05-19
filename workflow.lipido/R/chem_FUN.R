@@ -153,7 +153,7 @@ get_ions <- function(forms,
     ion_forms <- enviPat::check_chemform(isotopes, ion_forms)
     resmass <- resolution_list[[which(names(resolution_list) == instrument)]]
     out_resmass <- which(
-        ion_forms$monoisotopic_mass < min(resmass[, "m/z"]) ||
+        ion_forms$monoisotopic_mass < min(resmass[, "m/z"]) |
         ion_forms$monoisotopic_mass > max(resmass[, "m/z"])
     )
     if (length(out_resmass) == length(forms)) {
