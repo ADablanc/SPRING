@@ -298,7 +298,7 @@ testthat::test_that("get_ions", {
     testthat::expect_identical(
         get_ions(
             "C2N2",
-            adducts[which(adducts$Name == "[M-H]-"), ],
+            adducts[which(adducts$name == "[M-H]-"), ],
             instrument
         ),
         empty_df_ions
@@ -308,17 +308,17 @@ testthat::test_that("get_ions", {
     testthat::expect_identical(
         get_ions(
             "C1H1",
-            adducts[which(adducts$Name == "[M-H]-"), ],
+            adducts[which(adducts$name == "[M-H]-"), ],
             instrument
         ),
         empty_df_ions
     )
 
     # should return only the C18H38N1O7P1 with [2M+H]+
-    testthat::expect_identical(
+    testthat::expect_equal(
         get_ions(
             c("C1H1", "C18H38N1O7P1"),
-            adducts[which(adducts$Name == "[2M+H]+"), ],
+            adducts[which(adducts$name == "[2M+H]+"), ],
             instrument
         ),
         data.frame(
@@ -335,10 +335,10 @@ testthat::test_that("get_ions", {
     )
 
     # should return only the C18H38N1O7P1 with [M-H]-
-    testthat::expect_identical(
+    testthat::expect_equal(
         get_ions(
             c("C2N2", "C18H38N1O7P1"),
-            adducts[which(adducts$Name == "[2M+H]+"), ],
+            adducts[which(adducts$name == "[2M+H]+"), ],
             instrument
         ),
         data.frame(

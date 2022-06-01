@@ -483,22 +483,26 @@ db_record_ann <- function(db,
 #' @param cwt_params `CentwaveParam`
 #' @param obw_params `ObiwarpParam`
 #' @param pd_params `PeakDensityParam`
+#' @param camera_params `CameraParam`
 #' @param ann_params `AnnotationParam`
 db_record_params <- function(db,
                              filter_params,
                              cwt_params,
                              obw_params,
                              pd_params,
+                             camera_params,
                              ann_params) {
     filter_params <- params_to_dataframe(filter_params)
     cwt_params <- params_to_dataframe(cwt_params)
     obw_params <- params_to_dataframe(obw_params)
     pd_params <- params_to_dataframe(pd_params)
+    camera_params <- params_to_dataframe(camera_params)
     ann_params <- params_to_dataframe(ann_params)
     dbWriteTable(db, "filter_params", filter_params, overwrite = TRUE)
     dbWriteTable(db, "cwt_params", cwt_params, overwrite = TRUE)
     dbWriteTable(db, "obw_params", obw_params, overwrite = TRUE)
     dbWriteTable(db, "pd_params", pd_params, overwrite = TRUE)
+    dbWriteTable(db, "camera_params", camera_params, overwrite = TRUE)
     dbWriteTable(db, "ann_params", ann_params, overwrite = TRUE)
 }
 
@@ -728,6 +732,25 @@ db_get_spectras <- function(db, spectra_ids = NULL) {
 #'         \item maxFeatures `integer` with the maximum number of peak groups
 #'         to be identified in a single mz slice
 #'     }
+#'     \item camera `DataFrame` of one line with columns :
+#'         \item cores `numeric` number of cores for parallelization
+#'         \item sigma `numeric` multiplier of the standard deviation
+#'         \item perfwhm `numeric` percentage of the FWHM
+#'         \item intval `character` "into", "maxo" or "intb"
+#'         \item cor_eic_th `numeric` correlation threshold
+#'         \item pval `numeric` significant correlation threshold
+#'         \item graphMethod `character` method selection for grouping peaks after
+#'         correlation analysis into pseudospectra, could be "hcs" or "lpc"
+#'         \item calcIso `logical` use isotopic relationship for peak grouping
+#'         \item calcCiS `logical` use correlation inside samples for peak grouping
+#'         \item calcCaS `logical` use correlation across samples for peak grouping
+#'         \item maxiso `numeric(1)` max isotopologues
+#'         \item ppm `numeric` ppm tolerance
+#'         \item mzabs `numeric` mDa tolerance
+#'         \item minfrac `numeric` percentage number of samples which must satisfy
+#'          12C/13C rule
+#'         \item max_peaks `numeric` max how much peaks per thread
+#'     }
 #'     \item ann `DataFrame` of one line with columns :
 #'     \itemize{
 #'         \item da_tol `numeric` m/z tolerance in Dalton
@@ -751,6 +774,7 @@ db_get_params <- function(db) {
         cwt = dbReadTable(db, "cwt_params")[1, ],
         obw = dbReadTable(db, "obw_params")[1, ],
         pd = dbReadTable(db, "pd_params")[1, ],
+        camera = dbReadTable(db, "camera_params")[1, ],
         ann = dbReadTable(db, "ann_params")[1, ]
     )
 }

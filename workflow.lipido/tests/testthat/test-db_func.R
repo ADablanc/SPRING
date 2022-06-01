@@ -621,6 +621,16 @@ testthat::test_that("record params", {
         database = "test",
         cpd_classes = c("LPC", "Cer", "FA")
     )
+    camera_params <- CameraParam(
+        ann_param = ann_params,
+        cores = 1,
+        sigma = 6,
+        perfwhm = .6,
+        cor_eic_th = .75,
+        pval = .05,
+        graphMethod = "hcs"
+    )
+
     db <- db_connect(":memory:")
     db_record_params(
         db,
@@ -628,6 +638,7 @@ testthat::test_that("record params", {
         cwt_params,
         obw_params,
         pd_params,
+        camera_params,
         ann_params
     )
     testthat::expect_identical(
@@ -645,6 +656,10 @@ testthat::test_that("record params", {
     testthat::expect_identical(
         dbReadTable(db, "pd_params"),
         params_to_dataframe(pd_params)
+    )
+    testthat::expect_equal(
+        dbReadTable(db, "camera_params"),
+        params_to_dataframe(camera_params)
     )
     testthat::expect_identical(
         dbReadTable(db, "ann_params"),
@@ -966,6 +981,15 @@ testthat::test_that("get params", {
         database = "test",
         cpd_classes = c("LPC", "Cer", "FA")
     )
+    camera_params <- CameraParam(
+        ann_param = ann_params,
+        cores = 1,
+        sigma = 6,
+        perfwhm = .6,
+        cor_eic_th = .75,
+        pval = .05,
+        graphMethod = "hcs"
+    )
     db <- db_connect(":memory:")
     db_record_params(
         db,
@@ -973,6 +997,7 @@ testthat::test_that("get params", {
         cwt_params,
         obw_params,
         pd_params,
+        camera_params,
         ann_params
     )
     testthat::expect_identical(
@@ -982,6 +1007,7 @@ testthat::test_that("get params", {
             cwt = params_to_dataframe(cwt_params),
             obw = params_to_dataframe(obw_params),
             pd = params_to_dataframe(pd_params),
+            camera = params_to_dataframe(camera_params),
             ann = params_to_dataframe(ann_params)
         )
     )

@@ -84,7 +84,7 @@ load_ion_db <- function(adduct_names,
         lapply(adduct_names, function(adduct_name)
             get_ions(
                 unique(chem_db$formula),
-                adducts[which(adducts$Name == adduct_name), ],
+                adducts[which(adducts$name == adduct_name), ],
                 instrument
             )
         )
@@ -132,19 +132,19 @@ get_ions <- function(forms,
     default_df <- data.frame(matrix(, nrow = 0, ncol = 6, dimnames = list(c(),
         c("formula", "adduct", "ion_formula", "charge", "mz", "abd"))))
     ion_forms <- forms
-    if (adduct$Mult > 1) {
-        ion_forms <- enviPat::multiform(ion_forms, adduct$Mult)
+    if (adduct$nmol > 1) {
+        ion_forms <- enviPat::multiform(ion_forms, adduct$nmol)
     }
-    if (adduct$Formula_add != "FALSE") {
-        ion_forms <- enviPat::mergeform(ion_forms, adduct$Formula_add)
+    if (adduct$formula_add != "FALSE") {
+        ion_forms <- enviPat::mergeform(ion_forms, adduct$formula_add)
     }
-    if (adduct$Formula_ded != "FALSE") {
-        test <- enviPat::check_ded(ion_forms, adduct$Formula_ded)
+    if (adduct$formula_ded != "FALSE") {
+        test <- enviPat::check_ded(ion_forms, adduct$formula_ded)
         if (any(test == FALSE)) {
             forms <- forms[test == FALSE]
             ion_forms <- enviPat::subform(
                 ion_forms[test == FALSE],
-                adduct$Formula_ded
+                adduct$formula_ded
             )
         } else {
             return(default_df)
@@ -168,7 +168,7 @@ get_ions <- function(forms,
             isotopes,
             ion_forms,
             resmass = resmass,
-            charge = adduct$Charge
+            charge = adduct$charge
         )
     ))
     ions <- do.call(
@@ -176,9 +176,9 @@ get_ions <- function(forms,
         lapply(seq(isotopic_profiles), function(i)
             data.frame(
                 formula = forms[i],
-                adduct = adduct$Name,
+                adduct = adduct$name,
                 ion_formula = ion_forms[i, "new_formula"],
-                charge = adduct$Charge,
+                charge = adduct$charge,
                 mz = round(isotopic_profiles[[i]][, "m/z"], 5),
                 abd = round(isotopic_profiles[[i]][, "abundance"], 2),
                 iso = paste0("M+", seq(nrow(isotopic_profiles[[i]])) - 1)

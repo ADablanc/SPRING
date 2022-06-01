@@ -11,6 +11,7 @@
 #' @param cwt_params `CentWaveParam`
 #' @param obw_params `ObiwarpParam`
 #' @param pd_params `PeakDensityParam`
+#' @param camera_params `CameraParam`
 #' @param ann_params `AnnotationParam`
 #' @param cores `integer(1)` number of cores to use for the processing workflow
 #' (generaly one core = one file peakpicked)
@@ -20,6 +21,7 @@ check_ms_process_args <- function(raw_files,
                                   cwt_params,
                                   obw_params,
                                   pd_params,
+                                  camera_params,
                                   ann_params,
                                   cores) {
     # check if the system is Windows
@@ -79,6 +81,8 @@ check_ms_process_args <- function(raw_files,
         stop("obw_params argument must be a ObiwarpParam object")
     } else if (class(pd_params) != "PeakDensityParam") {
         stop("pd_params argument must be a PeakDensityParam object")
+    } else if (class(camera_params) != "CameraParam") {
+        stop("camera_params argument must be a CameraParam object")
     } else if (class(ann_params) != "AnnotationParam") {
         stop("ann_params argument must be an AnnotationParam object")
     } else if (class(cores) != "numeric" && class(cores) != "integer") {
@@ -151,6 +155,254 @@ FilterParam <- function(cwt_params, ann_params) {
     methods::new("FilterParam", mz_range = mz_range, rt_range = rt_range)
 }
 
+#' A class containing the filter parameters
+#'
+#' @slot cores `numeric(1)` number of cores for parallelization
+#' @slot polarity `character(1)` "positive" or "negative"
+#' @slot sigma `numeric(1)` multiplier of the standard deviation
+#' @slot perfwhm `numeric(1)` percentage of the FWHM
+#' @slot intval `character(1)` "into", "maxo" or "intb"
+#' @slot cor_eic_th `numeric(1)` correlation threshold
+#' @slot pval `numeric(1)` significant correlation threshold
+#' @slot graphMethod `character(1)` method selection for grouping peaks after
+#' correlation analysis into pseudospectra, could be "hcs" or "lpc"
+#' @slot calcIso `logical(1)` use isotopic relationship for peak grouping
+#' @slot calcCiS `logical(1)` use correlation inside samples for peak grouping
+#' @slot calcCaS `logical(1)` use correlation across samples for peak grouping
+#' @slot maxcharge `numeric(1)` max ion charge
+#' @slot maxiso `numeric(1)` max isotopologues
+#' @slot ppm `numeric(1)` ppm tolerance
+#' @slot mzabs `numeric(1)` mDa tolerance
+#' @slot minfrac `numeric(1)` percentage number of samples which must satisfy
+#' 12C/13C rule
+#' @slot multiplier `numeric(1)` max number n in [nM+H]+
+#' @slot max_peaks `numeric(1)` max how much peaks per thread
+#' @slot rules `dataframe` with columns:
+#' \itemize{
+#'     \item name `character` name of the adduct
+#'     \item nmol `numeric` number n in [nM+H]+
+#'     \item charge `numeric` charge of the adduct
+#'     \item massdiff `numeric` mass difference with the adduct
+#'     \item oidscore `numeric` adduct with same kation have same score
+#'     (ex: [M+H]+ and [2M+H]+)
+#'     \item quasi `numeric` valid a pc group if one flagged with at least one
+#'     adduct at 1
+#'     \item ips `numeric` rule score, if one peak can be explained,
+#'     only its pc group can be kept
+#' }
+setClass(
+    "CameraParam",
+    slots = c(
+        cores = "numeric",
+        polarity = "character",
+        sigma = "numeric",
+        perfwhm = "numeric",
+        intval = "character",
+        cor_eic_th = "numeric",
+        pval = "numeric",
+        graphMethod = "character",
+        calcIso = "logical",
+        calcCiS = "logical",
+        calcCaS = "logical",
+        maxcharge = "numeric",
+        maxiso = "numeric",
+        ppm = "numeric",
+        mzabs = "numeric",
+        minfrac = "numeric",
+        multiplier = "numeric",
+        rules = "data.frame",
+        max_peaks = "numeric"
+    ),
+    validity = function(object) {
+        msg <- character()
+        if (length(object@cores) != 1 | any(object@cores <= 0)) {
+            msg <- c(msg, "cores need to be a positive number")
+        }
+        if (length(object@sigma) != 1 | any(object@sigma <= 0)) {
+            msg <- c(msg, "sigma need to be a positive number")
+        }
+        if (length(object@perfwhm) != 1 | any(object@perfwhm <= 0) |
+                any(object@perfwhm >= 1)) {
+            msg <- c(msg, "perfwhm need to be a number between 0 and 1")
+        }
+        if (length(object@intval) != 1 | !any(object@intval %in%
+                                              c("into", "intb", "maxo"))) {
+            msg <- c(msg, "intval must be \"into\", \"intb\" or \"maxo\"")
+        }
+        if (length(object@cor_eic_th) != 1 | any(object@cor_eic_th <= 0) |
+                any(object@cor_eic_th >= 1)) {
+            msg <- c(msg, "cor_eic_th must be a number between 0 and 1")
+        }
+        if (length(object@pval) != 1 | any(object@pval <= 0) |
+                any(object@pval >= 1)) {
+            msg <- c(msg, "pval must be a number between 0 and 1")
+        }
+        if (length(object@graphMethod) != 1 |
+                !any(object@graphMethod %in% c("lpc", "hcs"))) {
+            msg <- c(msg, "graphMethod must be \"lpc\" or \"hcs\"")
+        }
+        if (length(object@calcIso) != 1) {
+            msg <- c(msg, "calcIso must be a unique boolean")
+        }
+        if (length(object@calcCiS) != 1) {
+            msg <- c(msg, "calcIso must be a unique boolean")
+        }
+        if (length(object@calcCaS) != 1) {
+            msg <- c(msg, "calcIso must be a unique boolean")
+        }
+        if (length(object@maxiso) != 1 | any(object@maxiso <= 0)) {
+            msg <- c(msg, "maxiso must be a positive number")
+        }
+        if (length(object@ppm) != 1 | any(object@ppm < 0)) {
+            msg <- c(msg, "ppm must be a positive number")
+        }
+        if (length(object@mzabs) != 1 | any(object@mzabs <= 0)) {
+            msg <- c(msg, "mzabs must be a positive number")
+        }
+        if (length(object@minfrac) != 1 | any(object@minfrac < 0) |
+                any(object@minfrac > 1)) {
+            msg <- c(msg, "minfrac must be a number between 0 and 1")
+        }
+        if (length(object@max_peaks) != 1 | any(object@max_peaks <= 0)) {
+            msg <- c(msg, "max_peaks must be a positive number")
+        }
+        if (length(msg) > 0) {
+            paste(msg, collapse = "\n  ")
+        } else {
+            TRUE
+        }
+    }
+)
+
+#' @title Create CameraParam object
+#'
+#' @description
+#' Create CameraParam object, some parameters like `max_iso` will be computed by
+#'  loading the chemical database
+#' This object will store CAMERA parameters but a lot of them will be computed
+#' on the fly according the adducts recorded on the app & the polarity choose
+#' along the processing
+#'
+#' @param ann_params `AnnotationParam` object
+#' @slot cores `numeric(1)` number of cores for parallelization
+#' @slot sigma `numeric(1)` multiplier of the standard deviation
+#' @slot perfwhm `numeric(1)` percentage of the FWHM
+#' @slot cor_eic_th `numeric(1)` correlation threshold
+#' @slot pval `numeric(1)` significant correlation threshold
+#' @slot graphMethod `character(1)` method selection for grouping peaks after
+#' correlation analysis into pseudospectra, could be "hcs" or "lpc"
+
+#' @return `CameraParam` object
+#' @export
+#' @examples
+#' \dontrun{
+#' ann_params <- AnnotationParam(
+#'    da_tol = 0.015,
+#'    rt_tol = 10,
+#'    abd_tol = 25,
+#'    adduct_names = c(
+#'        "[M+Na]+",
+#'        "[M+NH4]+",
+#'        "[M+H-H2O]+",
+#'        "[M+H]+",
+#'        "[M-H]-"
+#'    ),
+#'    instrument = "QTOF_XevoG2-S_R25000@200",
+#'    database = "test",
+#'    cpd_classes = c("LPC", "Cer", "FA")
+#' )
+#' camera_params <- CameraParam(
+#'    ann_param = ann_param,
+#'    cores = 1,
+#'    sigma = 6,
+#'    perfwhm = .6,
+#'    cor_eic_th = .75,
+#'    pval = .05,
+#'    graphMethod = "hcs"
+#' )
+#' }
+CameraParam <- function(ann_params, cores = 1, sigma = 6, perfwhm = .6,
+                        cor_eic_th = .75, pval = .05, graphMethod = "hcs") {
+    if (class(ann_params) != "AnnotationParam") {
+        stop("ann_params must be an AnnotationParam object")
+    }
+    chem_db <- load_chem_db(ann_params@database)
+    ions <- get_ions(
+        chem_db$formula,
+        list(
+            name = "[M]+",
+            nmol = 1,
+            formula_add = FALSE,
+            formula_ded = FALSE,
+            charge = 0
+        ),
+        ann_params@instrument
+    )
+    max_iso <- max(
+        suppressWarnings(as.numeric(gsub("M\\+", "", ions$iso))),
+        na.rm = TRUE
+    )
+    methods::new(
+        "CameraParam",
+        cores = cores,
+        polarity = NA_character_,
+        sigma = sigma,
+        perfwhm = perfwhm,
+        intval = "into",
+        cor_eic_th = cor_eic_th,
+        pval = pval,
+        graphMethod = graphMethod,
+        calcIso = TRUE,
+        calcCiS = TRUE,
+        calcCaS = TRUE,
+        maxcharge = 0, # will be defined according the polarity at the moment
+        maxiso = max_iso, # will be defined according the polarity at the moment
+        ppm = 0,
+        mzabs = ann_params@da_tol,
+        minfrac = 0,
+        rules = data.frame(), # will be defined according the polarity at the moment
+        multiplier = 0,
+        max_peaks = 100
+    )
+}
+
+#' @title Restrict the camera params
+#'
+#' @description
+#' Restrict the parameters `rules` parameters by reducing the adducts at only
+#' those which match the `polarity` parameter
+#' It will also optimize the parameters `maxcharge` and `multiplier` according
+#' the restricted list of adducts
+#'
+#' @param object `CameraParam` object
+#' @param polarity `character(1)` "positive" or "negative" only
+#'
+#' @return `CameraParam` object with the slots `rules`, `polarity`, `multiplier`
+#'  and `charge` updated
+setGeneric("restrict_camera_param_polarity", function(object, polarity)
+    standardGeneric("restrict_camera_param_polarity")
+)
+setMethod(
+    "restrict_camera_param_polarity",
+    "CameraParam",
+    function(object, polarity) {
+        if (polarity == "positive") {
+            adducts_restricted <- adducts[adducts$charge >= 1, , drop = FALSE]
+        } else if (polarity == "negative") {
+            adducts_restricted <- adducts[adducts$charge <= -1, , drop = FALSE]
+        } else {
+            stop("polarity must be set to \"positive\" or \"negative\"")
+        }
+        object@polarity <- polarity
+        object@maxcharge <- max(abs(adducts_restricted$charge))
+        object@multiplier <- max(adducts_restricted$nmol)
+        object@rules <- adducts_restricted[, c("name", "nmol", "charge",
+                                               "massdiff", "oidscore", "quasi",
+                                               "ips")]
+        object
+    }
+)
+
 #' A class containing the annotation parameters
 #'
 #' @slot da_tol `numeric(1)` m/z tolerance in Dalton
@@ -188,7 +440,7 @@ setClass(
             msg <- c(msg,
                      "abd_tol need to be a positive number between 0 & 100")
         }
-        test <- which(!object@adduct_names %in% adducts$Name)
+        test <- which(!object@adduct_names %in% adducts$name)
         if (length(test) > 0) {
             msg <- c(msg, sprintf(
                 "%s doesn't exists in the adduct list",
@@ -271,7 +523,7 @@ AnnotationParam <- function(da_tol = 0.015,
                             database = NULL,
                             cpd_classes = NULL) {
     if (length(adduct_names) == 0) {
-        adduct_names <- adducts$Name
+        adduct_names <- adducts$name
     }
     if (length(database) == 0) {
         database <- get_available_database()[1]
@@ -301,26 +553,25 @@ AnnotationParam <- function(da_tol = 0.015,
 #' @param polarity `character(1)` "positive" or "negative"
 #'
 #' @return `AnnotationParam` object
-setGeneric("restrict_adducts_polarity", function(object, polarity)
-    standardGeneric("restrict_adducts_polarity")
+setGeneric("restrict_ann_param_polarity", function(object, polarity)
+    standardGeneric("restrict_ann_param_polarity")
 )
 setMethod(
-    "restrict_adducts_polarity",
+    "restrict_ann_param_polarity",
     "AnnotationParam",
     function(object, polarity) {
-        if (polarity != "positive" && polarity != "negative") {
-            stop("polarity must be set to \"positive\" or \"negative\"")
-        }
-        adducts_restricted <- adducts[adducts$Name %in% object@adduct_names,
+        adducts_restricted <- adducts[adducts$name %in% object@adduct_names,
                                       , drop = FALSE]
         if (polarity == "positive") {
             adducts_restricted <- adducts_restricted[
-                adducts_restricted$Charge >= 1, , drop = FALSE]
-        } else {
+                adducts_restricted$charge >= 1, , drop = FALSE]
+        } else if (polarity == "negative") {
             adducts_restricted <- adducts_restricted[
-                adducts_restricted$Charge <= -1, , drop = FALSE]
+                adducts_restricted$charge <= -1, , drop = FALSE]
+        } else {
+            stop("polarity must be set to \"positive\" or \"negative\"")
         }
-        object@adduct_names <- adducts_restricted$Name
+        object@adduct_names <- adducts_restricted$name
         object
     }
 )
@@ -498,6 +749,57 @@ setMethod(
             minSamples = object@minSamples,
             binSize = object@binSize,
             maxFeatures = object@maxFeatures
+        )
+    }
+)
+
+#' @title Convert `CameraParam` to `DataFrame`
+#'
+#' @description
+#' Convert a `CameraParam` object to a `DataFrame` with one line
+#'
+#' @param object `CameraParam`
+#'
+#' @return `DataFrame` with one line & the columns:
+#' \itemize{
+#'     \item cores `numeric` number of cores for parallelization
+#'     \item sigma `numeric` multiplier of the standard deviation
+#'     \item perfwhm `numeric` percentage of the FWHM
+#'     \item intval `character` "into", "maxo" or "intb"
+#'     \item cor_eic_th `numeric` correlation threshold
+#'     \item pval `numeric` significant correlation threshold
+#'     \item graphMethod `character` method selection for grouping peaks after
+#' correlation analysis into pseudospectra, could be "hcs" or "lpc"
+#'     \item calcIso `logical` use isotopic relationship for peak grouping
+#'     \item calcCiS `logical` use correlation inside samples for peak grouping
+#'     \item calcCaS `logical` use correlation across samples for peak grouping
+#'     \item maxiso `numeric(1)` max isotopologues
+#'     \item ppm `numeric` ppm tolerance
+#'     \item mzabs `numeric` mDa tolerance
+#'     \item minfrac `numeric` percentage number of samples which must satisfy
+#'      12C/13C rule
+#'     \item max_peaks `numeric` max how much peaks per thread
+#' }
+setMethod(
+    "params_to_dataframe",
+    "CameraParam",
+    function(object) {
+        data.frame(
+            cores = object@cores,
+            sigma = object@sigma,
+            perfwhm = object@perfwhm,
+            intval = object@intval,
+            cor_eic_th = object@cor_eic_th,
+            pval = object@pval,
+            graphMethod = object@graphMethod,
+            calcIso = as.numeric(object@calcIso),
+            calcCiS = as.numeric(object@calcCiS),
+            calcCaS = as.numeric(object@calcCaS),
+            maxiso = object@maxiso,
+            ppm = object@ppm,
+            mzabs = object@mzabs,
+            minfrac = object@minfrac,
+            max_peaks = object@max_peaks
         )
     }
 )

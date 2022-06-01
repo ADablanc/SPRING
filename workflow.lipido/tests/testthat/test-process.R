@@ -1593,6 +1593,16 @@ testthat::test_that("workflow", {
         instrument = "QTOF_XevoG2-S_R25000@200",
         cpd_classes = c("LPC", "Cer", "FA")
     )
+    camera_params <- CameraParam(
+        ann_param = ann_params,
+        cores = 1,
+        sigma = 6,
+        perfwhm = .6,
+        cor_eic_th = .75,
+        pval = .05,
+        graphMethod = "hcs"
+    )
+
     ann_params_error1 <- ann_params_error2 <- ann_params
     ann_params_error1@cpd_classes <- "PS"
     ann_params_error2@da_tol <- .015
@@ -1606,6 +1616,7 @@ testthat::test_that("workflow", {
             cwt_params,
             obw_params,
             pd_params,
+            camera_params,
             ann_params_error1
         ))),
         "no chemical compounds can be loaded with the given parameters"
@@ -1619,6 +1630,7 @@ testthat::test_that("workflow", {
         cwt_params,
         obw_params,
         pd_params,
+        camera_params,
         ann_params,
         cores = 1
     )))
@@ -1653,6 +1665,7 @@ testthat::test_that("workflow", {
         cwt_params,
         obw_params,
         pd_params,
+        camera_params,
         ann_params
     ))
     db <- db_connect(sqlite_path)

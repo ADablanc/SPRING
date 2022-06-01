@@ -49,7 +49,7 @@ shinyWidgets::updatePickerInput(
     session,
     inputId = "process_adducts",
     label = "Adducts",
-    choices = adducts$Name,
+    choices = adducts$name,
     selected = c("[M+Na]+", "[M+NH4]+", "[M+H-H2O]+", "[M-H]-", "[M+H]+")
 )
 

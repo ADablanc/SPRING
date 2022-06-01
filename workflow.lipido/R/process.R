@@ -25,7 +25,8 @@
 #'         data
 #'         \item group peaklists from a `xcmsSet` object using the density
 #'         method
-#'         \item annotate peaklists from a `xcmsSet`
+#'         \item annotate isotopologues & adducts with the CAMERA package
+#'         \item annotate peaklists from a `xsAnnotate` object from CAMERA
 #'         it loop through the peaks grouped dataframe
 #'         if the peak match with one of the theoretical monoisotopic from
 #'             database it will search all isotopologue grouped in the rt window
@@ -65,6 +66,7 @@
 #' @param cwt_params `CentwaveParam` object
 #' @param obw_params `ObiwarpParam` object
 #' @param pd_params `PeakdensityParam` object
+#' @param camera_params `CameraParam` object
 #' @param ann_params `AnnotationParam` object
 #' @param cores `integer(1)` number of cores to use to parallelize process
 #' @param show_txt_pb `boolean` should print a progress bar on the console ?
@@ -120,6 +122,7 @@ ms_process <- function(raw_files,
                        cwt_params,
                        obw_params,
                        pd_params,
+                       camera_params,
                        ann_params,
                        cores = parallel::detectCores(),
                        show_txt_pb = TRUE,
@@ -132,6 +135,7 @@ ms_process <- function(raw_files,
             cwt_params,
             obw_params,
             pd_params,
+            camera_params,
             ann_params,
             cores
         )
@@ -307,6 +311,7 @@ ms_process <- function(raw_files,
             cwt_params,
             obw_params,
             pd_params,
+            camera_params,
             ann_params
         )
         RSQLite::dbDisconnect(db)
@@ -468,7 +473,8 @@ ms_process_polarity <- function(sqlite_path,
         stop(paste(unlist(xsets[test_error]), collapse = "\n"))
     }
     pd_params@sampleGroups <- seq(length(unique(samples)))
-    ann_params <- restrict_adducts_polarity(ann_params, polarity)
+
+    ann_params <- restrict_ann_param_polarity(ann_params, polarity)
     xset <- obiwarp(
         sqlite_path,
         samples,

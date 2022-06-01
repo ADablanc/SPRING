@@ -21,6 +21,18 @@ testthat::test_that("annotate peaks", {
         class = rep(runif(1), 3),
         row.names = sample_names
     )
+    xcms:::filepaths(xset) <- c(
+        system.file(
+            "testdata",
+            "220221CCM_global_POS_01_ssleu_filtered.mzML",
+            package = "workflow.lipido"
+        ),
+        system.file(
+            "testdata",
+            "220221CCM_global_POS_02_ssleu_filtered.mzML",
+            package = "workflow.lipido"
+        )
+    )
 
     # 1st test: with no peaks
     xset <- annotate_peaklists(xset, ann_params)
@@ -171,7 +183,7 @@ testthat::test_that("annotate peaks", {
     )
     xset <- annotate_peaklists(
         xset,
-        restrict_adducts_polarity(ann_params, "negative")
+        restrict_ann_param_polarity(ann_params, "negative")
     )
     testthat::expect_equal(
         xset@ann,

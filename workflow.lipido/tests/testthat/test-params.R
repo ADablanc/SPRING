@@ -146,7 +146,7 @@ testthat::test_that("annotation_param", {
     testthat::expect_equal(obj@da_tol, .015)
     testthat::expect_equal(obj@rt_tol, 10)
     testthat::expect_equal(obj@abd_tol, 25)
-    testthat::expect_equal(obj@adduct_names, adducts$Name)
+    testthat::expect_equal(obj@adduct_names, adducts$name)
     testthat::expect_equal(obj@instrument, "QTOF_XevoG2-S_R25000@200")
     testthat::expect_equal(obj@database, get_available_database()[1])
     testthat::expect_equal(
@@ -179,20 +179,20 @@ testthat::test_that("annotation_param", {
     testthat::expect_equal(obj@database, "test")
     testthat::expect_equal(obj@cpd_classes, c("LPC", "Cer", "FA"))
     testthat::expect_error(
-        restrict_adducts_polarity(obj, "maybe"),
+        restrict_ann_param_polarity(obj, "maybe"),
         "polarity must be set to \"positive\" or \"negative\""
     )
     obj_pos <- AnnotationParam(
         da_tol = 0.015,
         rt_tol = 10,
         abd_tol = 25,
-        adduct_names = c("[M+H]+", "[M+NH4]+", "[M+Na]+", "[M+H-H2O]+"),
+        adduct_names = c("[M+H]+", "[M+Na]+", "[M+NH4]+", "[M+H-H2O]+"),
         instrument = "QTOF_XevoG2-S_R25000@200",
         database = "test",
         cpd_classes = c("LPC", "Cer", "FA")
     )
     testthat::expect_equal(
-        restrict_adducts_polarity(obj, "positive"),
+        restrict_ann_param_polarity(obj, "positive"),
         obj_pos
     )
     obj_neg <- AnnotationParam(
@@ -205,7 +205,7 @@ testthat::test_that("annotation_param", {
         cpd_classes = c("LPC", "Cer", "FA")
     )
     testthat::expect_equal(
-        restrict_adducts_polarity(obj, "negative"),
+        restrict_ann_param_polarity(obj, "negative"),
         obj_neg
     )
     testthat::expect_equal(
@@ -221,6 +221,258 @@ testthat::test_that("annotation_param", {
             instrument = "QTOF_XevoG2-S_R25000@200",
             database = "test",
             cpd_classes = paste(c("LPC", "Cer", "FA"), collapse = ";")
+        )
+    )
+})
+
+testthat::test_that("camera_param", {
+    ann_param <- AnnotationParam(
+        da_tol = 0.015,
+        rt_tol = 10,
+        abd_tol = 25,
+        adduct_names = c(
+            "[M+Na]+",
+            "[M+NH4]+",
+            "[M+H-H2O]+",
+            "[M+H]+",
+            "[M-H]-"
+        ),
+        instrument = "QTOF_XevoG2-S_R25000@200",
+        database = "test",
+        cpd_classes = c("LPC", "Cer", "FA")
+    )
+
+    testthat::expect_error(
+        CameraParam(ann_param = "a"),
+        "ann_params must be an AnnotationParam object"
+    )
+    testthat::expect_error(
+        CameraParam(ann_param = ann_param, cores = "a"),
+        "got class \"character\", should be or extend class \"numeric\""
+    )
+    testthat::expect_error(
+        CameraParam(ann_param = ann_param, cores = c(1, 2)),
+        "cores need to be a positive number"
+    )
+    testthat::expect_error(
+        CameraParam(ann_param = ann_param, cores = 0),
+        "cores need to be a positive number"
+    )
+    testthat::expect_error(
+        CameraParam(ann_param = ann_param, cores = 1, sigma = "a"),
+        "got class \"character\", should be or extend class \"numeric\""
+    )
+    testthat::expect_error(
+        CameraParam(ann_param = ann_param, cores = 1, sigma = c(3, 6)),
+        "sigma need to be a positive number"
+    )
+    testthat::expect_error(
+        CameraParam(ann_param = ann_param, cores = 1, sigma = -1),
+        "sigma need to be a positive number"
+    )
+    testthat::expect_error(
+        CameraParam(ann_param = ann_param, cores = 1, sigma = 6, perfwhm = "a"),
+        "got class \"character\", should be or extend class \"numeric\""
+    )
+    testthat::expect_error(
+        CameraParam(
+            ann_param = ann_param,
+            cores = 1,
+            sigma = 6,
+            perfwhm = c(.4, .5)
+        ),
+        "perfwhm need to be a number between 0 and 1"
+    )
+    testthat::expect_error(
+        CameraParam(ann_param = ann_param, cores = 1, sigma = 6, perfwhm = -2),
+        "perfwhm need to be a number between 0 and 1"
+    )
+    testthat::expect_error(
+        CameraParam(ann_param = ann_param, cores = 1, sigma = 6, perfwhm = 1.2),
+        "perfwhm need to be a number between 0 and 1"
+    )
+    testthat::expect_error(
+        CameraParam(
+            ann_param = ann_param,
+            cores = 1,
+            sigma = 6,
+            perfwhm = .6,
+            cor_eic_th = "a"
+        ),
+        "got class \"character\", should be or extend class \"numeric\""
+    )
+    testthat::expect_error(
+        CameraParam(
+            ann_param = ann_param,
+            cores = 1,
+            sigma = 6,
+            perfwhm = .6,
+            cor_eic_th = c(.4, .6)
+        ),
+        "cor_eic_th must be a number between 0 and 1"
+    )
+    testthat::expect_error(
+        CameraParam(
+            ann_param = ann_param,
+            cores = 1,
+            sigma = 6,
+            perfwhm = .6,
+            cor_eic_th = -2
+        ),
+        "cor_eic_th must be a number between 0 and 1"
+    )
+    testthat::expect_error(
+        CameraParam(
+            ann_param = ann_param,
+            cores = 1,
+            sigma = 6,
+            perfwhm = .6,
+            cor_eic_th = 1.2
+        ),
+        "cor_eic_th must be a number between 0 and 1"
+    )
+    testthat::expect_error(
+        CameraParam(
+            ann_param = ann_param,
+            cores = 1,
+            sigma = 6,
+            perfwhm = .6,
+            cor_eic_th = .75,
+            pval = "a"
+        ),
+        "got class \"character\", should be or extend class \"numeric\""
+    )
+    testthat::expect_error(
+        CameraParam(
+            ann_param = ann_param,
+            cores = 1,
+            sigma = 6,
+            perfwhm = .6,
+            cor_eic_th = .75,
+            pval = c(.4, .6)
+        ),
+        "pval must be a number between 0 and 1"
+    )
+    testthat::expect_error(
+        CameraParam(
+            ann_param = ann_param,
+            cores = 1,
+            sigma = 6,
+            perfwhm = .6,
+            cor_eic_th = .75,
+            pval = -2
+        ),
+        "pval must be a number between 0 and 1"
+    )
+    testthat::expect_error(
+        CameraParam(
+            ann_param = ann_param,
+            cores = 1,
+            sigma = 6,
+            perfwhm = .6,
+            cor_eic_th = .75,
+            pval = 1.2
+        ),
+        "pval must be a number between 0 and 1"
+    )
+    testthat::expect_error(
+        CameraParam(
+            ann_param = ann_param,
+            cores = 1,
+            sigma = 6,
+            perfwhm = .6,
+            cor_eic_th = .75,
+            pval = .05,
+            graphMethod = 1
+        ),
+        "got class \"numeric\", should be or extend class \"character\""
+    )
+    testthat::expect_error(
+        CameraParam(
+            ann_param = ann_param,
+            cores = 1,
+            sigma = 6,
+            perfwhm = .6,
+            cor_eic_th = .75,
+            pval = .75,
+            graphMethod = "a"
+        ),
+        "graphMethod must be \"lpc\" or \"hcs\""
+    )
+
+    obj <- CameraParam(
+        ann_param = ann_param,
+        cores = 1,
+        sigma = 6,
+        perfwhm = .6,
+        cor_eic_th = .75,
+        pval = .05,
+        graphMethod = "hcs"
+    )
+    testthat::expect_equal(obj, CameraParam(ann_param))
+    testthat::expect_equal(obj@cores, 1)
+    testthat::expect_equal(obj@polarity, NA_character_)
+    testthat::expect_equal(obj@sigma, 6)
+    testthat::expect_equal(obj@perfwhm, .6)
+    testthat::expect_equal(obj@intval, "into")
+    testthat::expect_equal(obj@cor_eic_th, .75)
+    testthat::expect_equal(obj@pval, .05)
+    testthat::expect_equal(obj@graphMethod, "hcs")
+    testthat::expect_equal(obj@calcIso, TRUE)
+    testthat::expect_equal(obj@calcCiS, TRUE)
+    testthat::expect_equal(obj@calcCaS, TRUE)
+    testthat::expect_equal(obj@maxcharge, 0)
+    testthat::expect_equal(obj@maxiso, 3)
+    testthat::expect_equal(obj@ppm, 0)
+    testthat::expect_equal(obj@mzabs, .015)
+    testthat::expect_equal(obj@minfrac, 0)
+    testthat::expect_equal(obj@rules, data.frame())
+    testthat::expect_equal(obj@multiplier, 0)
+    testthat::expect_equal(obj@max_peaks, 100)
+
+    testthat::expect_error(
+        restrict_camera_param_polarity(obj, "maybe"),
+        "polarity must be set to \"positive\" or \"negative\""
+    )
+
+    obj_pos <- restrict_camera_param_polarity(obj, "positive")
+    obj_pos2 <- obj
+    obj_pos2@polarity <- "positive"
+    obj_pos2@maxcharge <- 3
+    obj_pos2@rules <- adducts[
+        adducts$charge >= 1,
+        c("name", "nmol", "charge", "massdiff", "oidscore", "quasi", "ips")]
+    obj_pos2@multiplier <- 3
+    testthat::expect_equal(obj_pos, obj_pos2)
+
+    obj_pos <- restrict_camera_param_polarity(obj, "negative")
+    obj_pos2 <- obj
+    obj_pos2@polarity <- "negative"
+    obj_pos2@maxcharge <- 3
+    obj_pos2@rules <- adducts[
+        adducts$charge <= -1,
+        c("name", "nmol", "charge", "massdiff", "oidscore", "quasi", "ips")]
+    obj_pos2@multiplier <- 3
+    testthat::expect_equal(obj_pos, obj_pos2)
+
+    testthat::expect_equal(
+        params_to_dataframe(obj),
+        data.frame(
+            cores = 1,
+            sigma = 6,
+            perfwhm = .6,
+            intval = "into",
+            cor_eic_th = .75,
+            pval = .05,
+            graphMethod = "hcs",
+            calcIso = 1,
+            calcCiS = 1,
+            calcCaS = 1,
+            maxiso = 3,
+            ppm = 0,
+            mzabs = .015,
+            minfrac = 0,
+            max_peaks = 100
         )
     )
 })
@@ -372,6 +624,15 @@ testthat::test_that("check_ms_process_args", {
         database = "test",
         cpd_classes = c("LPC", "Cer", "FA")
     )
+    camera_params <- CameraParam(
+        ann_param = ann_params,
+        cores = 1,
+        sigma = 6,
+        perfwhm = .6,
+        cor_eic_th = .75,
+        pval = .05,
+        graphMethod = "hcs"
+    )
 
     testthat::expect_error(
         check_ms_process_args(NULL),
@@ -456,6 +717,19 @@ testthat::test_that("check_ms_process_args", {
             pd_params,
             NULL
         ),
+        "camera_params argument must be a CameraParam object"
+    )
+    testthat::expect_error(
+        check_ms_process_args(
+            raw_files,
+            sqlite_path,
+            converter,
+            cwt_params,
+            obw_params,
+            pd_params,
+            camera_params,
+            NULL
+        ),
         "ann_params argument must be an AnnotationParam object"
     )
     testthat::expect_error(
@@ -466,6 +740,7 @@ testthat::test_that("check_ms_process_args", {
             cwt_params,
             obw_params,
             pd_params,
+            camera_params,
             ann_params,
             "a"
         ),
@@ -479,6 +754,7 @@ testthat::test_that("check_ms_process_args", {
             cwt_params,
             obw_params,
             pd_params,
+            camera_params,
             ann_params,
             c(1, 2)
         ),
@@ -492,6 +768,7 @@ testthat::test_that("check_ms_process_args", {
             cwt_params,
             obw_params,
             pd_params,
+            camera_params,
             ann_params,
             0
         ),
@@ -505,6 +782,7 @@ testthat::test_that("check_ms_process_args", {
             cwt_params,
             obw_params,
             pd_params,
+            camera_params,
             ann_params,
             1.2
         ),
@@ -518,6 +796,7 @@ testthat::test_that("check_ms_process_args", {
             cwt_params,
             obw_params,
             pd_params,
+            camera_params,
             ann_params,
             99
         ),
@@ -531,6 +810,7 @@ testthat::test_that("check_ms_process_args", {
             cwt_params,
             obw_params,
             pd_params,
+            camera_params,
             ann_params,
             1
         ),
