@@ -4,15 +4,22 @@
 \alias{load_chem_db}
 \title{Load cpd database}
 \usage{
-load_chem_db(database)
+load_chem_db(database, polarity = NULL, cpd_classes = NULL, cpd_names = NULL)
 }
 \arguments{
 \item{database}{`character(1)` database name}
+
+\item{polarity}{`character(1)` can be only "positive" or "negative"}
+
+\item{cpd_classes}{`character vector` compound classes to restrict}
+
+\item{cpd_names}{`character vector` compound names to restrict}
 }
 \value{
 `DataFrame` with columns:
 \itemize{
    \item class `character` compound class
+   \item adduct `character` majoritary adduct
    \item name `character` compound name
    \item formula `character` chemical formula
    \item rt `numeric` retention time

@@ -22,7 +22,7 @@ it needs the columns :
 \item{instrument}{instrument name for enviPat}
 }
 \value{
-DataFrame with
+list of DataFrames (one item per isotopic profile) with
 \itemize{
      \item formula chemical formula
      \item adduct adduct name

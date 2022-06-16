@@ -18,7 +18,7 @@ plot_eic(db, sample_name, name)
 }
 \description{
 Plot the EIC for a sample and a compound. It will trace all the EIC in the
-same  plot for all possible adducts used in the processing workflow.
+same  plot for all possible adducts detected in the processing workflow.
 The line dashed correspond to the area not integrated & the line colored the
 retention time range where integrated by XCMS. The two line dashed which
 surround the trace correspond to the retention time tolerance used for the
@@ -31,7 +31,8 @@ It contains a special behavior when the mouse hover a trace : it will display
 It is useful when combined with the `plotmzdev` plot next to it
 It draw also annotation to better view to which adduct correspond the trace
 (the annotation is placed at the most intense point for the trace)
-A JS function is added to hide the annotation when the trace is hidden
+If available it will use the retention time corrected in the slot
+`scantime_corrected` added by the function `obiwarp`
 }
 \examples{
 \dontrun{

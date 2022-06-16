@@ -19,13 +19,7 @@ testthat::test_that("peak picking", {
         firstBaselineCheck = FALSE
     )
 
-    # 1st test with no file
-    testthat::expect_identical(
-        find_chrompeaks(NULL, cwt_params, "small")@peaks,
-        empty_peaklist
-    )
-
-    # 2nd test with no peaks
+    # 1st test with no peaks
     ms_file <- xcms::xcmsRaw(
         system.file("testdata", "small.mzXML", package = "workflow.lipido"),
         profstep = 0
@@ -35,7 +29,7 @@ testthat::test_that("peak picking", {
         empty_peaklist
     )
 
-    # 3rd test with peaks
+    # 2nd test with peaks
     ms_file <- xcms::xcmsRaw(
         system.file(
             "testdata",

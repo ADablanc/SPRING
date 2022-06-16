@@ -20,7 +20,7 @@ summary_table_options <- list(
             list(
                 extend = "colvis",
                 text = "Hide columns",
-                columns = 1:8
+                columns = 1:7
             ),
             list(
                 extend = "collection",
@@ -40,7 +40,7 @@ summary_table_options <- list(
                 width = 80
             ),
             list(
-                targets = "th:nth-child(n+10)",
+                targets = "th:nth-child(n+9)",
                 type = "num-fmt"
             )
         ),
@@ -76,8 +76,6 @@ summary_table_options <- list(
 #'     \item Adducts `character` all adducts detected separated by a space
 #'     \item nSamples `integer` number of samples where the compound was
 #'     detected
-#'     \item Most intense ion `factor` name of the adduct where the intensity
-#'     measured is the highest
 #'     \item best score (%) `numeric` the highest isotopic score
 #'     \item best m/z dev (mDa) `numeric` the minimal m/z deviation observed
 #'     in mDa
@@ -88,25 +86,18 @@ summary_table_options <- list(
 #' }
 output$summary_table <- DT::renderDataTable({
     params <- list(
-        db = db(),
-        polarity = input$summary_polarity
+        db = db()
     )
     ann <- tryCatch({
     # to invalidate the summary table
-        ann <- db_get_annotations(db(), polarity = params$polarity)
+        ann <- db_get_annotations(db())
         if (nrow(ann) == 0) {
             custom_stop("invalid", "no annotations in database")
         }
-        ann <- split_conflicts(ann)$no_conflicts
-        if (nrow(ann) == 0) {
-            custom_stop("invalid", "no annotations with 0 conflicts")
-        }
         nsamples <- db_get_nsamples(db())
-        spectra_ids <- without_na(unlist(
-            ann[, (ncol(ann) - nsamples + 1):ncol(ann)]))
-        spectra_infos <- db_get_spectra_infos(db(), spectra_ids)
+        spectra_infos <- db_get_spectra_infos(db())
 
-        ann <- summarise_ann(ann, spectra_infos, nsamples)
+        ann <- summarise_ann(ann, spectra_infos, nsamples)$resume
         ann[, (ncol(ann) - nsamples + 1):ncol(ann)][
             ann[, (ncol(ann) - nsamples + 1):ncol(ann)] == 0] <- NA
         ann
@@ -115,18 +106,18 @@ output$summary_table <- DT::renderDataTable({
         print(params)
         print(i)
         data.frame(matrix(, nrow = 0, ncol = 10, dimnames = list(c(),
-            c("class", "name", "rT (min)", "Diff rT (sec)", "Adducts",
-              "nSamples", "Most intense ion", "Best score (%)",
-              "Best m/z dev (mDa)", "Max iso"))), check.names = FALSE)
+            c("Group ID", "Class", "Name", "rT (min)", "Diff rT (sec)",
+              "Adducts", "nSamples", "Best score (%)", "Best m/z dev (mDa)",
+              "Max iso"))), check.names = FALSE)
     }, error = function(e) {
         print("########## check_data_mzdev")
         print(params)
         print(e)
         sweet_alert_error(e$message)
-        data.frame(matrix(, nrow = 0, ncol = 10, dimnames = list(c(),
-             c("class", "name", "rT (min)", "Diff rT (sec)", "Adducts",
-               "nSamples", "Most intense ion", "Best score (%)",
-               "Best m/z dev (mDa)", "Max iso"))), check.names = FALSE)
+        data.frame(matrix(, nrow = 0, ncol = 9, dimnames = list(c(),
+             c("Group ID", "Class", "Name", "rT (min)", "Diff rT (sec)",
+               "Adducts", "nSamples", "Best score (%)", "Best m/z dev (mDa)",
+               "Max iso"))), check.names = FALSE)
     })
     nsamples <- db_get_nsamples(db())
     DT::formatCurrency(
@@ -145,12 +136,9 @@ output$summary_table <- DT::renderDataTable({
 #'
 #' @description
 #' Export all annotations in a excel file
-#' First sheet will have the annotations regroup by compound
+#' First sheet will have the annotations regroup by compound, even those which
+#' are in conflicts with others
 #' Second will have annotations regroup by ions
-#'
-#' Warning ! It export only the annotations with no conflicts !
-#' (Conflicts are when for a group of peaks multiple annotations are possible
-#' (it happens often when for an ion formula refers to multiple compounds))
 #'
 #' @param sqlite_path `reactiveValue` sqlite path
 output$summary_export <- shiny::downloadHandler(
@@ -164,8 +152,7 @@ output$summary_export <- shiny::downloadHandler(
     content = function(excel_path) {
         export_annotations(
             sqlite_path(),
-            excel_path,
-            polarity = input$summary_polarity
+            excel_path
         )
         excel_path
     }

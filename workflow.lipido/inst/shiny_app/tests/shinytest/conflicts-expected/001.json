@@ -266,12 +266,9 @@
           ],
           [
 
-          ],
-          [
-
           ]
         ],
-        "container": "<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Already seen with<\/th>\n      <th>Conflicted adduct<\/th>\n      <th>Already seen in nSamples<\/th>\n      <th>Conflicted nSamples<\/th>\n      <th>Diff rT (sec)<\/th>\n      <th>Best score (%)<\/th>\n      <th>Best m/z dev (mDa)<\/th>\n      <th>Max iso<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>",
+        "container": "<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>nSamples<\/th>\n      <th>rT (min)<\/th>\n      <th>Diff rT (sec)<\/th>\n      <th>Adducts<\/th>\n      <th>Best score (%)<\/th>\n      <th>Best m/z dev (mDa)<\/th>\n      <th>Max iso<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>",
         "options": {
           "dom": "frtip",
           "paging": false,
@@ -291,14 +288,14 @@
           "language": {
             "emptyTable": "no conflicts found"
           },
-          "initComplete": "\n                function(settings, json) {\n                    var table = settings.oInstance.api();\n                    table.columns.adjust();\n                    if (table.data().length > 0) {\n                        // select first row\n                        $(table.row(0).node()).addClass(\"selected\");\n                        Shiny.onInputChange(\n                             \"conflict_row_selected\",\n                             table.row(0).index() + 1\n                         );\n                    } else {\n                        Shiny.onInputChange(\n                             \"conflict_name_selected\",\n                             0\n                         );\n                    }\n                }\n        ",
+          "initComplete": "\n                function(settings, json) {\n                    var table = settings.oInstance.api();\n                    table.columns.adjust();\n                    if (table.data().length > 0) {\n                        // select first row\n                        $(table.row(0).node()).addClass(\"selected\");\n                        Shiny.onInputChange(\n                             \"conflict_name_selected\",\n                             table.cell(0, 0).data()\n                         );\n                    } else {\n                        Shiny.onInputChange(\n                             \"conflict_name_selected\",\n                             \"\"\n                         );\n                    }\n                }\n        ",
           "order": [
 
           ],
           "autoWidth": false,
           "orderClasses": false
         },
-        "callback": "function(table) {\n\n         table.on(\"click\", \"tbody tr\", function() {\n            if (table.data().length > 0) {\n                $(table.rows(\".selected\").nodes()).removeClass(\"selected\");\n                $(table.row(this).node()).addClass(\"selected\");\n                 Shiny.onInputChange(\n                     \"conflict_row_selected\",\n                     table.row(this).index() + 1\n                 );\n            }\n         })\n    \n}",
+        "callback": "function(table) {\n\n         table.on(\"click\", \"tbody tr\", function() {\n            if (table.data().length > 0) {\n                $(table.rows(\".selected\").nodes()).removeClass(\"selected\");\n                $(table.row(this).node()).addClass(\"selected\");\n                 Shiny.onInputChange(\n                     \"conflict_name_selected\",\n                     table.cell(\".selected\", 0).data()\n                 );\n            }\n         })\n    \n}",
         "selection": {
           "mode": "none",
           "selected": null,

@@ -1,5 +1,8 @@
 {
-  "export": {
-    "conflict_id": 0
+  "input": {
+    "process_cpd_classes": [
+      "Cer",
+      "LPC"
+    ]
   }
 }

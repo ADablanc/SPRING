@@ -15,8 +15,8 @@ plot_heatmap(db, names)
 `plotly`
 }
 \description{
-Plot a heamap with in x compounds, in y samples and in z their cumulated
-intensities of their basepeaks
+Plot a heamap with in x compounds, in y samples and in z the intensity of the
+basepeak with the majoritary adduct
 }
 \examples{
 \dontrun{

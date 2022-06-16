@@ -13,21 +13,25 @@ with the columns:
     \item group_id `integer` group ID
     \item class `character` cpd class
     \item name `character` name
+    \item major_adduct `character` majoritary adduct for the compound
     \item formula `character` chemical formula
     \item adduct `character` adduct form
     \item ion_formula `character` ion chemical formula
-    \item rtdiff `numeric` retention time difference between the measured &
-    the expected
-    \item rt `numeric` retention time measured meanned accross the samples
+    \item rtdiff `numeric` retention time difference between the measured
+    & the expected
+    \item rt `numeric` retention time measured meanned accross the
+    samples
     \item rtmin `numeric` born min of retention time measured accross the
     samples
-    \item rtmax `numeric` born max of the retention time measured accross the
-     samples
-    \item nsamples `integer` number of samples where the compound was found
+    \item rtmax `numeric` born max of the retention time measured accross
+    the samples
+    \item nsamples `integer` number of samples where the compound was
+    found
     \item best_score `numeric` best isotopic score seen
     \item best_deviation_mz `numeric` best m/z deviation seen
     \item best_npeak `integer` best number of isotopologues found
-    \item ... `integer` a column for each sample which contain the spectra ID
+    \item ... `integer` a column for each sample which contain the
+    spectra ID
 }}
 
 \item{spectra_infos}{`DataFrame`, each line correspond to a spectra
@@ -47,28 +51,50 @@ annotated, with the columns :
 as an offset on the DataFrame}
 }
 \value{
-`DataFrame` each line represent a compound with the columns
+list of two items :
 \itemize{
-    \item class `character` cpd class
-    \item name `character` name of the compound
-    \item rt (min) `numeric` meanned rT
-    \item Diff rT (sec) `numeric` rT difference between observed &
-    theoretical
-    \item Adducts `character` all adducts detected separated by a space
-    \item nSamples `integer` number of samples where the compound was
-    detected
-    \item Most intense ion `factor` name of the adduct where the intensity
-    measured is the highest
-    \item best score (%) `numeric` the highest isotopic score
-    \item best m/z dev (mDa) `numeric` the minimal m/z deviation observed
-    in mDa
-    \item max iso `integer` the highest number of isotopologue for the ions
-    reported
-    \item ... `integer` a column for each sample which contain the summed
-    intensity of ALL basepeaks
+    \item resume: `DataFrame` each line represent a compound with the columns
+    \itemize{
+        \item Group ID `numeric` group ID
+        \item class `character` cpd class
+        \item name `character` name of the compound
+        \item rt (min) `numeric` meanned rT
+        \item Diff rT (sec) `numeric` rT difference between observed &
+        theoretical
+        \item Adducts `character` all adducts detected separated by a space
+        \item nSamples `integer` number of samples where the compound was
+        detected
+        \item best score (%) `numeric` the highest isotopic score
+        \item best m/z dev (mDa) `numeric` the minimal m/z deviation observed
+        in mDa
+        \item max iso `integer` the highest number of isotopologue for the
+         ions reported
+        \item ... `integer` a column for each sample which contain the summed
+        intensity of ALL basepeaks
+    }
+    \item details: `DataFrame` each line represent an ion with the columns
+    \itemize{
+        \item Group ID `numeric` group ID
+        \item Class `character` cpd class
+        \item Name `character` name of the compound
+        \item rt (min) `numeric` meanned rT
+        \item Diff rT (sec) `numeric` rT difference between observed &
+        theoretical
+        \item Adduct `character` adduct name
+        \item nSamples `integer` number of samples where the ions was
+        detected
+        \item best score (%) `numeric` the highest isotopic score
+        \item best m/z dev (mDa) `numeric` the minimal m/z deviation observed
+        in mDa
+        \item max iso `integer` the highest number of isotopologue for the
+         ions reported
+        \item ... `integer` a column for each sample which contain the
+        intensity the basepeak
+    }
 }
 }
 \description{
 Summarise the annotations `DataFrame` by compound instead by ion
-it will return in the column samples the sum of intensity of ALL basepeaks
+it will return in the column samples the intensity of the basepeak with the
+majoritary adduct
 }

@@ -4,7 +4,7 @@
 \alias{plot_mzdev}
 \title{Plot m/z deviation}
 \usage{
-plot_mzdev(db, sample_name, name, adduct_name)
+plot_mzdev(db, sample_name, name)
 }
 \arguments{
 \item{db}{`SQLiteConnection`}
@@ -12,9 +12,6 @@ plot_mzdev(db, sample_name, name, adduct_name)
 \item{sample_name}{`character(1)` sample name of the file recorded in db}
 
 \item{name}{`character(1)` compound name}
-
-\item{adduct_name}{`character(1)` name of the adduct used in the
-identification step}
 }
 \value{
 `plotly`

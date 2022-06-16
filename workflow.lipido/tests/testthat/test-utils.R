@@ -13,17 +13,6 @@ testthat::test_that("escape_regex", {
     )
 })
 
-testthat::test_that("without NA", {
-    testthat::expect_equal(
-        without_na(c(1, 2, 3)),
-        c(1, 2, 3)
-    )
-    testthat::expect_equal(
-        without_na(c(1, NA, 3, NA)),
-        c(1, 3)
-    )
-})
-
 testthat::test_that("get_available_database", {
     # move all databases files for the test
     tmp_dir <- tempdir()

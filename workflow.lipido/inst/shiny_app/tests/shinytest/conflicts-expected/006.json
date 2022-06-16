@@ -4,7 +4,7 @@
     "conflicts_right_disabled": true
   },
   "output": {
-    "conflicts_info": "1 / 1",
+    "conflicts_info": "",
     "conflicts_ms": {
       "x": {
         "layout": {
@@ -15,7 +15,7 @@
             "r": 10
           },
           "title": {
-            "text": "<b>Hybrid mass spectra<\/b>",
+            "text": "<b>Mass Spectra<\/b>",
             "y": 0.95,
             "x": 0.5,
             "font": {
@@ -38,11 +38,7 @@
             },
             "showspikes": false,
             "showticksuffix": "all",
-            "hoverformat": ".5f",
-            "range": [
-              407.25095,
-              452.25178
-            ]
+            "hoverformat": ".5f"
           },
           "yaxis": {
             "domain": [
@@ -71,37 +67,10 @@
                 "family": "\"Open Sans\",verdana,arial,sans-serif",
                 "size": 18
               }
-            },
-            {
-              "text": "[M+H-H2O]+",
-              "x": 408.251325886321,
-              "y": 88824.635233072,
-              "xref": "x",
-              "yref": "y",
-              "valign": "bottom",
-              "arrowhead": 0
-            },
-            {
-              "text": "[M+H]+",
-              "x": 426.261913381751,
-              "y": 6214416.44108707,
-              "xref": "x",
-              "yref": "y",
-              "valign": "bottom",
-              "arrowhead": 0
-            },
-            {
-              "text": "[M+Na]+",
-              "x": 448.244170162955,
-              "y": 288290.748778874,
-              "xref": "x",
-              "yref": "y",
-              "valign": "bottom",
-              "arrowhead": 0
             }
           ],
           "hovermode": "closest",
-          "showlegend": true
+          "showlegend": false
         },
         "source": "A",
         "config": {
@@ -153,378 +122,6 @@
             "xaxis": "x",
             "yaxis": "y",
             "frame": null
-          },
-          {
-            "mode": "lines",
-            "type": "scatter",
-            "x": [
-              408.251325886321,
-              408.251325886321,
-              null,
-              408.25095,
-              408.25095
-            ],
-            "y": [
-              0,
-              88824.635233072,
-              null,
-              0,
-              -88824.635233072
-            ],
-            "name": "[M+H-H2O]+",
-            "legendgroup": "[M+H-H2O]+",
-            "showlegend": true,
-            "hoverinfo": [
-              "text",
-              "text",
-              null,
-              "text",
-              "text"
-            ],
-            "text": [
-              "observed<br />adduct: [M+H-H2O]+<br />iso: M<br />m/z: 408.25133<br />abd: 100%",
-              "observed<br />adduct: [M+H-H2O]+<br />iso: M<br />m/z: 408.25133<br />abd: 100%",
-              null,
-              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M<br />m/z: 408.25095<br />abd: 100%",
-              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M<br />m/z: 408.25095<br />abd: 100%"
-            ],
-            "marker": {
-              "color": "rgba(255,127,14,1)",
-              "line": {
-                "color": "rgba(255,127,14,1)"
-              }
-            },
-            "error_y": {
-              "color": "rgba(255,127,14,1)"
-            },
-            "error_x": {
-              "color": "rgba(255,127,14,1)"
-            },
-            "line": {
-              "color": "rgba(255,127,14,1)"
-            },
-            "xaxis": "x",
-            "yaxis": "y",
-            "frame": null
-          },
-          {
-            "mode": "lines",
-            "type": "scatter",
-            "x": [
-              409.25427,
-              409.25427,
-              null,
-              410.25672,
-              410.25672,
-              null,
-              411.25935,
-              411.25935
-            ],
-            "y": [
-              0,
-              -19230.5335279601,
-              null,
-              0,
-              -2886.80064507484,
-              null,
-              0,
-              -337.533613885674
-            ],
-            "legendgroup": "[M+H-H2O]+",
-            "showlegend": false,
-            "hoverinfo": [
-              "text",
-              "text",
-              null,
-              "text",
-              "text",
-              null,
-              "text",
-              "text"
-            ],
-            "text": [
-              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M+1<br />m/z: 409.25427<br />abd: 22%",
-              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M+1<br />m/z: 409.25427<br />abd: 22%",
-              null,
-              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M+2<br />m/z: 410.25672<br />abd: 3%",
-              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M+2<br />m/z: 410.25672<br />abd: 3%",
-              null,
-              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M+3<br />m/z: 411.25935<br />abd: 0%",
-              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M+3<br />m/z: 411.25935<br />abd: 0%"
-            ],
-            "marker": {
-              "color": "rgba(0,0,0,1)",
-              "line": {
-                "color": "rgba(0,0,0,1)"
-              }
-            },
-            "textfont": {
-              "color": "rgba(0,0,0,1)"
-            },
-            "error_y": {
-              "color": "rgba(0,0,0,1)"
-            },
-            "error_x": {
-              "color": "rgba(0,0,0,1)"
-            },
-            "line": {
-              "color": "rgba(0,0,0,1)"
-            },
-            "xaxis": "x",
-            "yaxis": "y",
-            "frame": null
-          },
-          {
-            "mode": "lines",
-            "type": "scatter",
-            "x": [
-              426.261913381751,
-              426.261913381751,
-              null,
-              427.265348519813,
-              427.265348519813,
-              null,
-              426.26152,
-              426.26152,
-              null,
-              427.26484,
-              427.26484
-            ],
-            "y": [
-              0,
-              6214416.44108707,
-              null,
-              0,
-              1170639.95871094,
-              null,
-              0,
-              -6214416.44108707,
-              null,
-              0,
-              -1348528.36771589
-            ],
-            "name": "[M+H]+",
-            "legendgroup": "[M+H]+",
-            "showlegend": true,
-            "hoverinfo": [
-              "text",
-              "text",
-              null,
-              "text",
-              "text",
-              null,
-              "text",
-              "text",
-              null,
-              "text",
-              "text"
-            ],
-            "text": [
-              "observed<br />adduct: [M+H]+<br />iso: M<br />m/z: 426.26191<br />abd: 100%",
-              "observed<br />adduct: [M+H]+<br />iso: M<br />m/z: 426.26191<br />abd: 100%",
-              null,
-              "observed<br />adduct: [M+H]+<br />iso: M+1<br />m/z: 427.26535<br />abd: 19%",
-              "observed<br />adduct: [M+H]+<br />iso: M+1<br />m/z: 427.26535<br />abd: 19%",
-              null,
-              "theoretical<br />adduct: [M+H]+<br />iso: M<br />m/z: 426.26152<br />abd: 100%",
-              "theoretical<br />adduct: [M+H]+<br />iso: M<br />m/z: 426.26152<br />abd: 100%",
-              null,
-              "theoretical<br />adduct: [M+H]+<br />iso: M+1<br />m/z: 427.26484<br />abd: 22%",
-              "theoretical<br />adduct: [M+H]+<br />iso: M+1<br />m/z: 427.26484<br />abd: 22%"
-            ],
-            "marker": {
-              "color": "rgba(214,39,40,1)",
-              "line": {
-                "color": "rgba(214,39,40,1)"
-              }
-            },
-            "error_y": {
-              "color": "rgba(214,39,40,1)"
-            },
-            "error_x": {
-              "color": "rgba(214,39,40,1)"
-            },
-            "line": {
-              "color": "rgba(214,39,40,1)"
-            },
-            "xaxis": "x",
-            "yaxis": "y",
-            "frame": null
-          },
-          {
-            "mode": "lines",
-            "type": "scatter",
-            "x": [
-              428.26719,
-              428.26719,
-              null,
-              429.26984,
-              429.26984
-            ],
-            "y": [
-              0,
-              -215018.808861613,
-              null,
-              0,
-              -26100.5490525657
-            ],
-            "legendgroup": "[M+H]+",
-            "showlegend": false,
-            "hoverinfo": [
-              "text",
-              "text",
-              null,
-              "text",
-              "text"
-            ],
-            "text": [
-              "theoretical<br />adduct: [M+H]+<br />iso: M+2<br />m/z: 428.26719<br />abd: 3%",
-              "theoretical<br />adduct: [M+H]+<br />iso: M+2<br />m/z: 428.26719<br />abd: 3%",
-              null,
-              "theoretical<br />adduct: [M+H]+<br />iso: M+3<br />m/z: 429.26984<br />abd: 0%",
-              "theoretical<br />adduct: [M+H]+<br />iso: M+3<br />m/z: 429.26984<br />abd: 0%"
-            ],
-            "marker": {
-              "color": "rgba(0,0,0,1)",
-              "line": {
-                "color": "rgba(0,0,0,1)"
-              }
-            },
-            "textfont": {
-              "color": "rgba(0,0,0,1)"
-            },
-            "error_y": {
-              "color": "rgba(0,0,0,1)"
-            },
-            "error_x": {
-              "color": "rgba(0,0,0,1)"
-            },
-            "line": {
-              "color": "rgba(0,0,0,1)"
-            },
-            "xaxis": "x",
-            "yaxis": "y",
-            "frame": null
-          },
-          {
-            "mode": "lines",
-            "type": "scatter",
-            "x": [
-              448.244170162955,
-              448.244170162955,
-              null,
-              448.24346,
-              448.24346
-            ],
-            "y": [
-              0,
-              288290.748778874,
-              null,
-              0,
-              -288290.748778874
-            ],
-            "name": "[M+Na]+",
-            "legendgroup": "[M+Na]+",
-            "showlegend": true,
-            "hoverinfo": [
-              "text",
-              "text",
-              null,
-              "text",
-              "text"
-            ],
-            "text": [
-              "observed<br />adduct: [M+Na]+<br />iso: M<br />m/z: 448.24417<br />abd: 100%",
-              "observed<br />adduct: [M+Na]+<br />iso: M<br />m/z: 448.24417<br />abd: 100%",
-              null,
-              "theoretical<br />adduct: [M+Na]+<br />iso: M<br />m/z: 448.24346<br />abd: 100%",
-              "theoretical<br />adduct: [M+Na]+<br />iso: M<br />m/z: 448.24346<br />abd: 100%"
-            ],
-            "marker": {
-              "color": "rgba(140,86,75,1)",
-              "line": {
-                "color": "rgba(140,86,75,1)"
-              }
-            },
-            "error_y": {
-              "color": "rgba(140,86,75,1)"
-            },
-            "error_x": {
-              "color": "rgba(140,86,75,1)"
-            },
-            "line": {
-              "color": "rgba(140,86,75,1)"
-            },
-            "xaxis": "x",
-            "yaxis": "y",
-            "frame": null
-          },
-          {
-            "mode": "lines",
-            "type": "scatter",
-            "x": [
-              449.24678,
-              449.24678,
-              null,
-              450.24914,
-              450.24914,
-              null,
-              451.25178,
-              451.25178
-            ],
-            "y": [
-              0,
-              -62530.2634101377,
-              null,
-              0,
-              -9946.03083287114,
-              null,
-              0,
-              -1210.82114487127
-            ],
-            "legendgroup": "[M+Na]+",
-            "showlegend": false,
-            "hoverinfo": [
-              "text",
-              "text",
-              null,
-              "text",
-              "text",
-              null,
-              "text",
-              "text"
-            ],
-            "text": [
-              "theoretical<br />adduct: [M+Na]+<br />iso: M+1<br />m/z: 449.24678<br />abd: 22%",
-              "theoretical<br />adduct: [M+Na]+<br />iso: M+1<br />m/z: 449.24678<br />abd: 22%",
-              null,
-              "theoretical<br />adduct: [M+Na]+<br />iso: M+2<br />m/z: 450.24914<br />abd: 3%",
-              "theoretical<br />adduct: [M+Na]+<br />iso: M+2<br />m/z: 450.24914<br />abd: 3%",
-              null,
-              "theoretical<br />adduct: [M+Na]+<br />iso: M+3<br />m/z: 451.25178<br />abd: 0%",
-              "theoretical<br />adduct: [M+Na]+<br />iso: M+3<br />m/z: 451.25178<br />abd: 0%"
-            ],
-            "marker": {
-              "color": "rgba(0,0,0,1)",
-              "line": {
-                "color": "rgba(0,0,0,1)"
-              }
-            },
-            "textfont": {
-              "color": "rgba(0,0,0,1)"
-            },
-            "error_y": {
-              "color": "rgba(0,0,0,1)"
-            },
-            "error_x": {
-              "color": "rgba(0,0,0,1)"
-            },
-            "line": {
-              "color": "rgba(0,0,0,1)"
-            },
-            "xaxis": "x",
-            "yaxis": "y",
-            "frame": null
           }
         ],
         "highlight": {
@@ -557,14 +154,9 @@
         "config.modeBarButtons.0.0.icon",
         "config.modeBarButtons.0.0.click"
       ],
-      "jsHooks": {
-        "render": [
-          {
-            "code": "\n        function(el, x) {\n            el.on(\"plotly_hover\", function(eventdata) {\n                var plot_id = $(eventdata.event.srcElement).closest\n                    (\".plotly.html-widget\").get(0).id;\n                if (eventdata.points[0].data.showlegend) {\n                    Plotly.Fx.hover(plot_id, [\n                        {\n                            curveNumber: eventdata.points[0].curveNumber,\n                            pointNumber: eventdata.points[0].pointNumber\n                        },\n                        {\n                        curveNumber: eventdata.points[0].curveNumber,\n                        pointNumber: eventdata.points[0].pointIndex +\n                            (eventdata.points[0].fullData.x.length + 1) / 2\n                        }\n                    ])\n                }\n            });\n            el.on(\"plotly_restyle\", () => {\n                annotations = el.layout.annotations;\n                for (var i = 1; i < annotations.length; i++) {\n                    annotations[i].visible = el._fullData[i * 2 - 1].visible !=\n                        \"legendonly\"\n                }\n                Plotly.relayout(el, {\n                    annotations: annotations,\n                    xaxis: {\n                        range: [\n                            Math.min(...el._fullData\n                                .filter(x => x.visible == true)\n                                .map(x => Math.min(...x.x\n                                    .filter(y =>  y!= null))\n                            )) - 1,\n                            Math.max(...el._fullData\n                                .filter(x => x.visible == true)\n                                .map(x => Math.max(...x.x\n                                    .filter(y =>  y!= null))\n                                )) + 1\n                        ]\n                    }\n                });\n            });\n        }\n    ",
-            "data": null
-          }
-        ]
-      },
+      "jsHooks": [
+
+      ],
       "deps": [
         {
           "name": "setprototypeof",
@@ -652,47 +244,31 @@
         "vertical": false,
         "data": [
           [
-            "LPC 11:0",
-            "LPC 11a:0"
+
           ],
           [
-            "<button class=\"btn btn-default action-button btn-success\" id=\"conflicts_table_bttn 1\" type=\"button\" value=\"1\">\n  <i class=\"fa fa-check\" role=\"presentation\" aria-label=\"check icon\"><\/i>\n  \n<\/button>",
-            "<button class=\"btn btn-default action-button btn-success\" id=\"conflicts_table_bttn 2\" type=\"button\" value=\"2\">\n  <i class=\"fa fa-check\" role=\"presentation\" aria-label=\"check icon\"><\/i>\n  \n<\/button>"
+
           ],
           [
-            "[M+H-H2O]+ [M+Na]+",
-            null
+
           ],
           [
-            "[M+H]+",
-            "[M+H]+"
+
           ],
           [
-            1,
-            null
+
           ],
           [
-            2,
-            2
+
           ],
           [
-            9,
-            4
+
           ],
           [
-            95,
-            95
-          ],
-          [
-            0,
-            0
-          ],
-          [
-            2,
-            2
+
           ]
         ],
-        "container": "<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Valid<\/th>\n      <th>Already seen with<\/th>\n      <th>Conflicted adduct<\/th>\n      <th>Already seen in nSamples<\/th>\n      <th>Conflicted nSamples<\/th>\n      <th>Diff rT (sec)<\/th>\n      <th>Best score (%)<\/th>\n      <th>Best m/z dev (mDa)<\/th>\n      <th>Max iso<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>",
+        "container": "<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>nSamples<\/th>\n      <th>rT (min)<\/th>\n      <th>Diff rT (sec)<\/th>\n      <th>Adducts<\/th>\n      <th>Best score (%)<\/th>\n      <th>Best m/z dev (mDa)<\/th>\n      <th>Max iso<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>",
         "options": {
           "dom": "frtip",
           "paging": false,
@@ -712,14 +288,14 @@
           "language": {
             "emptyTable": "no conflicts found"
           },
-          "initComplete": "\n                function(settings, json) {\n                    var table = settings.oInstance.api();\n                    table.columns.adjust();\n                    if (table.data().length > 0) {\n                        // select first row\n                        $(table.row(0).node()).addClass(\"selected\");\n                        Shiny.onInputChange(\n                             \"conflict_row_selected\",\n                             table.row(0).index() + 1\n                         );\n                    } else {\n                        Shiny.onInputChange(\n                             \"conflict_name_selected\",\n                             0\n                         );\n                    }\n                }\n        ",
+          "initComplete": "\n                function(settings, json) {\n                    var table = settings.oInstance.api();\n                    table.columns.adjust();\n                    if (table.data().length > 0) {\n                        // select first row\n                        $(table.row(0).node()).addClass(\"selected\");\n                        Shiny.onInputChange(\n                             \"conflict_name_selected\",\n                             table.cell(0, 0).data()\n                         );\n                    } else {\n                        Shiny.onInputChange(\n                             \"conflict_name_selected\",\n                             \"\"\n                         );\n                    }\n                }\n        ",
           "order": [
 
           ],
           "autoWidth": false,
           "orderClasses": false
         },
-        "callback": "function(table) {\n\n         table.on(\"click\", \"tbody tr\", function() {\n            if (table.data().length > 0) {\n                $(table.rows(\".selected\").nodes()).removeClass(\"selected\");\n                $(table.row(this).node()).addClass(\"selected\");\n                 Shiny.onInputChange(\n                     \"conflict_row_selected\",\n                     table.row(this).index() + 1\n                 );\n            }\n         })\n    \n}",
+        "callback": "function(table) {\n\n         table.on(\"click\", \"tbody tr\", function() {\n            if (table.data().length > 0) {\n                $(table.rows(\".selected\").nodes()).removeClass(\"selected\");\n                $(table.row(this).node()).addClass(\"selected\");\n                 Shiny.onInputChange(\n                     \"conflict_name_selected\",\n                     table.cell(\".selected\", 0).data()\n                 );\n            }\n         })\n    \n}",
         "selection": {
           "mode": "none",
           "selected": null,
@@ -782,6 +358,6 @@
     }
   },
   "export": {
-    "conflict_id": 1
+    "conflict_id": 0
   }
 }

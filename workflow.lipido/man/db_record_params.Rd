@@ -10,6 +10,7 @@ db_record_params(
   cwt_params,
   obw_params,
   pd_params,
+  camera_params,
   ann_params
 )
 }
@@ -23,6 +24,8 @@ db_record_params(
 \item{obw_params}{`ObiwarpParam`}
 
 \item{pd_params}{`PeakDensityParam`}
+
+\item{camera_params}{`CameraParam`}
 
 \item{ann_params}{`AnnotationParam`}
 }

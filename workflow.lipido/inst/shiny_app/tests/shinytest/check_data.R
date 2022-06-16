@@ -42,7 +42,7 @@ app$snapshot(
 # 2nd test : load a project
 sqlite_file <- system.file(
     "testdata",
-    "220221CCM_global.sqlite",
+    "220221CCM_global-plots.sqlite",
     package = "workflow.lipido"
 )
 sqlite_file2 <- gsub("\\\\", "/", tempfile(fileext = ".sqlite"))
@@ -95,12 +95,12 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 4th test : load PS 24:0
-app$setInputs(check_data_cpd = c("LPC 11:0", "FA 17:0"))
+# 4th test : load Cer (d18:1/C12:0)
+app$setInputs(check_data_cpd = c("LPC 11:0", "Cer (d18:1/C12:0)"))
 app$snapshot(
     items = list(
         output = c(
-            # "x":["LPC 11:0","PS 24a:0"],
+            # "x":["LPC 11:0","Cer (d18:1/C12:0)"],
             # "y":["220221CCM_global__01_ssleu_filtered",
                 # "220221CCM_global__02_ssleu_filtered"]
             "check_data_heatmap",
@@ -110,20 +110,18 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 5th test : click on LPC 11:0 & first file
+# 5th test : click on Cer on first sample
+    # should show an EIC but not integrated
 app$executeScript(
     "Shiny.onInputChange(
         \"check_data_heatmap_click\", {
-            sample: \"220221CCM_global__01_ssleu_filtered\",
-            cpd_name: \"LPC 11:0\"
+            sample: \"220221CCM_global_POS_01_ssleu_filtered\",
+            cpd_name: \"Cer (d18:1/C12:0)\"
         })"
 )
 app$snapshot(
     items = list(
         output = c(
-            # "x":["LPC 11:0","FA 17:0"],
-            # "y":["220221CCM_global__01_ssleu_filtered",
-                # "220221CCM_global__02_ssleu_filtered"]
             "check_data_heatmap",
             "check_data_eic_mzdev"
         )
@@ -131,21 +129,58 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 6th test : click on PS 24a:0 to empty eic & mzdev
+# 6th test : click on Cer on second sample
+    # should show an EIC integrated but not annotated
 app$executeScript(
     "Shiny.onInputChange(
         \"check_data_heatmap_click\", {
-            sample: \"220221CCM_global__01_ssleu_filtered\",
-            cpd_name: \"FA 17:0\"
+            sample: \"220221CCM_global_POS_02_ssleu_filtered\",
+            cpd_name: \"Cer (d18:1/C12:0)\"
         })"
 )
-Sys.sleep(.5)
 app$snapshot(
     items = list(
         output = c(
-            # "x":["LPC 11:0", "FA 17:0"],
-            # "y":["220221CCM_global__01_ssleu_filtered",
-                # "220221CCM_global__02_ssleu_filtered"]
+            "check_data_heatmap",
+            "check_data_eic_mzdev" # empty
+        )
+    ),
+    screenshot = TRUE
+)
+
+# 7th test : click on LPC on first sample
+    # should show multiple EIC but one of the adduct is not integrated
+app$executeScript(
+    "Shiny.onInputChange(
+        \"check_data_heatmap_click\", {
+            sample: \"220221CCM_global_POS_01_ssleu_filtered\",
+            cpd_name: \"LPC 11:0\"
+        })"
+)
+Sys.sleep(1)
+app$snapshot(
+    items = list(
+        output = c(
+            "check_data_heatmap",
+            "check_data_eic_mzdev"
+        )
+    ),
+    screenshot = TRUE
+)
+
+# 8th test : click on Cer on second sample
+    # should show an EIC integrated but not annotated
+app$executeScript(
+    "Shiny.onInputChange(
+        \"check_data_heatmap_click\", {
+            sample: \"220221CCM_global_POS_02_ssleu_filtered\",
+            cpd_name: \"LPC 11:0\"
+        })"
+)
+Sys.sleep(1)
+app$snapshot(
+    items = list(
+        output = c(
             "check_data_heatmap",
             "check_data_eic_mzdev" # empty
         )

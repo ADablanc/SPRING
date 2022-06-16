@@ -10,6 +10,8 @@ A class containing the filter parameters
 \section{Slots}{
 
 \describe{
+\item{\code{polarity}}{`character(1)` polarity to filter files}
+
 \item{\code{mz_range}}{`numeric(2)` the m/z range to trim all ms files}
 
 \item{\code{rt_range}}{`numeric(2)` the rT range to trim all ms files (in sec)}

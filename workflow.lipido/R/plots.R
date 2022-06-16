@@ -335,7 +335,7 @@ plot_annotation_ms <- function(db, name) {
         return(plot_empty_MS(title = "Hybrid mass spectra"))
     }
     nsamples <- db_get_nsamples(db)
-    spectra_ids <- without_na(unlist(
+    spectra_ids <- na.omit(unlist(
         ann[, (ncol(ann) - nsamples + 1):ncol(ann)]
     ))
     spectra_infos <- db_get_spectra_infos(db, spectra_ids)
@@ -385,8 +385,8 @@ plot_empty_heatmap <- function() {
 #' @title Plot compound heatmap
 #'
 #' @description
-#' Plot a heamap with in x compounds, in y samples and in z their cumulated
-#' intensities of their basepeaks
+#' Plot a heamap with in x compounds, in y samples and in z the intensity of the
+#' basepeak with the majoritary adduct
 #'
 #' @param db `SQLiteConnection`
 #' @param names `character vector` vector of compound names
@@ -412,21 +412,19 @@ plot_heatmap <- function(db, names) {
         return(plot_empty_heatmap())
     }
     nsamples <- db_get_nsamples(db)
-    spectra_ids <- without_na(unlist(
+    spectra_ids <- na.omit(unlist(
         ann[, (ncol(ann) - nsamples + 1):ncol(ann)]
     ))
     spectra_infos <- db_get_spectra_infos(db, spectra_ids)
 
-    int_ann <- summarise_ann(ann, spectra_infos, nsamples)
     int_ann <- merge(
-        int_ann,
-        data.frame(name = names),
-        by = "name",
+        summarise_ann(ann, spectra_infos, nsamples)$resume,
+        data.frame(Name = names),
         all = TRUE
     )
     plotly::add_trace(
         plot_empty_heatmap(),
-        x = int_ann$name,
+        x = int_ann$Name,
         y = colnames(int_ann)[(ncol(int_ann) - nsamples + 1):ncol(int_ann)],
         z = t(int_ann[, (ncol(int_ann) - nsamples + 1):ncol(int_ann)]),
         hoverinfo = "text",
@@ -437,7 +435,7 @@ plot_heatmap <- function(db, names) {
                     (ncol(int_ann) - nsamples + 1):ncol(int_ann)
                     ], times = nrow(int_ann)
                 ),
-                rep(int_ann$name, each = nsamples),
+                rep(int_ann$Name, each = nsamples),
                 formatC(
                     round(unlist(t(
                         int_ann[, (ncol(int_ann) - nsamples + 1):ncol(int_ann)]
@@ -446,7 +444,7 @@ plot_heatmap <- function(db, names) {
                     format = "d"
                 )
             ),
-            nrow = nrow(int_ann)
+            ncol = nrow(int_ann)
         )
     )
 }
@@ -563,7 +561,7 @@ plot_empty_chromato <- function(title = "Total Ion Chromatogram(s)") {
 #'
 #' @description
 #' Plot the EIC for a sample and a compound. It will trace all the EIC in the
-#' same  plot for all possible adducts used in the processing workflow.
+#' same  plot for all possible adducts detected in the processing workflow.
 #' The line dashed correspond to the area not integrated & the line colored the
 #' retention time range where integrated by XCMS. The two line dashed which
 #' surround the trace correspond to the retention time tolerance used for the
@@ -576,7 +574,8 @@ plot_empty_chromato <- function(title = "Total Ion Chromatogram(s)") {
 #' It is useful when combined with the `plotmzdev` plot next to it
 #' It draw also annotation to better view to which adduct correspond the trace
 #' (the annotation is placed at the most intense point for the trace)
-#' A JS function is added to hide the annotation when the trace is hidden
+#' If available it will use the retention time corrected in the slot
+#' `scantime_corrected` added by the function `obiwarp`
 #'
 #' @param db `SQLiteConnection`
 #' @param sample_name `character(1)` sample name of the file recorded in db
@@ -605,35 +604,43 @@ plot_eic <- function(db, sample_name, name) {
     p <- plot_empty_chromato("EIC")
 
     # load files
-    ms_file_pos <- db_read_ms_file(db, sample_name, "positive")
-    ms_file_neg <- db_read_ms_file(db, sample_name, "negative")
-    # if never processed or file doesn't exists
-    if (is.null(ms_file_pos) && is.null(ms_file_neg)) {
+    ms_file <- db_read_ms_file(db, sample_name)
+    if (is.null(ms_file)) {
         return(p)
     }
 
     # get params used in process & load all the basepeaks for the compound name
     params <- db_get_params(db)
-    adduct_names <- strsplit(params$ann$adduct_names, ";")[[1]]
     chem_db <- load_ion_db(
-        adduct_names,
-        params$ann$instrument,
-        params$ann$database,
+        database = params$ann$database,
+        instrument = params$ann$instrument,
+        polarity = params$ann$polarity,
         cpd_names = name
     )
-    chem_db <- chem_db[chem_db$iso == "M", , drop = FALSE]
+    # if the compound is detected
+    adduct_names <- db_get_annotations(db, names = name)$adduct
+    if (length(adduct_names) > 1) {
+        # compound was detected with more than one adduct !
+            # plot other EICs
+        ions <- do.call(rbind, lapply(adduct_names, function(adduct_name)
+            get_ions(
+                chem_db[1, "formula"],
+                adducts[adducts$name == adduct_name, ],
+                params$ann$instrument
+            )[[1]]
+        ))
+    } else {
+        ions <- chem_db
+    }
+    ions <- ions[ions$iso == "M", , drop = FALSE]
 
     max_int <- 0
-    for (i in seq(nrow(chem_db))) {
-        mz_range <- get_mz_range(chem_db[i, "mz"], params$cwt$ppm)
-        rt_range <- chem_db[i, "rt"] + c(-params$cwt$peakwidth_max * 3.5,
+    for (i in seq(nrow(ions))) {
+        mz_range <- get_mz_range(ions[i, "mz"], params$cwt$ppm)
+        rt_range <- chem_db[1, "rt"] + c(-params$cwt$peakwidth_max * 3.5,
                                          params$cwt$peakwidth_max * 3.5)
         # get the eic
-        eic <- get_eic(
-            if (chem_db[i, "charge"] > 0) ms_file_pos else ms_file_neg,
-            mz_range,
-            rt_range
-        )
+        eic <- get_eic(ms_file, mz_range, rt_range)
         if (all(eic$int == 0)) {
             next
         }
@@ -641,13 +648,20 @@ plot_eic <- function(db, sample_name, name) {
         # search if the ion was integrated
         peaks <- dbGetQuery(db, sprintf(
             "SELECT rtmin, rtmax
-            FROM peaks
-            WHERE sample == \"%s\" AND
-                mzmin >= %s AND mzmax <= %s AND
-                rtmin >= %s AND rtmax <= %s;",
-            sample_name,
+            FROM spectras
+            WHERE mzmin >= %s AND mzmax <= %s AND
+                rtmin >= %s AND rtmax <= %s AND
+                spectra_id in (
+                    SELECT spectra_id
+                        FROM spectra_infos
+                        WHERE SAMPLE == \"%s\" AND
+                        rt BETWEEN %s and %s
+                );",
             mz_range[1],
             mz_range[2],
+            rt_range[1],
+            rt_range[2],
+            sample_name,
             rt_range[1],
             rt_range[2]
         ))
@@ -672,19 +686,19 @@ plot_eic <- function(db, sample_name, name) {
         p <- plotly::add_trace(
             p,
             mode = "lines",
-            x = integrated$rt / 60,
+            x = round(integrated$rt / 60, 3),
             y = integrated$int,
-            name = chem_db[i, "adduct"],
-            legendgroup = chem_db[i, "adduct"],
+            name = ions[i, "adduct"],
+            legendgroup = ions[i, "adduct"],
             showlegend = nrow(peaks) > 0
         )
         p <- plotly::add_trace(
             p,
             mode = "lines",
-            x = eic$rt / 60,
+            x = round(eic$rt / 60, 3),
             y = eic$int,
-            name = chem_db[i, "adduct"],
-            legendgroup = chem_db[i, "adduct"],
+            name = ions[i, "adduct"],
+            legendgroup = ions[i, "adduct"],
             showlegend = nrow(peaks) == 0,
             line = list(
                 color = "rgb(0,0,0)",
@@ -694,11 +708,12 @@ plot_eic <- function(db, sample_name, name) {
         )
         p <- plotly::add_annotations(
             p,
-            x = if (nrow(peaks) == 0) eic[which.max(eic$int), "rt"] / 60
-                else integrated[which.max(integrated$int), "rt"] / 60,
+            x = if (nrow(peaks) == 0) round(
+                    eic[which.max(eic$int), "rt"] / 60, 3)
+                else round(integrated[which.max(integrated$int), "rt"] / 60, 3),
             y = if (nrow(peaks) == 0) max(eic$int, na.rm = TRUE)
                 else max(integrated$int, na.rm = TRUE),
-            text = chem_db[i, "adduct"],
+            text = ions[i, "adduct"],
             xref = "x",
             yref = "y",
             valign = "bottom",
@@ -708,8 +723,8 @@ plot_eic <- function(db, sample_name, name) {
     p <- plotly::add_trace(
         p,
         mode = "lines",
-        x = c(rep(chem_db[1, "rt"] - params$ann$rt_tol, 2), NA,
-              rep(chem_db[1, "rt"] + params$ann$rt_tol, 2)) / 60,
+        x = round(c(rep(chem_db[1, "rt"] - params$ann$rt_tol, 2), NA,
+              rep(chem_db[1, "rt"] + params$ann$rt_tol, 2)) / 60, 3),
         y = c(0, max_int, NA, 0, max_int),
         showlegend = FALSE,
         line = list(
@@ -727,7 +742,7 @@ plot_eic <- function(db, sample_name, name) {
                     "annotations = el.layout.annotations;",
                     "for (var i = 1; i < annotations.length; i++) {",
                         "annotations[i].visible = el._fullData[i * 2 - 1]",
-                            ".visible != \"legendonly\"",
+                        ".visible != \"legendonly\"",
                     "}",
                     "Plotly.relayout(el, {",
                         "annotations: annotations",
@@ -836,8 +851,6 @@ plot_empty_mzdev <- function(title = "m/z deviation") {
 #' @param db `SQLiteConnection`
 #' @param sample_name `character(1)` sample name of the file recorded in db
 #' @param name `character(1)` compound name
-#' @param adduct_name `character(1)` name of the adduct used in the
-#' identification step
 #'
 #' @return `plotly`
 #' @export
@@ -850,7 +863,7 @@ plot_empty_mzdev <- function(title = "m/z deviation") {
 #'      "[M+H]+"
 #' )
 #' }
-plot_mzdev <- function(db, sample_name, name, adduct_name) {
+plot_mzdev <- function(db, sample_name, name) {
     if (class(db) != "SQLiteConnection") {
         stop("db must be a connection to the sqlite database")
     } else if (class(sample_name) != "character") {
@@ -861,68 +874,70 @@ plot_mzdev <- function(db, sample_name, name, adduct_name) {
         stop("name must be a character")
     } else if (length(name) != 1) {
         stop("name must contain only ONE compound")
-    } else if (class(adduct_name) != "character") {
-        stop("adduct name must be a character")
-    } else if (length(adduct_name) != 1) {
-        stop("adduct name must contain only adduct name")
     }
 
     p <- plot_empty_mzdev()
 
-    # get params used in process & load all the basepeaks for the compound name
-    params <- db_get_params(db)
-    # if never processed
-    if (ncol(params$ann) == 0) {
-        return(p)
-    }
-    chem_db <- load_ion_db(
-        adduct_name,
-        params$ann$instrument,
-        params$ann$database,
-        cpd_names = name
-    )
-    chem_db <- chem_db[chem_db$iso == "M", ]
-
     # load file
-    ms_file <- db_read_ms_file(
-        db,
-        sample_name,
-        if (chem_db$charge > 0) "positive" else "negative"
-    )
+    ms_file <- db_read_ms_file(db, sample_name)
     # if file doesn't exists
     if (is.null(ms_file)) {
         return(p)
     }
 
-    mz_dev <- get_mzdev(
-        ms_file,
-        get_mz_range(chem_db$mz, params$cwt$ppm),
-        chem_db$rt + c(-params$cwt$peakwidth_max * 3.5,
-                       params$cwt$peakwidth_max * 3.5)
+    # get params used in process & load all the basepeaks for the compound name
+    params <- db_get_params(db)
+    chem_db <- load_ion_db(
+        database = params$ann$database,
+        instrument = params$ann$instrument,
+        polarity = params$ann$polarity,
+        cpd_names = name
     )
+    # if the compound is detected
+    adduct_names <- db_get_annotations(db, names = name)$adduct
+    if (length(adduct_names) > 1) {
+        # compound was detected with more than one adduct !
+        # plot other EICs
+        ions <- do.call(rbind, lapply(adduct_names, function(adduct_name)
+            get_ions(
+                chem_db[1, "formula"],
+                adducts[adducts$name == adduct_name, ],
+                params$ann$instrument
+            )[[1]]
+        ))
+    } else {
+        ions <- chem_db
+    }
+    ions <- ions[ions$iso == "M", , drop = FALSE]
 
-        # trace
-    p <- plotly::add_trace(
-        p,
-        mode = "markers",
-        x = mz_dev$rt / 60,
-        y = (chem_db$mz - mz_dev$mz) * 10**3,
-        showlegend = FALSE,
-        hoverinfo = "text",
-        name = adduct_name,
-        text = sprintf(
-            "rT: %s min<br />m/z deviation: %s mDa",
-            round(mz_dev$rt / 60, 2),
-            round((chem_db$mz - mz_dev$mz) * 10**3, 2)
+    for (i in seq(nrow(ions))) {
+        mz_range <- get_mz_range(ions[i, "mz"], params$cwt$ppm)
+        rt_range <- chem_db[1, "rt"] + c(-params$cwt$peakwidth_max * 3.5,
+                                         params$cwt$peakwidth_max * 3.5)
+        mz_dev <- get_mzdev(ms_file, mz_range, rt_range)
+
+        p <- plotly::add_trace(
+            p,
+            mode = "markers",
+            x = round(mz_dev$rt / 60, 3),
+            y = round((ions[i, "mz"] - mz_dev$mz) * 10**3, 3),
+            name = ions[i, "adduct"],
+            showlegend = TRUE,
+            hoverinfo = "text",
+            text = sprintf(
+                "rT: %s min<br />m/z deviation: %s mDa",
+                round(mz_dev$rt / 60, 2),
+                round((ions[i, "mz"] - mz_dev$mz) * 10**3, 2)
+            )
         )
-    )
+    }
     # plot the limit parameters square
     plotly::add_trace(
         p,
         mode = "lines",
-        x = c(rep(chem_db[1, "rt"] - params$ann$rt_tol, 2),
+        x = round(c(rep(chem_db[1, "rt"] - params$ann$rt_tol, 2),
               rep(chem_db[1, "rt"] + params$ann$rt_tol, 2),
-              chem_db[1, "rt"] - params$ann$rt_tol) / 60,
+              chem_db[1, "rt"] - params$ann$rt_tol) / 60, 3),
         y = c(-params$ann$da_tol, params$ann$da_tol, params$ann$da_tol,
               -params$ann$da_tol, -params$ann$da_tol) * 10**3,
         showlegend = FALSE,
@@ -940,8 +955,8 @@ plot_mzdev <- function(db, sample_name, name, adduct_name) {
 #' @description
 #' Plot the EIC for a sample and a compound with the m/z deviations compared to
 #' the theoreticals.
-#' It will trace all the EIC in the same plot for all possible adducts used in
-#' the processing workflow (same for the m/z deviation). The line dashed
+#' It will trace all the EIC in the same plot for all possible adducts detected
+#'  in the processing workflow (same for the m/z deviation). The line dashed
 #' correspond to the area not integrated & the line colored the retention time
 #' range where integrated by XCMS. The two line dashed which surround the trace
 #' correspond to the retention time tolerance used for the identification.
@@ -952,7 +967,6 @@ plot_mzdev <- function(db, sample_name, name, adduct_name) {
 #'   differentiate all the y coordinates of the traces in one shot
 #' It draw also annotation to better view to which adduct correspond the trace
 #' (the annotation is placed at the most intense point for the trace)
-#' A JS function is added to hide the annotation when the trace is hidden
 #' If available it will use the retention time corrected in the slot
 #' `scantime_corrected` added by the function `obiwarp`
 #'
@@ -983,65 +997,69 @@ plot_eic_mzdev <- function(db, sample_name, name) {
     p1 <- plot_empty_chromato("EIC")
     p2 <- plot_empty_mzdev()
 
+    # load files
+    ms_file <- db_read_ms_file(db, sample_name)
+    if (is.null(ms_file)) {
+        return(suppressWarnings(
+            plotly::subplot(p1, p2, nrows = 2, shareX = TRUE)
+        ))
+    }
+
     # get params used in process & load all the basepeaks for the compound name
     params <- db_get_params(db)
-    # if never processed
-    if (ncol(params$ann) == 0) {
-        p <- suppressWarnings(
-            plotly::subplot(p1, p2, nrows = 2, shareX = TRUE))
-        return(plotly::layout(p, title = ""))
-    }
 
-    adduct_names <- strsplit(params$ann$adduct_names, ";")[[1]]
-    colors <- RColorBrewer::brewer.pal(length(adduct_names), "Set2")
     chem_db <- load_ion_db(
-        adduct_names,
-        params$ann$instrument,
-        params$ann$database,
+        database = params$ann$database,
+        instrument = params$ann$instrument,
+        polarity = params$ann$polarity,
         cpd_names = name
     )
-    chem_db <- chem_db[chem_db$iso == "M", , drop = FALSE]
-
-    # load files
-    ms_file_pos <- db_read_ms_file(db, sample_name, "positive")
-    ms_file_neg <- db_read_ms_file(db, sample_name, "negative")
-    # if never processed or file doesn't exists
-    if (is.null(ms_file_pos) && is.null(ms_file_neg)) {
-        p <- suppressWarnings(
-            plotly::subplot(p1, p2, nrows = 2, shareX = TRUE))
-        return(plotly::layout(p, title = ""))
+    # if the compound is detected
+    adduct_names <- db_get_annotations(db, names = name)$adduct
+    if (length(adduct_names) > 1) {
+        # compound was detected with more than one adduct !
+        ions <- do.call(rbind, lapply(adduct_names, function(adduct_name)
+            get_ions(
+                chem_db[1, "formula"],
+                adducts[adducts$name == adduct_name, ],
+                params$ann$instrument
+            )[[1]]
+        ))
+    } else {
+        ions <- chem_db
     }
+    ions <- ions[ions$iso == "M", , drop = FALSE]
 
     max_int <- 0
-    for (i in seq(nrow(chem_db))) {
-        mz_range <- get_mz_range(chem_db[i, "mz"], params$cwt$ppm)
-        rt_range <- chem_db[i, "rt"] + c(-params$cwt$peakwidth_max * 3.5,
+    colors <- suppressWarnings(RColorBrewer::brewer.pal(nrow(ions), "Set2"))
+    for (i in seq(nrow(ions))) {
+        mz_range <- get_mz_range(ions[i, "mz"], params$cwt$ppm)
+        rt_range <- chem_db[1, "rt"] + c(-params$cwt$peakwidth_max * 3.5,
                                          params$cwt$peakwidth_max * 3.5)
         # get the eic
-        eic <- get_eic(
-            if (chem_db[i, "charge"] > 0) ms_file_pos else ms_file_neg,
-            mz_range,
-            rt_range
-        )
+        eic <- get_eic(ms_file, mz_range, rt_range)
         if (all(eic$int == 0)) {
             next
         }
-        mz_dev <- get_mzdev(
-            if (chem_db[i, "charge"] > 0) ms_file_pos else ms_file_neg,
-            mz_range,
-            rt_range
-        )
+        mz_dev <- get_mzdev(ms_file, mz_range, rt_range)
         max_int <- max(max_int, eic$int)
         # search if the ion was integrated
         peaks <- dbGetQuery(db, sprintf(
             "SELECT rtmin, rtmax
-            FROM peaks
-            WHERE sample == \"%s\" AND
-                mzmin >= %s AND mzmax <= %s AND
-                rtmin >= %s AND rtmax <= %s;",
-            sample_name,
+            FROM spectras
+            WHERE mzmin >= %s AND mzmax <= %s AND
+                rtmin >= %s AND rtmax <= %s AND
+                spectra_id in (
+                    SELECT spectra_id
+                        FROM spectra_infos
+                        WHERE sample == \"%s\" AND
+                            rt BETWEEN %s and %s
+                );",
             mz_range[1],
             mz_range[2],
+            rt_range[1],
+            rt_range[2],
+            sample_name,
             rt_range[1],
             rt_range[2]
         ))
@@ -1066,49 +1084,36 @@ plot_eic_mzdev <- function(db, sample_name, name) {
         p1 <- plotly::add_trace(
             p1,
             mode = "lines",
-            x = integrated$rt / 60,
+            x = round(integrated$rt / 60, 3),
             y = integrated$int,
-            name = chem_db[i, "adduct"],
+            name = ions[i, "adduct"],
             color = colors[i],
-            legendgroup = chem_db[i, "adduct"],
-            showlegend = nrow(peaks) > 0,
-            hoverinfo = "text",
-            text = sprintf(
-                "%s<br />rT: %s min<br />intensity: %s",
-                chem_db[i, "adduct"],
-                round(integrated$rt / 60, 2),
-                formatC(integrated$int, big.mark = " ", format = "fg")
-            )
+            legendgroup = ions[i, "adduct"],
+            showlegend = nrow(peaks) > 0
         )
         p1 <- plotly::add_trace(
             p1,
             mode = "lines",
-            x = eic$rt / 60,
+            x = round(eic$rt / 60, 3),
             y = eic$int,
-            name = chem_db[i, "adduct"],
+            name = ions[i, "adduct"],
             color = colors[i],
-            legendgroup = chem_db[i, "adduct"],
+            legendgroup = ions[i, "adduct"],
             showlegend = nrow(peaks) == 0,
             line = list(
                 color = "black",
                 width = 1,
                 dash = "dash"
-            ),
-            hoverinfo = "text",
-            text = sprintf(
-                "%s<br />rT: %s min<br />intensity: %s",
-                chem_db[i, "adduct"],
-                round(eic$rt / 60, 2),
-                formatC(eic$int, big.mark = " ", format = "fg")
             )
         )
         p1 <- plotly::add_annotations(
             p1,
-            x = if (nrow(peaks) == 0) eic[which.max(eic$int), "rt"] / 60
-                else integrated[which.max(integrated$int), "rt"] / 60,
+            x = if (nrow(peaks) == 0) round(
+                eic[which.max(eic$int), "rt"] / 60, 3)
+            else round(integrated[which.max(integrated$int), "rt"] / 60, 3),
             y = if (nrow(peaks) == 0) max(eic$int, na.rm = TRUE)
-                else max(integrated$int, na.rm = TRUE),
-            text = chem_db[i, "adduct"],
+            else max(integrated$int, na.rm = TRUE),
+            text = ions[i, "adduct"],
             xref = "x",
             yref = "y",
             valign = "bottom",
@@ -1117,25 +1122,25 @@ plot_eic_mzdev <- function(db, sample_name, name) {
         p2 <- plotly::add_trace(
             p2,
             mode = "markers",
-            x = mz_dev$rt / 60,
-            y = (chem_db[i, "mz"] - mz_dev$mz) * 10**3,
-            hoverinfo = "text",
-            name = chem_db[i, "adduct"],
+            x = round(mz_dev$rt / 60, 3),
+            y = round((ions[i, "mz"] - mz_dev$mz) * 10**3, 3),
+            name = ions[i, "adduct"],
             color = colors[i],
-            legendgroup = chem_db[i, "adduct"],
+            legendgroup = ions[i, "adduct"],
+            showlegend = TRUE,
+            hoverinfo = "text",
             text = sprintf(
-                "%s<br />rT: %s min<br />m/z deviation: %s mDa",
-                chem_db[i, "adduct"],
+                "rT: %s min<br />m/z deviation: %s mDa",
                 round(mz_dev$rt / 60, 2),
-                round((chem_db[i, "mz"] - mz_dev$mz) * 10**3, 2)
+                round((ions[i, "mz"] - mz_dev$mz) * 10**3, 2)
             )
         )
     }
     p1 <- plotly::add_trace(
         p1,
         mode = "lines",
-        x = c(rep(chem_db[1, "rt"] - params$ann$rt_tol, 2), NA,
-              rep(chem_db[1, "rt"] + params$ann$rt_tol, 2)) / 60,
+        x = round(c(rep(chem_db[1, "rt"] - params$ann$rt_tol, 2), NA,
+              rep(chem_db[1, "rt"] + params$ann$rt_tol, 2)) / 60, 3),
         y = c(0, max_int, NA, 0, max_int),
         showlegend = FALSE,
         line = list(
@@ -1148,9 +1153,9 @@ plot_eic_mzdev <- function(db, sample_name, name) {
     p2 <- plotly::add_trace(
         p2,
         mode = "lines",
-        x = c(rep(chem_db[1, "rt"] - params$ann$rt_tol, 2),
+        x = round(c(rep(chem_db[1, "rt"] - params$ann$rt_tol, 2),
               rep(chem_db[1, "rt"] + params$ann$rt_tol, 2),
-              chem_db[1, "rt"] - params$ann$rt_tol) / 60,
+              chem_db[1, "rt"] - params$ann$rt_tol) / 60, 3),
         y = c(-params$ann$da_tol, params$ann$da_tol, params$ann$da_tol,
               -params$ann$da_tol, -params$ann$da_tol) * 10**3,
         showlegend = FALSE,
@@ -1166,17 +1171,18 @@ plot_eic_mzdev <- function(db, sample_name, name) {
         plotly::layout(p, title = ""),
         paste0(
             "function(el, x) {",
-            "el.on(\"plotly_restyle\", () => {",
-            "annotations = el.layout.annotations;",
-            "for (var i = 1; i < annotations.length; i++) {",
-            "annotations[i].visible = el._fullData[i * 2 - 1]",
-            ".visible != \"legendonly\"",
-            "}",
-            "Plotly.relayout(el, {",
-            "annotations: annotations",
-            "});",
-            "});",
+                "el.on(\"plotly_restyle\", () => {",
+                    "annotations = el.layout.annotations;",
+                    "for (var i = 1; i < annotations.length; i++) {",
+                        "annotations[i].visible = el._fullData[i * 2 - 1]",
+                        ".visible != \"legendonly\"",
+                    "}",
+                    "Plotly.relayout(el, {",
+                        "annotations: annotations",
+                    "});",
+                "});",
             "}"
         )
     )
+
 }

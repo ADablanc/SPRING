@@ -13,12 +13,11 @@
 #'
 #' @param raw_file `character(1)` filepath
 #' @param converter `character(1)` filepath to msconvert executable
-#' @param polarity `character(1)` "positive" or "negative" only !
 #' @param filter_params `FilterParam` object
 #'
 #' @return `xcmsRaw` object
-convert_file <- function(raw_file, converter, polarity, filter_params) {
-    filepath <- tempfile(fileext = ".mzXML")
+convert_file <- function(raw_file, converter, filter_params) {
+    filepath <- gsub("\\\\", "/", tempfile(fileext = ".mzXML"))
 
     # if it is a wiff file it needs the corresponding wiff.scan file
     if (grepl("\\.WIFF$", raw_file, ignore.case = TRUE)) {
@@ -26,27 +25,26 @@ convert_file <- function(raw_file, converter, polarity, filter_params) {
             stop("missing corresponding wiff.scan in same directory")
         }
     }
-    # if it is a Water repertory, don't use the vendor algorithm
-    if ((grepl("\\.raw$", raw_file) & dir.exists(raw_file)) ||
-        grepl("\\.mzXML$", raw_file) | grepl("\\.mzML$", raw_file)
+    if (grepl("\\.mzXML$", raw_file) | grepl("\\.mzML$", raw_file)
     ) algorithm <- "cwt" else algorithm <- "vendor"
 
     query <- sprintf(
         paste(
             "\"%s\" \"%s\" -o \"%s\"",
-            "--outfile \"%s\" --mzXML -z -n",
+            "--outfile \"%s\" --mzXML",
+            # "-z -n",
             "--filter \"peakPicking %s msLevel=1-\"",
-            "--filter \"zeroSamples removeExtra\"",
+            # "--filter \"zeroSamples removeExtra\"",
             "--filter \"polarity %s\"",
-            "--filter \"scanTime [%s,%s]\"",
-            "--filter \"mzWindow [%s,%s]\""
+            "--filter \"scanTime [%s,%s]\""#,
+            # "--filter \"mzWindow [%s,%s]\""
         ),
         converter, raw_file, dirname(filepath),
         basename(filepath),
         algorithm,
-        polarity,
-        filter_params@rt_range[1], filter_params@rt_range[2],
-        filter_params@mz_range[1], filter_params@mz_range[2]
+        filter_params@polarity,
+        filter_params@rt_range[1], filter_params@rt_range[2]#,
+        # filter_params@mz_range[1], filter_params@mz_range[2]
     )
     msconvert_blabla <- suppressWarnings(
         system(query, intern = TRUE, wait = TRUE)
@@ -54,7 +52,7 @@ convert_file <- function(raw_file, converter, polarity, filter_params) {
 
     if (!file.exists(filepath)) {
         if (grepl("\\.mzML$", raw_file)) {
-            filepath <- tempfile(fileext = ".mzML")
+            filepath <- gsub("\\\\", "/", tempfile(fileext = ".mzML"))
             file.copy(raw_file, filepath, overwrite = TRUE)
         } else if (grepl("\\.mzXML$", raw_file)) {
             file.copy(raw_file, filepath, overwrite = TRUE)
@@ -62,7 +60,7 @@ convert_file <- function(raw_file, converter, polarity, filter_params) {
             stop("msconvert error")
         }
     }
-    check_ms_file(filepath, polarity)
+    check_ms_file(filepath, filter_params@polarity)
 }
 
 #' @title Check mass spectrometry file
@@ -82,7 +80,7 @@ check_ms_file <- function(filepath, exp_polarity) {
         error = function(e)
             e$message)
     if (class(ms_file) != "xcmsRaw") {
-        stop("file converted cannot be read")
+        stop(ms_file)
     }
     obs_polarity <- ms_file@polarity
     if (!any(obs_polarity == exp_polarity)) {

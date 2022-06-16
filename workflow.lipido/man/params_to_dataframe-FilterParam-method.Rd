@@ -12,6 +12,7 @@
 \value{
 `DataFrame` with one line & the columns:
 \itemize{
+    \item polarity `character` "positive" or "negative"
     \item mz_range_min `numeric` m/z range min
     \item mz_range_max `numeric` m/z range max
     \item rt_range_min `numeric` rT range min

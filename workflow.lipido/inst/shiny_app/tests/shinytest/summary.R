@@ -35,6 +35,7 @@ app$waitForValue(
 )
 
 # 1st test : get an empty summary table
+Sys.sleep(1)
 app$snapshot(
     items = list(
         output = "summary_table" # should be empty
@@ -45,7 +46,7 @@ app$snapshot(
 # load a project
 sqlite_file <- system.file(
     "testdata",
-    "220221CCM_global.sqlite",
+    "220221CCM_global-conflicts.sqlite",
     package = "workflow.lipido"
 )
 sqlite_file2 <- gsub("\\\\", "/", tempfile(fileext = ".sqlite"))
@@ -77,29 +78,10 @@ app$waitForValue(
 # 2nd test : see if we have now a table
 app$snapshot(
     items = list(
-        output = "summary_table" # "Cer (d18:1/C12:0)", "FA 17:0"
+        output = "summary_table"
     ),
     screenshot = TRUE
 )
-
-# 3rd test : filter by polarity
-app$setInputs(summary_polarity = "positive")
-app$snapshot(
-    items = list(
-        output = "summary_table" # "Cer (d18:1/C12:0)"
-    ),
-    screenshot = TRUE
-)
-
-# 4th test : filter by polarity
-app$setInputs(summary_polarity = "negative")
-app$snapshot(
-    items = list(
-        output = "summary_table" # "FA 17:0"
-    ),
-    screenshot = TRUE
-)
-
 
 # see if we can upload the xlsx file
 # app$snapshotDownload("summary_export")

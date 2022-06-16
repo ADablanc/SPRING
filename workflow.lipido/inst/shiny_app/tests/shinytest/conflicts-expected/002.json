@@ -4,7 +4,7 @@
     "conflicts_right_disabled": false
   },
   "output": {
-    "conflicts_info": "1 / 3",
+    "conflicts_info": "1 / 2",
     "conflicts_ms": {
       "x": {
         "layout": {
@@ -83,8 +83,8 @@
             },
             {
               "text": "[M+H]+",
-              "x": 426.261913381751,
-              "y": 6214416.44108707,
+              "x": 426.262343531217,
+              "y": 6234084.85605467,
               "xref": "x",
               "yref": "y",
               "valign": "bottom",
@@ -92,8 +92,8 @@
             },
             {
               "text": "[M+Na]+",
-              "x": 448.244170162955,
-              "y": 288290.748778874,
+              "x": 448.244163142448,
+              "y": 288524.169413714,
               "xref": "x",
               "yref": "y",
               "valign": "bottom",
@@ -278,11 +278,11 @@
             "mode": "lines",
             "type": "scatter",
             "x": [
-              426.261913381751,
-              426.261913381751,
+              426.262343531217,
+              426.262343531217,
               null,
-              427.265348519813,
-              427.265348519813,
+              427.265671264404,
+              427.265671264404,
               null,
               426.26152,
               426.26152,
@@ -292,16 +292,16 @@
             ],
             "y": [
               0,
-              6214416.44108707,
+              6234084.85605467,
               null,
               0,
-              1170639.95871094,
+              1186664.89020643,
               null,
               0,
-              -6214416.44108707,
+              -6234084.85605467,
               null,
               0,
-              -1348528.36771589
+              -1352796.41376386
             ],
             "name": "[M+H]+",
             "legendgroup": "[M+H]+",
@@ -320,11 +320,11 @@
               "text"
             ],
             "text": [
-              "observed<br />adduct: [M+H]+<br />iso: M<br />m/z: 426.26191<br />abd: 100%",
-              "observed<br />adduct: [M+H]+<br />iso: M<br />m/z: 426.26191<br />abd: 100%",
+              "observed<br />adduct: [M+H]+<br />iso: M<br />m/z: 426.26234<br />abd: 100%",
+              "observed<br />adduct: [M+H]+<br />iso: M<br />m/z: 426.26234<br />abd: 100%",
               null,
-              "observed<br />adduct: [M+H]+<br />iso: M+1<br />m/z: 427.26535<br />abd: 19%",
-              "observed<br />adduct: [M+H]+<br />iso: M+1<br />m/z: 427.26535<br />abd: 19%",
+              "observed<br />adduct: [M+H]+<br />iso: M+1<br />m/z: 427.26567<br />abd: 19%",
+              "observed<br />adduct: [M+H]+<br />iso: M+1<br />m/z: 427.26567<br />abd: 19%",
               null,
               "theoretical<br />adduct: [M+H]+<br />iso: M<br />m/z: 426.26152<br />abd: 100%",
               "theoretical<br />adduct: [M+H]+<br />iso: M<br />m/z: 426.26152<br />abd: 100%",
@@ -363,10 +363,10 @@
             ],
             "y": [
               0,
-              -215018.808861613,
+              -215699.336019492,
               null,
               0,
-              -26100.5490525657
+              -26183.1563954296
             ],
             "legendgroup": "[M+H]+",
             "showlegend": false,
@@ -410,18 +410,18 @@
             "mode": "lines",
             "type": "scatter",
             "x": [
-              448.244170162955,
-              448.244170162955,
+              448.244163142448,
+              448.244163142448,
               null,
               448.24346,
               448.24346
             ],
             "y": [
               0,
-              288290.748778874,
+              288524.169413714,
               null,
               0,
-              -288290.748778874
+              -288524.169413714
             ],
             "name": "[M+Na]+",
             "legendgroup": "[M+Na]+",
@@ -434,8 +434,8 @@
               "text"
             ],
             "text": [
-              "observed<br />adduct: [M+Na]+<br />iso: M<br />m/z: 448.24417<br />abd: 100%",
-              "observed<br />adduct: [M+Na]+<br />iso: M<br />m/z: 448.24417<br />abd: 100%",
+              "observed<br />adduct: [M+Na]+<br />iso: M<br />m/z: 448.24416<br />abd: 100%",
+              "observed<br />adduct: [M+Na]+<br />iso: M<br />m/z: 448.24416<br />abd: 100%",
               null,
               "theoretical<br />adduct: [M+Na]+<br />iso: M<br />m/z: 448.24346<br />abd: 100%",
               "theoretical<br />adduct: [M+Na]+<br />iso: M<br />m/z: 448.24346<br />abd: 100%"
@@ -474,13 +474,13 @@
             ],
             "y": [
               0,
-              -62530.2634101377,
+              -62580.8923458346,
               null,
               0,
-              -9946.03083287114,
+              -9954.08384477314,
               null,
               0,
-              -1210.82114487127
+              -1211.8015115376
             ],
             "legendgroup": "[M+Na]+",
             "showlegend": false,
@@ -656,43 +656,39 @@
             "LPC 11a:0"
           ],
           [
-            "<button class=\"btn btn-default action-button btn-success\" id=\"conflicts_table_bttn 1\" type=\"button\" value=\"1\">\n  <i class=\"fa fa-check\" role=\"presentation\" aria-label=\"check icon\"><\/i>\n  \n<\/button>",
-            "<button class=\"btn btn-default action-button btn-success\" id=\"conflicts_table_bttn 2\" type=\"button\" value=\"2\">\n  <i class=\"fa fa-check\" role=\"presentation\" aria-label=\"check icon\"><\/i>\n  \n<\/button>"
+            "<button class=\"btn btn-default action-button btn-success\" id=\"conflicts_table_bttn- 1\" type=\"button\" value=\"LPC 11:0\">\n  <i class=\"fa fa-check\" role=\"presentation\" aria-label=\"check icon\"><\/i>\n  \n<\/button>",
+            "<button class=\"btn btn-default action-button btn-success\" id=\"conflicts_table_bttn- 2\" type=\"button\" value=\"LPC 11a:0\">\n  <i class=\"fa fa-check\" role=\"presentation\" aria-label=\"check icon\"><\/i>\n  \n<\/button>"
           ],
           [
-            null,
-            null
+            2,
+            2
           ],
           [
-            "[M+H-H2O]+",
-            "[M+H-H2O]+"
+            4.78,
+            4.78
           ],
           [
-            null,
-            null
+            9,
+            4
           ],
           [
-            1,
-            1
+            "[M+H-H2O]+ [M+H]+ [M+Na]+",
+            "[M+H-H2O]+ [M+H]+ [M+Na]+"
           ],
           [
-            10,
-            5
-          ],
-          [
-            80,
-            80
+            95,
+            95
           ],
           [
             0,
             0
           ],
           [
-            1,
-            1
+            2,
+            2
           ]
         ],
-        "container": "<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Valid<\/th>\n      <th>Already seen with<\/th>\n      <th>Conflicted adduct<\/th>\n      <th>Already seen in nSamples<\/th>\n      <th>Conflicted nSamples<\/th>\n      <th>Diff rT (sec)<\/th>\n      <th>Best score (%)<\/th>\n      <th>Best m/z dev (mDa)<\/th>\n      <th>Max iso<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>",
+        "container": "<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Valid<\/th>\n      <th>nSamples<\/th>\n      <th>rT (min)<\/th>\n      <th>Diff rT (sec)<\/th>\n      <th>Adducts<\/th>\n      <th>Best score (%)<\/th>\n      <th>Best m/z dev (mDa)<\/th>\n      <th>Max iso<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>",
         "options": {
           "dom": "frtip",
           "paging": false,
@@ -712,14 +708,14 @@
           "language": {
             "emptyTable": "no conflicts found"
           },
-          "initComplete": "\n                function(settings, json) {\n                    var table = settings.oInstance.api();\n                    table.columns.adjust();\n                    if (table.data().length > 0) {\n                        // select first row\n                        $(table.row(0).node()).addClass(\"selected\");\n                        Shiny.onInputChange(\n                             \"conflict_row_selected\",\n                             table.row(0).index() + 1\n                         );\n                    } else {\n                        Shiny.onInputChange(\n                             \"conflict_name_selected\",\n                             0\n                         );\n                    }\n                }\n        ",
+          "initComplete": "\n                function(settings, json) {\n                    var table = settings.oInstance.api();\n                    table.columns.adjust();\n                    if (table.data().length > 0) {\n                        // select first row\n                        $(table.row(0).node()).addClass(\"selected\");\n                        Shiny.onInputChange(\n                             \"conflict_name_selected\",\n                             table.cell(0, 0).data()\n                         );\n                    } else {\n                        Shiny.onInputChange(\n                             \"conflict_name_selected\",\n                             \"\"\n                         );\n                    }\n                }\n        ",
           "order": [
 
           ],
           "autoWidth": false,
           "orderClasses": false
         },
-        "callback": "function(table) {\n\n         table.on(\"click\", \"tbody tr\", function() {\n            if (table.data().length > 0) {\n                $(table.rows(\".selected\").nodes()).removeClass(\"selected\");\n                $(table.row(this).node()).addClass(\"selected\");\n                 Shiny.onInputChange(\n                     \"conflict_row_selected\",\n                     table.row(this).index() + 1\n                 );\n            }\n         })\n    \n}",
+        "callback": "function(table) {\n\n         table.on(\"click\", \"tbody tr\", function() {\n            if (table.data().length > 0) {\n                $(table.rows(\".selected\").nodes()).removeClass(\"selected\");\n                $(table.row(this).node()).addClass(\"selected\");\n                 Shiny.onInputChange(\n                     \"conflict_name_selected\",\n                     table.cell(\".selected\", 0).data()\n                 );\n            }\n         })\n    \n}",
         "selection": {
           "mode": "none",
           "selected": null,

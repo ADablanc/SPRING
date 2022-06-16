@@ -3,29 +3,42 @@
 #' @description
 #' Load chemical database
 #' @param database `character(1)` database name
+#' @param polarity `character(1)` can be only "positive" or "negative"
+#' @param cpd_classes `character vector` compound classes to restrict
+#' @param cpd_names `character vector` compound names to restrict
 #'
 #' @return `DataFrame` with columns:
 #' \itemize{
 #'    \item class `character` compound class
+#'    \item adduct `character` majoritary adduct
 #'    \item name `character` compound name
 #'    \item formula `character` chemical formula
 #'    \item rt `numeric` retention time
 #' }
-load_chem_db <- function(database) {
-    if (!database %in% get_available_database()) {
-        stop(sprintf(
-            "%s doesn't exist in software",
-            database
-        ))
-    }
+load_chem_db <- function(database, polarity = NULL, cpd_classes = NULL,
+                         cpd_names = NULL) {
     database <- utils::read.csv(system.file(
         "extdata",
         "database",
         paste(database, "csv", sep = "."),
         package = "workflow.lipido"
     ))
-    if (nrow(database) == 0) {
-        stop("no compound in database")
+    # the rt in the database is in minutes !!
+    database$rt <- database$rt * 60
+    if (!is.null(polarity)) {
+        if (polarity == "positive") {
+            database <- database[which(grepl("\\+$", database$adduct)), ,
+                                 drop = FALSE]
+        } else if (polarity == "negative") {
+            database <- database[which(grepl("\\-$", database$adduct)), ,
+                                 drop = FALSE]
+        }
+    }
+    if (!is.null(cpd_classes)) {
+        database <- database[database$class %in% cpd_classes, , drop = FALSE]
+    }
+    if (!is.null(cpd_names)) {
+        database <- database[database$name %in% cpd_names, , drop = FALSE]
     }
     database
 }
@@ -34,68 +47,63 @@ load_chem_db <- function(database) {
 #'
 #' @description
 #' Get all m/z & relative abundance for the internal database
+#' It will compute each m/z by taking the adduct given in the database for each
+#' compound
 #'
-#' @param adduct_names `character vector`vector of adduct names present in the
-#' enviPat list
-#' @param instrument `character(1)` instrument name for enviPat
 #' @param database `character(1)` name of the database to load
+#' @param polarity `character(1)` polarity to restrict database
+#' @param instrument `character(1)` instrument name for enviPat
 #' @param cpd_classes `character vector` compound classes to restrict
 #' @param cpd_names name of compounds to restrict
 #'
 #' @return DataFrame with
 #' \itemize{
 #'      \item formula chemical formula
+#'      \item adduct majoritary adduct used for the compound
 #'      \item class class of the compound
 #'      \item name of the compound
 #'      \item rt retention time of the compound
 #'      \item ion_id id unique for an entry of the database + adduct associated
-#'      \item adduct adduct name
 #'      \item ion_formula ion chemical formula
 #'      \item charge charge of the ion
 #'      \item mz m/z
 #'      \item abd relative abundance
 #'      \item iso isotopologue annotation
 #' }
-load_ion_db <- function(adduct_names,
+load_ion_db <- function(database,
                     instrument,
-                    database,
+                    polarity,
                     cpd_classes = NULL,
                     cpd_names = NULL) {
-    chem_db <- load_chem_db(database)
+    chem_db <- load_chem_db(database, polarity, cpd_classes, cpd_names)
     if (nrow(chem_db) == 0) {
-        stop("no compound available in database !")
-    }
-    # the rt in the database is in minutes !!
-    chem_db$rt <- chem_db$rt * 60
-    if (!is.null(cpd_classes)) {
-        chem_db <- chem_db[chem_db$class %in% cpd_classes, , drop = FALSE]
-    }
-    if (!is.null(cpd_names)) {
-        chem_db <- chem_db[chem_db$name %in% cpd_names, , drop = FALSE]
-    }
-    if (nrow(chem_db) == 0 || length(adduct_names) == 0) {
         return(data.frame(matrix(, nrow = 0, ncol = 11, dimnames = list(
             c(), c("class", "formula", "name", "rt", "ion_id", "adduct",
                    "ion_formula", "charge", "mz", "abd", "iso")
         ))))
     }
+
     ions <- do.call(
         rbind,
-        lapply(adduct_names, function(adduct_name)
-            get_ions(
-                unique(chem_db$formula),
-                adducts[which(adducts$name == adduct_name), ],
+        lapply(split(chem_db, chem_db$adduct), function(x)
+            do.call(rbind, get_ions(
+                unique(x$formula),
+                adducts[adducts$name == x[1, "adduct"], ],
                 instrument
-            )
+            ))
         )
     )
     ions <- cbind(
-        ion_id = as.numeric(as.factor(ions$ion_formula)),
+        ion_id = as.numeric(as.factor(paste(ions$formula, ions$adduct))),
         ions,
         order_id = seq(nrow(ions))
     )
-    chem_db <- merge(chem_db, ions, by = "formula", all = TRUE)
-    chem_db <- chem_db[order(chem_db$name, chem_db$order_id), ]
+    chem_db <- merge(
+        chem_db,
+        ions,
+        by = c("formula", "adduct"),
+        all = TRUE
+    )
     chem_db[!is.na(chem_db$mz), -ncol(chem_db), drop = FALSE]
 }
 
@@ -116,7 +124,7 @@ load_ion_db <- function(adduct_names,
 #'      }
 #' @param instrument instrument name for enviPat
 #'
-#' @return DataFrame with
+#' @return list of DataFrames (one item per isotopic profile) with
 #' \itemize{
 #'      \item formula chemical formula
 #'      \item adduct adduct name
@@ -129,8 +137,6 @@ load_ion_db <- function(adduct_names,
 get_ions <- function(forms,
                      adduct,
                      instrument) {
-    default_df <- data.frame(matrix(, nrow = 0, ncol = 6, dimnames = list(c(),
-        c("formula", "adduct", "ion_formula", "charge", "mz", "abd"))))
     ion_forms <- forms
     if (adduct$nmol > 1) {
         ion_forms <- enviPat::multiform(ion_forms, adduct$nmol)
@@ -147,7 +153,7 @@ get_ions <- function(forms,
                 adduct$formula_ded
             )
         } else {
-            return(default_df)
+            return(list())
         }
     }
     ion_forms <- enviPat::check_chemform(isotopes, ion_forms)
@@ -157,7 +163,7 @@ get_ions <- function(forms,
         ion_forms$monoisotopic_mass > max(resmass[, "m/z"])
     )
     if (length(out_resmass) == length(forms)) {
-        return(default_df)
+        return(list())
     }
     else if (length(out_resmass) > 0) {
         forms <- forms[-out_resmass]
@@ -171,22 +177,18 @@ get_ions <- function(forms,
             charge = adduct$charge
         )
     ))
-    ions <- do.call(
-        rbind,
-        lapply(seq(isotopic_profiles), function(i)
-            data.frame(
-                formula = forms[i],
-                adduct = adduct$name,
-                ion_formula = ion_forms[i, "new_formula"],
-                charge = adduct$charge,
-                mz = round(isotopic_profiles[[i]][, "m/z"], 5),
-                abd = round(isotopic_profiles[[i]][, "abundance"], 2),
-                iso = paste0("M+", seq(nrow(isotopic_profiles[[i]])) - 1)
-            )
+    lapply(seq(isotopic_profiles), function(i)
+        data.frame(
+            formula = forms[i],
+            adduct = adduct$name,
+            ion_formula = ion_forms[i, "new_formula"],
+            charge = adduct$charge,
+            mz = round(isotopic_profiles[[i]][, "m/z"], 5),
+            abd = round(isotopic_profiles[[i]][, "abundance"], 2),
+            iso = c("M",
+                    paste0("M+", seq(nrow(isotopic_profiles[[i]]))[-1] - 1))
         )
     )
-    ions[ions$iso == "M+0", "iso"] <- "M"
-    ions
 }
 
 #' @title Compare spectras

@@ -4,7 +4,7 @@
     "conflicts_right_disabled": true
   },
   "output": {
-    "conflicts_info": "2 / 2",
+    "conflicts_info": "1 / 1",
     "conflicts_ms": {
       "x": {
         "layout": {
@@ -40,8 +40,8 @@
             "showticksuffix": "all",
             "hoverformat": ".5f",
             "range": [
-              407.25095,
-              430.26984
+              463.44621,
+              508.44809
             ]
           },
           "yaxis": {
@@ -74,17 +74,17 @@
             },
             {
               "text": "[M+H-H2O]+",
-              "x": 408.251325886321,
-              "y": 88824.635233072,
+              "x": 464.447454557257,
+              "y": 5689144.27927454,
               "xref": "x",
               "yref": "y",
               "valign": "bottom",
               "arrowhead": 0
             },
             {
-              "text": "[M+H]+",
-              "x": 426.261913381751,
-              "y": 6214416.44108707,
+              "text": "[M+Na]+",
+              "x": 504.44048100644,
+              "y": 1458245.19191226,
               "xref": "x",
               "yref": "y",
               "valign": "bottom",
@@ -149,18 +149,18 @@
             "mode": "lines",
             "type": "scatter",
             "x": [
-              408.251325886321,
-              408.251325886321,
+              464.447454557257,
+              464.447454557257,
               null,
-              408.25095,
-              408.25095
+              464.44621,
+              464.44621
             ],
             "y": [
               0,
-              88824.635233072,
+              5689144.27927454,
               null,
               0,
-              -88824.635233072
+              -5689144.27927454
             ],
             "name": "[M+H-H2O]+",
             "legendgroup": "[M+H-H2O]+",
@@ -173,11 +173,11 @@
               "text"
             ],
             "text": [
-              "observed<br />adduct: [M+H-H2O]+<br />iso: M<br />m/z: 408.25133<br />abd: 100%",
-              "observed<br />adduct: [M+H-H2O]+<br />iso: M<br />m/z: 408.25133<br />abd: 100%",
+              "observed<br />adduct: [M+H-H2O]+<br />iso: M<br />m/z: 464.44745<br />abd: 100%",
+              "observed<br />adduct: [M+H-H2O]+<br />iso: M<br />m/z: 464.44745<br />abd: 100%",
               null,
-              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M<br />m/z: 408.25095<br />abd: 100%",
-              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M<br />m/z: 408.25095<br />abd: 100%"
+              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M<br />m/z: 464.44621<br />abd: 100%",
+              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M<br />m/z: 464.44621<br />abd: 100%"
             ],
             "marker": {
               "color": "rgba(255,127,14,1)",
@@ -202,24 +202,24 @@
             "mode": "lines",
             "type": "scatter",
             "x": [
-              409.25427,
-              409.25427,
+              465.44955,
+              465.44955,
               null,
-              410.25672,
-              410.25672,
+              466.45272,
+              466.45272,
               null,
-              411.25935,
-              411.25935
+              467.45576,
+              467.45576
             ],
             "y": [
               0,
-              -19230.5335279601,
+              -1908707.90569661,
               null,
               0,
-              -2886.80064507484,
+              -333383.854765488,
               null,
               0,
-              -337.533613885674
+              -36979.4378152845
             ],
             "legendgroup": "[M+H-H2O]+",
             "showlegend": false,
@@ -234,14 +234,14 @@
               "text"
             ],
             "text": [
-              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M+1<br />m/z: 409.25427<br />abd: 22%",
-              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M+1<br />m/z: 409.25427<br />abd: 22%",
+              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M+1<br />m/z: 465.44955<br />abd: 34%",
+              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M+1<br />m/z: 465.44955<br />abd: 34%",
               null,
-              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M+2<br />m/z: 410.25672<br />abd: 3%",
-              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M+2<br />m/z: 410.25672<br />abd: 3%",
+              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M+2<br />m/z: 466.45272<br />abd: 6%",
+              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M+2<br />m/z: 466.45272<br />abd: 6%",
               null,
-              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M+3<br />m/z: 411.25935<br />abd: 0%",
-              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M+3<br />m/z: 411.25935<br />abd: 0%"
+              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M+3<br />m/z: 467.45576<br />abd: 1%",
+              "theoretical<br />adduct: [M+H-H2O]+<br />iso: M+3<br />m/z: 467.45576<br />abd: 1%"
             ],
             "marker": {
               "color": "rgba(0,0,0,1)",
@@ -269,41 +269,23 @@
             "mode": "lines",
             "type": "scatter",
             "x": [
-              426.261913381751,
-              426.261913381751,
+              504.44048100644,
+              504.44048100644,
               null,
-              427.265348519813,
-              427.265348519813,
-              null,
-              426.26152,
-              426.26152,
-              null,
-              427.26484,
-              427.26484
+              504.43872,
+              504.43872
             ],
             "y": [
               0,
-              6214416.44108707,
+              1458245.19191226,
               null,
               0,
-              1170639.95871094,
-              null,
-              0,
-              -6214416.44108707,
-              null,
-              0,
-              -1348528.36771589
+              -1458245.19191226
             ],
-            "name": "[M+H]+",
-            "legendgroup": "[M+H]+",
+            "name": "[M+Na]+",
+            "legendgroup": "[M+Na]+",
             "showlegend": true,
             "hoverinfo": [
-              "text",
-              "text",
-              null,
-              "text",
-              "text",
-              null,
               "text",
               "text",
               null,
@@ -311,17 +293,11 @@
               "text"
             ],
             "text": [
-              "observed<br />adduct: [M+H]+<br />iso: M<br />m/z: 426.26191<br />abd: 100%",
-              "observed<br />adduct: [M+H]+<br />iso: M<br />m/z: 426.26191<br />abd: 100%",
+              "observed<br />adduct: [M+Na]+<br />iso: M<br />m/z: 504.44048<br />abd: 100%",
+              "observed<br />adduct: [M+Na]+<br />iso: M<br />m/z: 504.44048<br />abd: 100%",
               null,
-              "observed<br />adduct: [M+H]+<br />iso: M+1<br />m/z: 427.26535<br />abd: 19%",
-              "observed<br />adduct: [M+H]+<br />iso: M+1<br />m/z: 427.26535<br />abd: 19%",
-              null,
-              "theoretical<br />adduct: [M+H]+<br />iso: M<br />m/z: 426.26152<br />abd: 100%",
-              "theoretical<br />adduct: [M+H]+<br />iso: M<br />m/z: 426.26152<br />abd: 100%",
-              null,
-              "theoretical<br />adduct: [M+H]+<br />iso: M+1<br />m/z: 427.26484<br />abd: 22%",
-              "theoretical<br />adduct: [M+H]+<br />iso: M+1<br />m/z: 427.26484<br />abd: 22%"
+              "theoretical<br />adduct: [M+Na]+<br />iso: M<br />m/z: 504.43872<br />abd: 100%",
+              "theoretical<br />adduct: [M+Na]+<br />iso: M<br />m/z: 504.43872<br />abd: 100%"
             ],
             "marker": {
               "color": "rgba(214,39,40,1)",
@@ -346,22 +322,31 @@
             "mode": "lines",
             "type": "scatter",
             "x": [
-              428.26719,
-              428.26719,
+              505.44206,
+              505.44206,
               null,
-              429.26984,
-              429.26984
+              506.44516,
+              506.44516,
+              null,
+              507.44809,
+              507.44809
             ],
             "y": [
               0,
-              -215018.808861613,
+              -490991.156116856,
               null,
               0,
-              -26100.5490525657
+              -88515.4831490739,
+              null,
+              0,
+              -10499.3653817682
             ],
-            "legendgroup": "[M+H]+",
+            "legendgroup": "[M+Na]+",
             "showlegend": false,
             "hoverinfo": [
+              "text",
+              "text",
+              null,
               "text",
               "text",
               null,
@@ -369,11 +354,14 @@
               "text"
             ],
             "text": [
-              "theoretical<br />adduct: [M+H]+<br />iso: M+2<br />m/z: 428.26719<br />abd: 3%",
-              "theoretical<br />adduct: [M+H]+<br />iso: M+2<br />m/z: 428.26719<br />abd: 3%",
+              "theoretical<br />adduct: [M+Na]+<br />iso: M+1<br />m/z: 505.44206<br />abd: 34%",
+              "theoretical<br />adduct: [M+Na]+<br />iso: M+1<br />m/z: 505.44206<br />abd: 34%",
               null,
-              "theoretical<br />adduct: [M+H]+<br />iso: M+3<br />m/z: 429.26984<br />abd: 0%",
-              "theoretical<br />adduct: [M+H]+<br />iso: M+3<br />m/z: 429.26984<br />abd: 0%"
+              "theoretical<br />adduct: [M+Na]+<br />iso: M+2<br />m/z: 506.44516<br />abd: 6%",
+              "theoretical<br />adduct: [M+Na]+<br />iso: M+2<br />m/z: 506.44516<br />abd: 6%",
+              null,
+              "theoretical<br />adduct: [M+Na]+<br />iso: M+3<br />m/z: 507.44809<br />abd: 1%",
+              "theoretical<br />adduct: [M+Na]+<br />iso: M+3<br />m/z: 507.44809<br />abd: 1%"
             ],
             "marker": {
               "color": "rgba(0,0,0,1)",
@@ -527,28 +515,24 @@
             "LPC 11a:0"
           ],
           [
-            "<button class=\"btn btn-default action-button btn-success\" id=\"conflicts_table_bttn 1\" type=\"button\" value=\"1\">\n  <i class=\"fa fa-check\" role=\"presentation\" aria-label=\"check icon\"><\/i>\n  \n<\/button>",
-            "<button class=\"btn btn-default action-button btn-success\" id=\"conflicts_table_bttn 2\" type=\"button\" value=\"2\">\n  <i class=\"fa fa-check\" role=\"presentation\" aria-label=\"check icon\"><\/i>\n  \n<\/button>"
-          ],
-          [
-            "[M+Na]+",
-            null
-          ],
-          [
-            "[M+H]+",
-            "[M+H]+"
-          ],
-          [
-            1,
-            null
+            "<button class=\"btn btn-default action-button btn-success\" id=\"conflicts_table_bttn- 1\" type=\"button\" value=\"LPC 11:0\">\n  <i class=\"fa fa-check\" role=\"presentation\" aria-label=\"check icon\"><\/i>\n  \n<\/button>",
+            "<button class=\"btn btn-default action-button btn-success\" id=\"conflicts_table_bttn- 2\" type=\"button\" value=\"LPC 11a:0\">\n  <i class=\"fa fa-check\" role=\"presentation\" aria-label=\"check icon\"><\/i>\n  \n<\/button>"
           ],
           [
             2,
             2
           ],
           [
+            4.78,
+            4.78
+          ],
+          [
             9,
             4
+          ],
+          [
+            "[M+H-H2O]+ [M+H]+ [M+Na]+",
+            "[M+H-H2O]+ [M+H]+ [M+Na]+"
           ],
           [
             95,
@@ -563,7 +547,7 @@
             2
           ]
         ],
-        "container": "<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Valid<\/th>\n      <th>Already seen with<\/th>\n      <th>Conflicted adduct<\/th>\n      <th>Already seen in nSamples<\/th>\n      <th>Conflicted nSamples<\/th>\n      <th>Diff rT (sec)<\/th>\n      <th>Best score (%)<\/th>\n      <th>Best m/z dev (mDa)<\/th>\n      <th>Max iso<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>",
+        "container": "<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Valid<\/th>\n      <th>nSamples<\/th>\n      <th>rT (min)<\/th>\n      <th>Diff rT (sec)<\/th>\n      <th>Adducts<\/th>\n      <th>Best score (%)<\/th>\n      <th>Best m/z dev (mDa)<\/th>\n      <th>Max iso<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>",
         "options": {
           "dom": "frtip",
           "paging": false,
@@ -583,14 +567,14 @@
           "language": {
             "emptyTable": "no conflicts found"
           },
-          "initComplete": "\n                function(settings, json) {\n                    var table = settings.oInstance.api();\n                    table.columns.adjust();\n                    if (table.data().length > 0) {\n                        // select first row\n                        $(table.row(0).node()).addClass(\"selected\");\n                        Shiny.onInputChange(\n                             \"conflict_row_selected\",\n                             table.row(0).index() + 1\n                         );\n                    } else {\n                        Shiny.onInputChange(\n                             \"conflict_name_selected\",\n                             0\n                         );\n                    }\n                }\n        ",
+          "initComplete": "\n                function(settings, json) {\n                    var table = settings.oInstance.api();\n                    table.columns.adjust();\n                    if (table.data().length > 0) {\n                        // select first row\n                        $(table.row(0).node()).addClass(\"selected\");\n                        Shiny.onInputChange(\n                             \"conflict_name_selected\",\n                             table.cell(0, 0).data()\n                         );\n                    } else {\n                        Shiny.onInputChange(\n                             \"conflict_name_selected\",\n                             \"\"\n                         );\n                    }\n                }\n        ",
           "order": [
 
           ],
           "autoWidth": false,
           "orderClasses": false
         },
-        "callback": "function(table) {\n\n         table.on(\"click\", \"tbody tr\", function() {\n            if (table.data().length > 0) {\n                $(table.rows(\".selected\").nodes()).removeClass(\"selected\");\n                $(table.row(this).node()).addClass(\"selected\");\n                 Shiny.onInputChange(\n                     \"conflict_row_selected\",\n                     table.row(this).index() + 1\n                 );\n            }\n         })\n    \n}",
+        "callback": "function(table) {\n\n         table.on(\"click\", \"tbody tr\", function() {\n            if (table.data().length > 0) {\n                $(table.rows(\".selected\").nodes()).removeClass(\"selected\");\n                $(table.row(this).node()).addClass(\"selected\");\n                 Shiny.onInputChange(\n                     \"conflict_name_selected\",\n                     table.cell(\".selected\", 0).data()\n                 );\n            }\n         })\n    \n}",
         "selection": {
           "mode": "none",
           "selected": null,
@@ -653,6 +637,6 @@
     }
   },
   "export": {
-    "conflict_id": 2
+    "conflict_id": 1
   }
 }

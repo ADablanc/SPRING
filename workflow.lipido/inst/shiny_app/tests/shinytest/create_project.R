@@ -15,8 +15,8 @@ app$executeScript(paste0("Shiny.setInputValue(\"project_create_modal_visible\"",
 app$snapshot(
     items = list(
         input = c(
-            "project_modal_visible", # FALSE
-            "project_create_modal_visible" # TRUE
+            "project_create_modal_visible", # TRUE
+            "project_modal_visible" # FALSE
         ),
         output = "project_name" # ""
     ),
@@ -32,8 +32,8 @@ app$executeScript(paste0("Shiny.setInputValue(\"project_create_modal_visible\"",
 app$snapshot(
     items = list(
         input = c(
-            "project_modal_visible", # TRUE
-            "project_create_modal_visible" # FALSE
+            "project_create_modal_visible", # FALSE
+            "project_modal_visible" # TRUE
         ),
         output = "project_name" # ""
     ),
@@ -50,8 +50,8 @@ app$executeScript(paste0("Shiny.setInputValue(\"project_create_modal_visible\"",
 app$snapshot(
     items = list(
         input = c(
-            "project_modal_visible", # FALSE
-            "project_create_modal_visible" # TRUE
+            "project_create_modal_visible", # TRUE
+            "project_modal_visible" # FALSE
         ),
         output = "project_name" # ""
     ),
@@ -68,8 +68,8 @@ app$executeScript(paste0("Shiny.setInputValue(\"project_create_modal_visible\"",
 app$snapshot(
     items = list(
         input = c(
-            "project_modal_visible", # FALSE
-            "project_create_modal_visible" # TRUE
+            "project_create_modal_visible", # TRUE
+            "project_modal_visible" # FALSE
         ),
         output = "project_name" # ""
     ),
@@ -105,8 +105,8 @@ app$executeScript(paste0("Shiny.setInputValue(\"project_create_modal_visible\"",
 app$snapshot(
     items = list(
         input = c(
-            "project_modal_visible", # FALSE
-            "project_create_modal_visible" # TRUE
+            "project_create_modal_visible", # TRUE
+            "project_modal_visible" # FALSE
         ),
         output = "project_name" # ""
     ),
@@ -124,8 +124,8 @@ app$executeScript(paste0("Shiny.setInputValue(\"project_create_modal_visible\"",
 app$snapshot(
     items = list(
         input = c(
-            "project_modal_visible", # FALSE
-            "project_create_modal_visible" # FALSE
+            "project_create_modal_visible", # FALSE
+            "project_modal_visible" # FALSE
         ),
         output = "project_name" # "test"
     ),

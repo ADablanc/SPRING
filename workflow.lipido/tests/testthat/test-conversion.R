@@ -52,10 +52,11 @@ testthat::test_that("check_ms_file", {
         "small_pos-neg.mzXML",
         package = "workflow.lipido"
     )
+    tmp_file <- gsub("\\\\", "/", tempfile(fileext = ".mzXML"))
     # test with an empty file
     testthat::expect_error(
-        check_ms_file(tempfile(fileext = ".mzXML"), "positive"),
-        "file converted cannot be read"
+        check_ms_file(tmp_file, "positive"),
+        sprintf("xcmsSource: file not found: %s", tmp_file)
     )
 
     # test with the wrong polarity
@@ -89,6 +90,7 @@ testthat::test_that("conversion", {
     )
     filter_params <- methods::new(
         "FilterParam",
+        polarity = "positive",
         mz_range = c(200, 2000),
         rt_range = c(0, 0.5)
     )
@@ -96,79 +98,83 @@ testthat::test_that("conversion", {
     # test with an absent .wiff.scan
     missing_filepath <- tempfile(fileext = ".wiff")
     testthat::expect_error(
-        convert_file(missing_filepath, converter, "positive", filter_params),
+        convert_file(missing_filepath, converter, filter_params),
         "missing corresponding wiff.scan in same directory"
     )
 
     # test with a raw waters directory (which doesn't exist)
     missing_filepath <- paste(tempdir(), ".raw", sep = ".")
     testthat::expect_error(
-        convert_file(missing_filepath, converter, "positive", filter_params),
+        convert_file(missing_filepath, converter, filter_params),
         "msconvert error"
     )
 
     # test with an missing mzXML file
-    missing_filepath <- tempfile(fileext = ".mzXML")
+    missing_filepath <- gsub("\\\\", "/", tempfile(fileext = ".mzXML"))
     testthat::expect_error(
-        convert_file(missing_filepath, converter, "positive", filter_params),
-        "file converted cannot be read"
+        convert_file(missing_filepath, converter, filter_params),
+        sprintf(
+            "xcmsSource: file not found: %s/.*\\.mzXML",
+            dirname(missing_filepath)
+        )
     )
 
     # test with an missing mzML file
-    missing_filepath <- tempfile(fileext = ".mzML")
+    missing_filepath <- gsub("\\\\", "/", tempfile(fileext = ".mzML"))
     testthat::expect_error(
-        convert_file(missing_filepath, converter, "positive", filter_params),
-        "file converted cannot be read"
+        convert_file(missing_filepath, converter, filter_params),
+        sprintf(
+            "xcmsSource: file not found: %s/.*\\.mzML",
+            dirname(missing_filepath)
+        )
     )
 
     # test with a missing msconvert.exe
     testthat::expect_error(
-        convert_file(filepath, "msconvert.exe", "positive", filter_params),
+        convert_file(filepath, "msconvert.exe", filter_params),
         "'\"msconvert.exe\"' not found"
     )
 
-    # test with a absurd polarity
-    testthat::expect_error(
-        convert_file(filepath, converter, "impossible polarity", filter_params),
-        "msconvert error"
-    )
-
     # test with the wrong polarity for the ms file
+    filter_params@polarity <- "negative"
     testthat::expect_error(
-        convert_file(filepath, converter, "negative", filter_params),
-        "file converted cannot be read"
+        convert_file(filepath, converter, filter_params),
+        "upper value must be greater than lower value"
     )
 
     # test with a too restrictive m/z range
-    filter_params <- methods::new(
-        "FilterParam",
-        mz_range = c(3000, 4000),
-        rt_range = c(0, 0.5)
-    )
-    testthat::expect_error(
-        convert_file(filepath, converter, "positive", filter_params),
-        "file converted cannot be read"
-    )
+    # filter_params <- methods::new(
+    #     "FilterParam",
+    #     polarity = "positive",
+    #     mz_range = c(3000, 4000),
+    #     rt_range = c(0, 0.5)
+    # )
+    # testthat::expect_error(
+    #     convert_file(filepath, converter, filter_params),
+    #     "file converted cannot be read"
+    # )
 
     # test with a too restrictive rT range
     filter_params <- methods::new(
         "FilterParam",
+        polarity = "positive",
         mz_range = c(200, 2000),
         rt_range = c(50, 1000)
     )
     testthat::expect_error(
-        convert_file(filepath, converter, "positive", filter_params),
-        "file converted cannot be read"
+        convert_file(filepath, converter, filter_params),
+        "upper value must be greater than lower value"
     )
 
     # test the conversion of RAW file to mzXML
     filter_params <- methods::new(
         "FilterParam",
+        polarity = "positive",
         mz_range = c(200, 2001),
         rt_range = c(0, 0.5)
     )
     testthat::expect_equal(
-        convert_file(filepath, converter, "positive", filter_params)@scanindex,
+        convert_file(filepath, converter, filter_params)@scanindex,
         c(0, 1810)
     )
 })

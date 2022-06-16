@@ -4,7 +4,7 @@
 \alias{import_ms_file}
 \title{Import ms file}
 \usage{
-import_ms_file(db, sample_name, raw_file, converter, polarity, filter_params)
+import_ms_file(db, sample_name, raw_file, converter, filter_params)
 }
 \arguments{
 \item{db}{`SQLiteConnection`}
@@ -14,8 +14,6 @@ import_ms_file(db, sample_name, raw_file, converter, polarity, filter_params)
 \item{raw_file}{`character(1)` filepath to the raw file to convert}
 
 \item{converter}{`character(1)` filepath to the msconvert.exe}
-
-\item{polarity}{`character(1)` "positive" or "negative"}
 
 \item{filter_params}{`FilterParam` object}
 }
@@ -34,8 +32,6 @@ then it record the `xcmsRaw` object obtained in the database if the
 conversion was successful
 the `xcmsRaw` object is compressed into a `blob` object before inserting in
 the database.
-This object is recorded in their corresponding "polarity" column (a sample
-could contain a `xcmsRaw` in positive AND a `xcmsRaw` in negative !)
 Before doing it, we must first use the function `db_record_samples` in order
 to prepopulate the database with the sample name (which is the primary key)
 }

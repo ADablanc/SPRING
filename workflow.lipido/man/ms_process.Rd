@@ -11,6 +11,7 @@ ms_process(
   cwt_params,
   obw_params,
   pd_params,
+  camera_params,
   ann_params,
   cores = parallel::detectCores(),
   show_txt_pb = TRUE,
@@ -30,6 +31,8 @@ ms_process(
 
 \item{pd_params}{`PeakdensityParam` object}
 
+\item{camera_params}{`CameraParam` object}
+
 \item{ann_params}{`AnnotationParam` object}
 
 \item{cores}{`integer(1)` number of cores to use to parallelize process}
@@ -44,17 +47,15 @@ Launch the workflow on the raw files, which consist of the steps :
 \itemize{
     \item check the parameters given + creation of the sqlite database where
     the result will be recorded
-    \item convert each raw file in "positive" & "negative" mode with
-    msConvert. It also trim the file according the rt range and m/z range
+    \item convert each raw file in the polarity desired ("positive" or
+    "negative" mode with msConvert. It also trim the file according the rt
     according the m/z & rT of compounds to discover with msconvert. Check
     with XCMS package if the file can be converted. If the file is a CDF it
     will copy the file instead. If the conversion failed & the file is a mzML
      or mzXML it will copy the file instead and try to trim only the rt
     range. Record then a `xcmsRaw` file and its corresponding profile matrix
-    in the database, this two object are compress into a blob object before
-    inserting in the database. These object are recorded in their
-    corresponding "polarity" column (a sample could contain a `xcmsRaw` in
-    positive AND a `xcmsRaw` in negative !).
+    in the database, this object is compress into a blob object before
+    inserting in the database.
      \item launch workflow foreach polarity, this workflow consist of the
      steps:
      \itemize{
@@ -64,13 +65,13 @@ Launch the workflow on the raw files, which consist of the steps :
         data
         \item group peaklists from a `xcmsSet` object using the density
         method
-        \item annotate peaklists from a `xcmsSet`
-        it loop through the peaks grouped dataframe
-        if the peak match with one of the theoretical monoisotopic from
-            database it will search all isotopologue grouped in the rt window
-             of the peak +/- fwhm
-        it compare then the spectra obtained against the theoretical spectra
-            & compute an isotopic score
+        \item annotate isotopologues & adducts with the CAMERA package
+        \item annotate peaklists from a `xsAnnotate` object from CAMERA
+        it loop through the pcgroups
+        if one of the peak match with one of the theoretical monoisotopic
+            from database it will compare the pseudo spectra obtained from
+            CAMERA against the theoretical spectra & compute an isotopic
+            score
         The scoring algorithm will search each corresponding observed peak
         with theoreticals. Therefore it contains some important rules :
         \itemize{
@@ -83,18 +84,6 @@ Launch the workflow on the raw files, which consist of the steps :
              (the loop search is stopped)
         }
     }
-    \item merge the `xcmsSet` in positive polarity & the `xcmsSet` in
-    negative polarity. For that it will bind all the annotation results from
-    both & assign new IDs to distingate if the feature, the group or the
-    spectra was detected in positive or negative mode. Then it will filtrate
-    the annotation `DataFrame`. Foreach compound annotation it will check if
-    the same annotations fall in the same rT. For that it will choose a
-    referenced spectra (the one which as the most adduct forms, then the
-    number of samples where founded, then the number of isotopologues, then
-    the less retention time difference & the best isotopic). It will
-    calculate a retention time window which correspond to the rT of the
-    referenced spectra +/- fwhm. It will also regroup lines which correspond
-    to the same annotations but were not grouped by XCMS
     \item record all results in the sqlite database
 }
 }
@@ -120,15 +109,9 @@ ann_params <- AnnotationParam(
      da_tol = .015,
      rt_tol = 10,
      abd_tol = 25,
-     adduct_names = c(
-          "[M+Na]+",
-          "[M+NH4]+",
-          "[M+H-H2O]+",
-          "[M+H]+",
-          "[M-H]-"
-     ),
      database = "test",
      instrument = "QTOF_XevoG2-S_R25000@200",
+     polarity = "positive"
 )
 ms_process(
      raw_files,

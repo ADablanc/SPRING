@@ -42,7 +42,7 @@
 
           ]
         ],
-        "container": "<table class=\"display\">\n  <thead>\n    <tr>\n      <th>class<\/th>\n      <th>name<\/th>\n      <th>rT (min)<\/th>\n      <th>Diff rT (sec)<\/th>\n      <th>Adducts<\/th>\n      <th>nSamples<\/th>\n      <th>Most intense ion<\/th>\n      <th>Best score (%)<\/th>\n      <th>Best m/z dev (mDa)<\/th>\n      <th>Max iso<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>",
+        "container": "<table class=\"display\">\n  <thead>\n    <tr>\n      <th>Group ID<\/th>\n      <th>Class<\/th>\n      <th>Name<\/th>\n      <th>rT (min)<\/th>\n      <th>Diff rT (sec)<\/th>\n      <th>Adducts<\/th>\n      <th>nSamples<\/th>\n      <th>Best score (%)<\/th>\n      <th>Best m/z dev (mDa)<\/th>\n      <th>Max iso<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>",
         "options": {
           "dom": "Bfrtip",
           "paging": true,
@@ -61,8 +61,7 @@
                 4,
                 5,
                 6,
-                7,
-                8
+                7
               ]
             },
             {
@@ -87,7 +86,7 @@
               "width": 80
             },
             {
-              "targets": "th:nth-child(n+10)",
+              "targets": "th:nth-child(n+9)",
               "type": "num-fmt"
             }
           ],

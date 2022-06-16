@@ -4,18 +4,16 @@
 \alias{db_read_ms_file}
 \title{Get ms file}
 \usage{
-db_read_ms_file(db, sample_name, polarity)
+db_read_ms_file(db, sample_name)
 }
 \arguments{
 \item{db}{`SQLiteConnection`}
 
 \item{sample_name}{`character(1)` sample name}
-
-\item{polarity}{`character(1)` "positive" or "negative"}
 }
 \value{
 an `xcmsRaw` object
 }
 \description{
-Get the `xcmsRaw` of corresponding sample in the polarity desired
+Get the `xcmsRaw` of corresponding sample
 }

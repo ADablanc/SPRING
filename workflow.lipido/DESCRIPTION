@@ -49,4 +49,6 @@ Imports:
     stats, 
     tools, 
     utils, 
-    xcms
+    xcms,
+    CAMERA,
+    RColorBrewer

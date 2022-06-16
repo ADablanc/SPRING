@@ -19,8 +19,8 @@ plot_eic_mzdev(db, sample_name, name)
 \description{
 Plot the EIC for a sample and a compound with the m/z deviations compared to
 the theoreticals.
-It will trace all the EIC in the same plot for all possible adducts used in
-the processing workflow (same for the m/z deviation). The line dashed
+It will trace all the EIC in the same plot for all possible adducts detected
+ in the processing workflow (same for the m/z deviation). The line dashed
 correspond to the area not integrated & the line colored the retention time
 range where integrated by XCMS. The two line dashed which surround the trace
 correspond to the retention time tolerance used for the identification.
@@ -31,7 +31,6 @@ It contains a special behavior when the mouse hover a trace : it will display
   differentiate all the y coordinates of the traces in one shot
 It draw also annotation to better view to which adduct correspond the trace
 (the annotation is placed at the most intense point for the trace)
-A JS function is added to hide the annotation when the trace is hidden
 If available it will use the retention time corrected in the slot
 `scantime_corrected` added by the function `obiwarp`
 }

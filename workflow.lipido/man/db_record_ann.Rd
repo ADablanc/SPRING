@@ -4,7 +4,7 @@
 \alias{db_record_ann}
 \title{Record the annotation results}
 \usage{
-db_record_ann(db, ann, spectras, spectra_infos, peaks, peak_groups)
+db_record_ann(db, ann, spectras, spectra_infos)
 }
 \arguments{
 \item{db}{`SQLiteConnection` sqlite connection}
@@ -58,61 +58,6 @@ annotated, with the columns :
     \item sum_int `numeric` cumulative sum off all the area of the
     isotopologues annotated
     \item rt `numeric` retention time
-}}
-
-\item{peaks}{`DataFrame` obtained from XCMS, it contains all peaks peak
-picked, it contains the columns :
-\itemize{
-    \item feature_id `integer` feature ID
-    \item mz `numeric` m/z
-    \item mz_min `numeric` m/z born min
-    \item mz_max `numeric` m/z born max
-    \item rt `numeric` retention time
-    \item rtmin `numeric` retention time born min
-    \item rtmax `numeric` retention time born max
-    \item int `numeric` area integrated
-    \item intb `numeric` area integrated with baseline substracted
-    \item maxo `numeric` maximum of intensity
-    \item sn `numeric` signal / noise
-    \item egauss `numeric` ignore
-    \item mu `numeric` ignore
-    \item sigma `numeric` ignore,
-    \item h `numeric` ignore
-    \item f `integer` ID of the ROI in the ROI list constructed by XCMS,
-    no use
-    \item dppm `numeric` m/z deviation of the peak in ppm
-    \item scale `integer` centwave scale used for the integration
-    (in scans & not in sec !!!)
-    \item scpos `integer` scan position
-    \item scmin `integer` scan born min before the optimization of the area
-    integrated
-    \item scmax `integer` scan born max before the optimization of the area
-    integrated
-    \item lmin `integer` scan born min after the optimization of the area
-    integrated
-    \item lmax `integer` scan born max after the optimization of the area
-    integrated
-    \item sample `character` sample name
-    \item polarity `character` polarity
-}}
-
-\item{peak_groups}{`DataFrame`, each line correspond to a group from XCMS,
-the columns are :
-\itemize{
-    \item group_id `integer` group ID
-    \item polarity `character` polarity
-    \item mzmed `numeric` m/z median
-    \item mzmin `numeric` m/z born min
-    (not the mzmin column from the peaklist !)
-    \item mzmax `numeric` m/z born max
-    (not the mzmax column from the peaklist !)
-    \item rtmed `numeric` rt median
-    \item rtmin `numeric` rt born min
-    (not the rtmin column from the peaklist !)
-    \item rtmax `numeric` rt born max
-    (not the rtmax column from the peaklist !)
-    \item npeaks `integer` number of peaks grouped
-    \item ... `integer` a column for each sample which contain the feature ID
 }}
 }
 \description{

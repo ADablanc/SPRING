@@ -4,14 +4,12 @@
 \alias{db_record_ms_file}
 \title{Record ms file}
 \usage{
-db_record_ms_file(db, sample_name, polarity, ms_file)
+db_record_ms_file(db, sample_name, ms_file)
 }
 \arguments{
 \item{db}{`SQLiteConnection`}
 
 \item{sample_name}{`character(1)` sample name (primary key)}
-
-\item{polarity}{`character(1)` "positive" or "negative"}
 
 \item{ms_file}{`xcmsRaw` object}
 }
@@ -19,8 +17,6 @@ db_record_ms_file(db, sample_name, polarity, ms_file)
 Record a `xcmsRaw` file in the database
 this object is compressed into a blob object before inserting in the
 database.
-These object are recorded in their corresponding "polarity" column (a sample
-could contain a `xcmsRaw` in positive AND a `xcmsRaw` in negative !)
 Before doing it, we must first use the function `db_record_samples` in order
 to prepopulate the database with the sample name (which is the primary key)
 }

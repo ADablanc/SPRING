@@ -16,15 +16,20 @@ db_get_spectras(db, spectra_ids = NULL)
 its corresponding theoretical peak or the theoretical peak missed,
 with the columns :
 \itemize{
-    \item spectra_id `integer` spectra ID
-    \item feature_id `integer` feature ID
-    \item mz `numeric` m/z
-    \item int `numeric` area integrated
-    \item abd `numeric` relative abundance
-    \item ion_id_theo `integer` ignore
-    \item mz_theo `numeric` theoretical m/z
-    \item abd_theo `numeric` theoretical relative abundance
-    \item iso_theo `character` theoretical isotopologue annotation
+        \item spectra_id `integer` spectra ID
+        \item feature_id `integer` feature ID
+        \item mz `numeric` m/z
+        \item mzmin `numeric` m/z born min
+        \item mzmax `numeric` m/z born max
+        \item rt `numeric` rT
+        \item rtmin `numeric` rT born min
+        \item rtmax `numeric` rT born max
+        \item int `numeric` area integrated
+        \item abd `numeric` relative abundance
+        \item ion_id_theo `integer` ignore
+        \item mz_theo `numeric` theoretical m/z
+        \item abd_theo `numeric` theoretical relative abundance
+        \item iso_theo `character` theoretical isotopologue annotation
 }
 }
 \description{

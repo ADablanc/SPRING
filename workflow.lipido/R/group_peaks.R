@@ -63,7 +63,7 @@ group_peaks <- function(xset,
     ## Increase the number of sampling points for the density distribution.
     dens_n <- max(
         512,
-        2 * 2** (ceiling(log2(
+        2 * 2**(ceiling(log2(
             diff(rt_range) / (xcms::bw(pd_params) / 2)
         )))
     )

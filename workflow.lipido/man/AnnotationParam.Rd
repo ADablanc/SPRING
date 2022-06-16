@@ -8,9 +8,9 @@ AnnotationParam(
   da_tol = 0.015,
   rt_tol = 10,
   abd_tol = 25,
-  adduct_names = NULL,
   instrument = "QTOF_XevoG2-S_R25000@200",
-  database = NULL,
+  database = "test",
+  polarity = "positive",
   cpd_classes = NULL
 )
 }
@@ -23,12 +23,11 @@ AnnotationParam(
 have an higher difference of relative abundance with its corresponding
 theoretical peak will be discarded}
 
-\item{adduct_names}{`character vector` adduct names from the enviPat package
-(optional)}
-
 \item{instrument}{`character(1)` instrument names from the enviPat package}
 
 \item{database}{`character(1)` name of the database to load}
+
+\item{polarity}{`character(1)` "positive" or "negative"}
 
 \item{cpd_classes}{`character vector` compound classes in database to
 restrict for annotation}
@@ -45,8 +44,6 @@ AnnotationParam(
      da_tol = .015,
      rt_tol = 10,
      abd_tol = 25,
-     adduct_name = c("[M+H]+", "[M+Na]+", "[M+H-H2O]+", "[M+NH4]+",
-                     "[M-H]-"),
      instrument = "QTOF_XevoG2-S_R25000@200",
      database = "test"
 )}

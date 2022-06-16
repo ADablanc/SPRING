@@ -11,6 +11,7 @@ check_ms_process_args(
   cwt_params,
   obw_params,
   pd_params,
+  camera_params,
   ann_params,
   cores
 )
@@ -28,6 +29,8 @@ save the process results}
 \item{obw_params}{`ObiwarpParam`}
 
 \item{pd_params}{`PeakDensityParam`}
+
+\item{camera_params}{`CameraParam`}
 
 \item{ann_params}{`AnnotationParam`}
 

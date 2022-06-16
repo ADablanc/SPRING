@@ -1,478 +1,83 @@
-testthat::test_that("annotation_param", {
-    testthat::expect_error(
-        AnnotationParam(da_tol = "a"),
-        "got class \"character\", should be or extend class \"numeric\""
+testthat::test_that("filter_param", {
+    cwt_params <- xcms::CentWaveParam(
+        ppm = 30,
+        peakwidth = c(4, 39),
+        snthresh = 1,
+        prefilter = c(2, 815),
+        mzCenterFun = "wMean",
+        integrate = 1,
+        mzdiff = .041,
+        fitgauss = FALSE,
+        noise = 0,
+        verboseColumns = TRUE,
+        firstBaselineCheck = FALSE
     )
-    testthat::expect_error(
-        AnnotationParam(da_tol = c(1, 2)),
-        "da_tol need to be a positive number"
-    )
-    testthat::expect_error(
-        AnnotationParam(da_tol = -1),
-        "da_tol need to be a positive number"
-    )
-    testthat::expect_error(
-        AnnotationParam(da_tol = .015, rt_tol = "a"),
-        "got class \"character\", should be or extend class \"numeric\""
-    )
-    testthat::expect_error(
-        AnnotationParam(da_tol = .015, rt_tol = c(1, 2)),
-        "rt_tol need to be a positive number"
-    )
-    testthat::expect_error(
-        AnnotationParam(da_tol = .015, rt_tol = -1),
-        "rt_tol need to be a positive number"
-    )
-    testthat::expect_error(
-        AnnotationParam(da_tol = .015, rt_tol = 10, abd_tol = "a"),
-        "got class \"character\", should be or extend class \"numeric\""
-    )
-    testthat::expect_error(
-        AnnotationParam(da_tol = .015, rt_tol = 10, abd_tol = c(1, 2)),
-        "abd_tol need to be a positive number between 0 & 100"
-    )
-    testthat::expect_error(
-        AnnotationParam(da_tol = .015, rt_tol = 10, abd_tol = -1),
-        "abd_tol need to be a positive number between 0 & 100"
-    )
-    testthat::expect_error(
-        AnnotationParam(da_tol = .015, rt_tol = 10, abd_tol = -1),
-        "abd_tol need to be a positive number between 0 & 100"
-    )
-    testthat::expect_error(
-        AnnotationParam(
-            da_tol = .015,
-            rt_tol = 10,
-            abd_tol = 25,
-            adduct_names = 1
-        ),
-        "got class \"numeric\", should be or extend class \"character\""
-    )
-    testthat::expect_error(
-        AnnotationParam(
-            da_tol = .015,
-            rt_tol = 10,
-            abd_tol = 25,
-            adduct_names = c("[M+H]+", "[M+CH3COOH]-")
-        ),
-        escape_regex("[M+CH3COOH]- doesn't exists in the adduct list")
-    )
-    testthat::expect_error(
-        AnnotationParam(
-            da_tol = .015,
-            rt_tol = 10,
-            abd_tol = 25,
-            adduct_names = "[M+H]+",
-            instrument = 1
-        ),
-        "got class \"numeric\", should be or extend class \"character\""
-    )
-    testthat::expect_error(
-        AnnotationParam(
-            da_tol = .015,
-            rt_tol = 10,
-            abd_tol = 25,
-            adduct_names = c(
-                "[M+Na]+",
-                "[M+NH4]+",
-                "[M+H-H2O]+",
-                "[M+H]+",
-                "[M-H]-"
-            ),
-            instrument = "orbitrap",
-        ),
-        "orbitrap doesn't exists in the instrument list"
-    )
-    testthat::expect_error(
-        AnnotationParam(
-            da_tol = 0.015,
-            rt_tol = 10,
-            abd_tol = 25,
-            adduct_names = c(
-                "[M+Na]+",
-                "[M+NH4]+",
-                "[M+H-H2O]+",
-                "[M+H]+",
-                "[M-H]-"
-            ),
-            instrument = "QTOF_XevoG2-S_R25000@200",
-            database = 1
-        ),
-        "1 doesn't exist in software"
-    )
-    testthat::expect_error(
-        AnnotationParam(
-            da_tol = 0.015,
-            rt_tol = 10,
-            abd_tol = 25,
-            adduct_names = c(
-                "[M+Na]+",
-                "[M+NH4]+",
-                "[M+H-H2O]+",
-                "[M+H]+",
-                "[M-H]-"
-            ),
-            instrument = "QTOF_XevoG2-S_R25000@200",
-            database = "test",
-            cpd_classes = 1
-        ),
-        "got class \"numeric\", should be or extend class \"character\""
-    )
-    testthat::expect_error(
-        AnnotationParam(
-            da_tol = 0.015,
-            rt_tol = 10,
-            abd_tol = 25,
-            adduct_names = c(
-                "[M+Na]+",
-                "[M+NH4]+",
-                "[M+H-H2O]+",
-                "[M+H]+",
-                "[M-H]-"
-            ),
-            instrument = "QTOF_XevoG2-S_R25000@200",
-            database = "test",
-            cpd_classes = c("OP", "CC")
-        ),
-        "OP and CC doesn't exists in database"
-    )
-    obj <- AnnotationParam(
-        da_tol = 0.015,
+    ann_params <- AnnotationParam(
+        da_tol = .015,
         rt_tol = 10,
         abd_tol = 25,
-        instrument = "QTOF_XevoG2-S_R25000@200"
-    )
-    testthat::expect_equal(obj, AnnotationParam())
-    testthat::expect_equal(obj@da_tol, .015)
-    testthat::expect_equal(obj@rt_tol, 10)
-    testthat::expect_equal(obj@abd_tol, 25)
-    testthat::expect_equal(obj@adduct_names, adducts$name)
-    testthat::expect_equal(obj@instrument, "QTOF_XevoG2-S_R25000@200")
-    testthat::expect_equal(obj@database, get_available_database()[1])
-    testthat::expect_equal(
-        obj@cpd_classes,
-        unique(load_chem_db(obj@database)$class)
-    )
-    obj <- AnnotationParam(
-        da_tol = 0.015,
-        rt_tol = 10,
-        abd_tol = 25,
-        adduct_names = c(
-            "[M+Na]+",
-            "[M+NH4]+",
-            "[M+H-H2O]+",
-            "[M+H]+",
-            "[M-H]-"
-        ),
-        instrument = "QTOF_XevoG2-S_R25000@200",
         database = "test",
-        cpd_classes = c("LPC", "Cer", "FA")
-    )
-    testthat::expect_equal(obj@da_tol, .015)
-    testthat::expect_equal(obj@rt_tol, 10)
-    testthat::expect_equal(obj@abd_tol, 25)
-    testthat::expect_equal(
-        obj@adduct_names,
-        c("[M+Na]+", "[M+NH4]+", "[M+H-H2O]+", "[M+H]+", "[M-H]-")
-    )
-    testthat::expect_equal(obj@instrument, "QTOF_XevoG2-S_R25000@200")
-    testthat::expect_equal(obj@database, "test")
-    testthat::expect_equal(obj@cpd_classes, c("LPC", "Cer", "FA"))
-    testthat::expect_error(
-        restrict_ann_param_polarity(obj, "maybe"),
-        "polarity must be set to \"positive\" or \"negative\""
-    )
-    obj_pos <- AnnotationParam(
-        da_tol = 0.015,
-        rt_tol = 10,
-        abd_tol = 25,
-        adduct_names = c("[M+H]+", "[M+Na]+", "[M+NH4]+", "[M+H-H2O]+"),
         instrument = "QTOF_XevoG2-S_R25000@200",
-        database = "test",
-        cpd_classes = c("LPC", "Cer", "FA")
+        polarity = "positive"
+    )
+
+    # test in positive
+    obj <- FilterParam(cwt_params, ann_params)
+    testthat::expect_identical(
+        obj@polarity,
+        "positive"
+    )
+    testthat::expect_identical(
+        obj@mz_range,
+        c(408.2365, 657.430028)
     )
     testthat::expect_equal(
-        restrict_ann_param_polarity(obj, "positive"),
-        obj_pos
+        obj@rt_range,
+        c(78.6, 412.8)
     )
-    obj_neg <- AnnotationParam(
-        da_tol = 0.015,
-        rt_tol = 10,
-        abd_tol = 25,
-        adduct_names = "[M-H]-",
-        instrument = "QTOF_XevoG2-S_R25000@200",
-        database = "test",
-        cpd_classes = c("LPC", "Cer", "FA")
-    )
-    testthat::expect_equal(
-        restrict_ann_param_polarity(obj, "negative"),
-        obj_neg
-    )
+
     testthat::expect_equal(
         params_to_dataframe(obj),
         data.frame(
-            da_tol = 0.015,
-            rt_tol = 10,
-            abd_tol = 25,
-            adduct_names = paste(
-                c("[M+Na]+", "[M+NH4]+", "[M+H-H2O]+", "[M+H]+", "[M-H]-"),
-                collapse = ";"
-            ),
-            instrument = "QTOF_XevoG2-S_R25000@200",
-            database = "test",
-            cpd_classes = paste(c("LPC", "Cer", "FA"), collapse = ";")
+            polarity = "positive",
+            mz_range_min = 408.2365,
+            mz_range_max = 657.430028,
+            rt_range_min = 78.6,
+            rt_range_max = 412.8
         )
     )
-})
 
-testthat::test_that("camera_param", {
-    ann_param <- AnnotationParam(
-        da_tol = 0.015,
+    # test in negative
+    ann_params <- AnnotationParam(
+        da_tol = .015,
         rt_tol = 10,
         abd_tol = 25,
-        adduct_names = c(
-            "[M+Na]+",
-            "[M+NH4]+",
-            "[M+H-H2O]+",
-            "[M+H]+",
-            "[M-H]-"
-        ),
+        database = "test-neg",
         instrument = "QTOF_XevoG2-S_R25000@200",
-        database = "test",
-        cpd_classes = c("LPC", "Cer", "FA")
+        polarity = "negative"
     )
-
-    testthat::expect_error(
-        CameraParam(ann_param = "a"),
-        "ann_params must be an AnnotationParam object"
+    obj <- FilterParam(cwt_params, ann_params)
+    testthat::expect_identical(
+        obj@polarity,
+        "negative"
     )
-    testthat::expect_error(
-        CameraParam(ann_param = ann_param, cores = "a"),
-        "got class \"character\", should be or extend class \"numeric\""
+    testthat::expect_identical(
+        obj@mz_range,
+        c(406.22085, 653.436272)
     )
-    testthat::expect_error(
-        CameraParam(ann_param = ann_param, cores = c(1, 2)),
-        "cores need to be a positive number"
+    testthat::expect_equal(
+        obj@rt_range,
+        c(78.6, 412.8)
     )
-    testthat::expect_error(
-        CameraParam(ann_param = ann_param, cores = 0),
-        "cores need to be a positive number"
-    )
-    testthat::expect_error(
-        CameraParam(ann_param = ann_param, cores = 1, sigma = "a"),
-        "got class \"character\", should be or extend class \"numeric\""
-    )
-    testthat::expect_error(
-        CameraParam(ann_param = ann_param, cores = 1, sigma = c(3, 6)),
-        "sigma need to be a positive number"
-    )
-    testthat::expect_error(
-        CameraParam(ann_param = ann_param, cores = 1, sigma = -1),
-        "sigma need to be a positive number"
-    )
-    testthat::expect_error(
-        CameraParam(ann_param = ann_param, cores = 1, sigma = 6, perfwhm = "a"),
-        "got class \"character\", should be or extend class \"numeric\""
-    )
-    testthat::expect_error(
-        CameraParam(
-            ann_param = ann_param,
-            cores = 1,
-            sigma = 6,
-            perfwhm = c(.4, .5)
-        ),
-        "perfwhm need to be a number between 0 and 1"
-    )
-    testthat::expect_error(
-        CameraParam(ann_param = ann_param, cores = 1, sigma = 6, perfwhm = -2),
-        "perfwhm need to be a number between 0 and 1"
-    )
-    testthat::expect_error(
-        CameraParam(ann_param = ann_param, cores = 1, sigma = 6, perfwhm = 1.2),
-        "perfwhm need to be a number between 0 and 1"
-    )
-    testthat::expect_error(
-        CameraParam(
-            ann_param = ann_param,
-            cores = 1,
-            sigma = 6,
-            perfwhm = .6,
-            cor_eic_th = "a"
-        ),
-        "got class \"character\", should be or extend class \"numeric\""
-    )
-    testthat::expect_error(
-        CameraParam(
-            ann_param = ann_param,
-            cores = 1,
-            sigma = 6,
-            perfwhm = .6,
-            cor_eic_th = c(.4, .6)
-        ),
-        "cor_eic_th must be a number between 0 and 1"
-    )
-    testthat::expect_error(
-        CameraParam(
-            ann_param = ann_param,
-            cores = 1,
-            sigma = 6,
-            perfwhm = .6,
-            cor_eic_th = -2
-        ),
-        "cor_eic_th must be a number between 0 and 1"
-    )
-    testthat::expect_error(
-        CameraParam(
-            ann_param = ann_param,
-            cores = 1,
-            sigma = 6,
-            perfwhm = .6,
-            cor_eic_th = 1.2
-        ),
-        "cor_eic_th must be a number between 0 and 1"
-    )
-    testthat::expect_error(
-        CameraParam(
-            ann_param = ann_param,
-            cores = 1,
-            sigma = 6,
-            perfwhm = .6,
-            cor_eic_th = .75,
-            pval = "a"
-        ),
-        "got class \"character\", should be or extend class \"numeric\""
-    )
-    testthat::expect_error(
-        CameraParam(
-            ann_param = ann_param,
-            cores = 1,
-            sigma = 6,
-            perfwhm = .6,
-            cor_eic_th = .75,
-            pval = c(.4, .6)
-        ),
-        "pval must be a number between 0 and 1"
-    )
-    testthat::expect_error(
-        CameraParam(
-            ann_param = ann_param,
-            cores = 1,
-            sigma = 6,
-            perfwhm = .6,
-            cor_eic_th = .75,
-            pval = -2
-        ),
-        "pval must be a number between 0 and 1"
-    )
-    testthat::expect_error(
-        CameraParam(
-            ann_param = ann_param,
-            cores = 1,
-            sigma = 6,
-            perfwhm = .6,
-            cor_eic_th = .75,
-            pval = 1.2
-        ),
-        "pval must be a number between 0 and 1"
-    )
-    testthat::expect_error(
-        CameraParam(
-            ann_param = ann_param,
-            cores = 1,
-            sigma = 6,
-            perfwhm = .6,
-            cor_eic_th = .75,
-            pval = .05,
-            graphMethod = 1
-        ),
-        "got class \"numeric\", should be or extend class \"character\""
-    )
-    testthat::expect_error(
-        CameraParam(
-            ann_param = ann_param,
-            cores = 1,
-            sigma = 6,
-            perfwhm = .6,
-            cor_eic_th = .75,
-            pval = .75,
-            graphMethod = "a"
-        ),
-        "graphMethod must be \"lpc\" or \"hcs\""
-    )
-
-    obj <- CameraParam(
-        ann_param = ann_param,
-        cores = 1,
-        sigma = 6,
-        perfwhm = .6,
-        cor_eic_th = .75,
-        pval = .05,
-        graphMethod = "hcs"
-    )
-    testthat::expect_equal(obj, CameraParam(ann_param))
-    testthat::expect_equal(obj@cores, 1)
-    testthat::expect_equal(obj@polarity, NA_character_)
-    testthat::expect_equal(obj@sigma, 6)
-    testthat::expect_equal(obj@perfwhm, .6)
-    testthat::expect_equal(obj@intval, "into")
-    testthat::expect_equal(obj@cor_eic_th, .75)
-    testthat::expect_equal(obj@pval, .05)
-    testthat::expect_equal(obj@graphMethod, "hcs")
-    testthat::expect_equal(obj@calcIso, TRUE)
-    testthat::expect_equal(obj@calcCiS, TRUE)
-    testthat::expect_equal(obj@calcCaS, TRUE)
-    testthat::expect_equal(obj@maxcharge, 0)
-    testthat::expect_equal(obj@maxiso, 3)
-    testthat::expect_equal(obj@ppm, 0)
-    testthat::expect_equal(obj@mzabs, .015)
-    testthat::expect_equal(obj@minfrac, 0)
-    testthat::expect_equal(obj@rules, data.frame())
-    testthat::expect_equal(obj@multiplier, 0)
-    testthat::expect_equal(obj@max_peaks, 100)
-
-    testthat::expect_error(
-        restrict_camera_param_polarity(obj, "maybe"),
-        "polarity must be set to \"positive\" or \"negative\""
-    )
-
-    obj_pos <- restrict_camera_param_polarity(obj, "positive")
-    obj_pos2 <- obj
-    obj_pos2@polarity <- "positive"
-    obj_pos2@maxcharge <- 3
-    obj_pos2@rules <- adducts[
-        adducts$charge >= 1,
-        c("name", "nmol", "charge", "massdiff", "oidscore", "quasi", "ips")]
-    obj_pos2@multiplier <- 3
-    testthat::expect_equal(obj_pos, obj_pos2)
-
-    obj_pos <- restrict_camera_param_polarity(obj, "negative")
-    obj_pos2 <- obj
-    obj_pos2@polarity <- "negative"
-    obj_pos2@maxcharge <- 3
-    obj_pos2@rules <- adducts[
-        adducts$charge <= -1,
-        c("name", "nmol", "charge", "massdiff", "oidscore", "quasi", "ips")]
-    obj_pos2@multiplier <- 3
-    testthat::expect_equal(obj_pos, obj_pos2)
 
     testthat::expect_equal(
         params_to_dataframe(obj),
         data.frame(
-            cores = 1,
-            sigma = 6,
-            perfwhm = .6,
-            intval = "into",
-            cor_eic_th = .75,
-            pval = .05,
-            graphMethod = "hcs",
-            calcIso = 1,
-            calcCiS = 1,
-            calcCaS = 1,
-            maxiso = 3,
-            ppm = 0,
-            mzabs = .015,
-            minfrac = 0,
-            max_peaks = 100
+            polarity = "negative",
+            mz_range_min = 406.22085,
+            mz_range_max = 653.436272,
+            rt_range_min = 78.6,
+            rt_range_max = 412.8
         )
     )
 })
@@ -561,6 +166,452 @@ testthat::test_that("pd_param", {
     )
 })
 
+testthat::test_that("camera_param", {
+    da_tol <- .015
+    polarity <- "positive"
+    ann_params <- AnnotationParam(
+        da_tol = da_tol,
+        rt_tol = 10,
+        abd_tol = 25,
+        database = "test",
+        instrument = "QTOF_XevoG2-S_R25000@200",
+        polarity = polarity
+    )
+    cores <- 1
+    sigma <- 6
+    perfwhm <- .6
+    cor_eic_th <- .75
+    pval <- .05
+    graphMethod <- "hcs"
+
+    testthat::expect_error(
+        CameraParam(ann_params = "a"),
+        "ann_params must be an AnnotationParam object"
+    )
+    testthat::expect_error(
+        CameraParam(ann_params = ann_params, cores = "a"),
+        "got class \"character\", should be or extend class \"numeric\""
+    )
+    testthat::expect_error(
+        CameraParam(ann_params = ann_params, cores = c(1, 2)),
+        "cores need to be a positive number"
+    )
+    testthat::expect_error(
+        CameraParam(ann_params = ann_params, cores = 0),
+        "cores need to be a positive number"
+    )
+    testthat::expect_error(
+        CameraParam(ann_params = ann_params, cores = cores, sigma = "a"),
+        "got class \"character\", should be or extend class \"numeric\""
+    )
+    testthat::expect_error(
+        CameraParam(ann_params = ann_params, cores = cores, sigma = c(3, 6)),
+        "sigma need to be a positive number"
+    )
+    testthat::expect_error(
+        CameraParam(ann_params = ann_params, cores = cores, sigma = -1),
+        "sigma need to be a positive number"
+    )
+    testthat::expect_error(
+        CameraParam(
+            ann_params = ann_params,
+            cores = cores,
+            sigma = sigma,
+            perfwhm = "a"
+        ),
+        "got class \"character\", should be or extend class \"numeric\""
+    )
+    testthat::expect_error(
+        CameraParam(
+            ann_params = ann_params,
+            cores = cores,
+            sigma = sigma,
+            perfwhm = c(.4, .5)
+        ),
+        "perfwhm need to be a number between 0 and 1"
+    )
+    testthat::expect_error(
+        CameraParam(
+            ann_params = ann_params,
+            cores = cores,
+            sigma = sigma,
+            perfwhm = -2
+        ),
+        "perfwhm need to be a number between 0 and 1"
+    )
+    testthat::expect_error(
+        CameraParam(
+            ann_params = ann_params,
+            cores = cores,
+            sigma = sigma,
+            perfwhm = 1.2
+        ),
+        "perfwhm need to be a number between 0 and 1"
+    )
+    testthat::expect_error(
+        CameraParam(
+            ann_params = ann_params,
+            cores = cores,
+            sigma = sigma,
+            perfwhm = perfwhm,
+            cor_eic_th = "a"
+        ),
+        "got class \"character\", should be or extend class \"numeric\""
+    )
+    testthat::expect_error(
+        CameraParam(
+            ann_params = ann_params,
+            cores = cores,
+            sigma = sigma,
+            perfwhm = perfwhm,
+            cor_eic_th = c(.4, .6)
+        ),
+        "cor_eic_th must be a number between 0 and 1"
+    )
+    testthat::expect_error(
+        CameraParam(
+            ann_params = ann_params,
+            cores = cores,
+            sigma = sigma,
+            perfwhm = perfwhm,
+            cor_eic_th = -2
+        ),
+        "cor_eic_th must be a number between 0 and 1"
+    )
+    testthat::expect_error(
+        CameraParam(
+            ann_params = ann_params,
+            cores = cores,
+            sigma = sigma,
+            perfwhm = perfwhm,
+            cor_eic_th = 1.2
+        ),
+        "cor_eic_th must be a number between 0 and 1"
+    )
+    testthat::expect_error(
+        CameraParam(
+            ann_params = ann_params,
+            cores = cores,
+            sigma = sigma,
+            perfwhm = perfwhm,
+            cor_eic_th = cor_eic_th,
+            pval = "a"
+        ),
+        "got class \"character\", should be or extend class \"numeric\""
+    )
+    testthat::expect_error(
+        CameraParam(
+            ann_params = ann_params,
+            cores = cores,
+            sigma = sigma,
+            perfwhm = perfwhm,
+            cor_eic_th = cor_eic_th,
+            pval = c(.4, .6)
+        ),
+        "pval must be a number between 0 and 1"
+    )
+    testthat::expect_error(
+        CameraParam(
+            ann_params = ann_params,
+            cores = cores,
+            sigma = sigma,
+            perfwhm = perfwhm,
+            cor_eic_th = cor_eic_th,
+            pval = -2
+        ),
+        "pval must be a number between 0 and 1"
+    )
+    testthat::expect_error(
+        CameraParam(
+            ann_params = ann_params,
+            cores = cores,
+            sigma = sigma,
+            perfwhm = perfwhm,
+            cor_eic_th = cor_eic_th,
+            pval = 1.2
+        ),
+        "pval must be a number between 0 and 1"
+    )
+    testthat::expect_error(
+        CameraParam(
+            ann_params = ann_params,
+            cores = cores,
+            sigma = sigma,
+            perfwhm = perfwhm,
+            cor_eic_th = cor_eic_th,
+            pval = pval,
+            graphMethod = 1
+        ),
+        "got class \"numeric\", should be or extend class \"character\""
+    )
+    testthat::expect_error(
+        CameraParam(
+            ann_params = ann_params,
+            cores = cores,
+            sigma = sigma,
+            perfwhm = perfwhm,
+            cor_eic_th = cor_eic_th,
+            pval = pval,
+            graphMethod = "a"
+        ),
+        "graphMethod must be \"lpc\" or \"hcs\""
+    )
+
+    # test in positive
+    obj <- CameraParam(
+        ann_params = ann_params,
+        cores = cores,
+        sigma = sigma,
+        perfwhm = perfwhm,
+        cor_eic_th = cor_eic_th,
+        pval = pval,
+        graphMethod = graphMethod
+    )
+    testthat::expect_equal(obj@cores, cores)
+    testthat::expect_equal(obj@polarity, polarity)
+    testthat::expect_equal(obj@sigma, sigma)
+    testthat::expect_equal(obj@perfwhm, perfwhm)
+    testthat::expect_equal(obj@cor_eic_th, cor_eic_th)
+    testthat::expect_equal(obj@pval, pval)
+    testthat::expect_equal(obj@graphMethod, graphMethod)
+    testthat::expect_equal(obj@calcIso, TRUE)
+    testthat::expect_equal(obj@calcCiS, TRUE)
+    testthat::expect_equal(obj@calcCaS, TRUE)
+    testthat::expect_equal(obj@maxcharge, 3)
+    testthat::expect_equal(obj@maxiso, 4)
+    testthat::expect_equal(obj@ppm, 0)
+    testthat::expect_equal(obj@mzabs, da_tol)
+    testthat::expect_equal(obj@minfrac, 0)
+    testthat::expect_equal(obj@multiplier, 3)
+    testthat::expect_equal(
+        obj@rules,
+        adducts[
+            adducts$charge >= 1,
+            c("name", "nmol", "charge", "massdiff", "oidscore", "quasi", "ips"),
+            drop = FALSE]
+    )
+    testthat::expect_equal(obj@max_peaks, 100)
+
+    # test in negative
+    ann_params@database <- "test-neg"
+    ann_params@polarity <- "negative"
+    obj_neg <- CameraParam(
+        ann_params = ann_params,
+        cores = cores,
+        sigma = sigma,
+        perfwhm = perfwhm,
+        cor_eic_th = cor_eic_th,
+        pval = pval,
+        graphMethod = graphMethod
+    )
+    testthat::expect_equal(obj_neg@cores, cores)
+    testthat::expect_equal(obj_neg@polarity, "negative")
+    testthat::expect_equal(obj_neg@sigma, sigma)
+    testthat::expect_equal(obj_neg@perfwhm, perfwhm)
+    testthat::expect_equal(obj_neg@cor_eic_th, cor_eic_th)
+    testthat::expect_equal(obj_neg@pval, pval)
+    testthat::expect_equal(obj_neg@graphMethod, graphMethod)
+    testthat::expect_equal(obj_neg@calcIso, TRUE)
+    testthat::expect_equal(obj_neg@calcCiS, TRUE)
+    testthat::expect_equal(obj_neg@calcCaS, TRUE)
+    testthat::expect_equal(obj_neg@maxcharge, 3)
+    testthat::expect_equal(obj_neg@maxiso, 4)
+    testthat::expect_equal(obj_neg@ppm, 0)
+    testthat::expect_equal(obj_neg@mzabs, da_tol)
+    testthat::expect_equal(obj_neg@minfrac, 0)
+    testthat::expect_equal(obj_neg@multiplier, 3)
+    testthat::expect_equal(
+        obj_neg@rules,
+        adducts[
+            adducts$charge <= -1,
+            c("name", "nmol", "charge", "massdiff", "oidscore", "quasi", "ips"),
+            drop = FALSE]
+    )
+    testthat::expect_equal(obj_neg@max_peaks, 100)
+
+    testthat::expect_equal(
+        params_to_dataframe(obj),
+        data.frame(
+            cores = cores,
+            sigma = sigma,
+            perfwhm = perfwhm,
+            intval = "into",
+            cor_eic_th = cor_eic_th,
+            pval = pval,
+            graphMethod = graphMethod,
+            calcIso = 1,
+            calcCiS = 1,
+            calcCaS = 1,
+            maxcharge = 3,
+            maxiso = 4,
+            ppm = 0,
+            mzabs = da_tol,
+            minfrac = 0,
+            max_peaks = 100
+        )
+    )
+})
+
+testthat::test_that("annotation_param", {
+    da_tol <- .015
+    rt_tol <- 10
+    abd_tol <- 25
+    instrument <- "QTOF_XevoG2-S_R25000@200"
+    database <- "test"
+    polarity <- "positive"
+    cpd_classes <- c("LPC", "Cer")
+
+    testthat::expect_error(
+        AnnotationParam(da_tol = "a"),
+        "got class \"character\", should be or extend class \"numeric\""
+    )
+    testthat::expect_error(
+        AnnotationParam(da_tol = c(1, 2)),
+        "da_tol need to be a positive number"
+    )
+    testthat::expect_error(
+        AnnotationParam(da_tol = -1),
+        "da_tol need to be a positive number"
+    )
+    testthat::expect_error(
+        AnnotationParam(da_tol = da_tol, rt_tol = "a"),
+        "got class \"character\", should be or extend class \"numeric\""
+    )
+    testthat::expect_error(
+        AnnotationParam(da_tol = da_tol, rt_tol = c(1, 2)),
+        "rt_tol need to be a positive number"
+    )
+    testthat::expect_error(
+        AnnotationParam(da_tol = da_tol, rt_tol = -1),
+        "rt_tol need to be a positive number"
+    )
+    testthat::expect_error(
+        AnnotationParam(da_tol = da_tol, rt_tol = rt_tol, abd_tol = "a"),
+        "got class \"character\", should be or extend class \"numeric\""
+    )
+    testthat::expect_error(
+        AnnotationParam(da_tol = da_tol, rt_tol = rt_tol, abd_tol = c(1, 2)),
+        "abd_tol need to be a positive number between 0 & 100"
+    )
+    testthat::expect_error(
+        AnnotationParam(da_tol = da_tol, rt_tol = rt_tol, abd_tol = -1),
+        "abd_tol need to be a positive number between 0 & 100"
+    )
+    testthat::expect_error(
+        AnnotationParam(da_tol = da_tol, rt_tol = rt_tol, abd_tol = -1),
+        "abd_tol need to be a positive number between 0 & 100"
+    )
+    testthat::expect_error(
+        AnnotationParam(
+            da_tol = da_tol,
+            rt_tol = rt_tol,
+            abd_tol = abd_tol,
+            instrument = 1
+        ),
+        "got class \"numeric\", should be or extend class \"character\""
+    )
+    testthat::expect_error(
+        AnnotationParam(
+            da_tol = da_tol,
+            rt_tol = rt_tol,
+            abd_tol = abd_tol,
+            instrument = "orbitrap",
+        ),
+        "orbitrap doesn't exists in the instrument list"
+    )
+    testthat::expect_error(
+        AnnotationParam(
+            da_tol = da_tol,
+            rt_tol = rt_tol,
+            abd_tol = abd_tol,
+            instrument = instrument,
+            database = 1
+        ),
+        "database 1 doesn't exist in software"
+    )
+    testthat::expect_error(
+        AnnotationParam(
+            da_tol = da_tol,
+            rt_tol = rt_tol,
+            abd_tol = abd_tol,
+            instrument = instrument,
+            database = database,
+            polarity = 1
+        ),
+        "polarity needs to be \"positive\" or \"negative\""
+    )
+    testthat::expect_error(
+        AnnotationParam(
+            da_tol = da_tol,
+            rt_tol = rt_tol,
+            abd_tol = abd_tol,
+            instrument = instrument,
+            database = database,
+            polarity = polarity,
+            cpd_classes = 1
+        ),
+        "got class \"numeric\", should be or extend class \"character\""
+    )
+    testthat::expect_error(
+        AnnotationParam(
+            da_tol = da_tol,
+            rt_tol = rt_tol,
+            abd_tol = abd_tol,
+            instrument = instrument,
+            database = database,
+            polarity = polarity,
+            cpd_classes = c("OP", "CC")
+        ),
+        "No chemicals can be loaded with the given parameters"
+    )
+    testthat::expect_error(
+        AnnotationParam(
+            da_tol = da_tol,
+            rt_tol = rt_tol,
+            abd_tol = abd_tol,
+            instrument = instrument,
+            database = database,
+            polarity = "negative"
+        ),
+        "No chemicals can be loaded with the given parameters"
+    )
+
+    obj <- AnnotationParam(
+        da_tol = da_tol,
+        rt_tol = rt_tol,
+        abd_tol = abd_tol,
+        instrument = instrument,
+        database = database,
+        polarity = polarity
+    )
+    testthat::expect_equal(obj@da_tol, da_tol)
+    testthat::expect_equal(obj@rt_tol, rt_tol)
+    testthat::expect_equal(obj@abd_tol, abd_tol)
+    testthat::expect_equal(obj@instrument, instrument)
+    testthat::expect_equal(obj@database, database)
+    testthat::expect_equal(obj@polarity, polarity)
+    testthat::expect_equal(
+        obj@cpd_classes,
+        unique(load_chem_db(obj@database, obj@polarity)$class)
+    )
+
+    testthat::expect_equal(
+        params_to_dataframe(obj),
+        data.frame(
+            da_tol = da_tol,
+            rt_tol = rt_tol,
+            abd_tol = abd_tol,
+            instrument = instrument,
+            database = database,
+            polarity = polarity,
+            cpd_classes = paste(
+                unique(load_chem_db(obj@database, obj@polarity)$class),
+                collapse = ";"
+            )
+        )
+    )
+})
+
 testthat::test_that("check_ms_process_args", {
     raw_files <- c(
         system.file(
@@ -613,13 +664,6 @@ testthat::test_that("check_ms_process_args", {
         da_tol = .015,
         rt_tol = 10,
         abd_tol = 25,
-        adduct_names = c(
-            "[M+Na]+",
-            "[M+NH4]+",
-            "[M+H-H2O]+",
-            "[M+H]+",
-            "[M-H]-"
-        ),
         instrument = "QTOF_XevoG2-S_R25000@200",
         database = "test",
         cpd_classes = c("LPC", "Cer", "FA")

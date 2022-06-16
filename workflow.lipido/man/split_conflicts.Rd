@@ -13,21 +13,25 @@ with the columns:
     \item group_id `integer` group ID
     \item class `character` cpd class
     \item name `character` name
+    \item major_adduct `character` majoritary adduct for the compound
     \item formula `character` chemical formula
     \item adduct `character` adduct form
     \item ion_formula `character` ion chemical formula
-    \item rtdiff `numeric` retention time difference between the measured &
-    the expected
-    \item rt `numeric` retention time measured meanned accross the samples
+    \item rtdiff `numeric` retention time difference between the measured
+    & the expected
+    \item rt `numeric` retention time measured meanned accross the
+    samples
     \item rtmin `numeric` born min of retention time measured accross the
     samples
-    \item rtmax `numeric` born max of the retention time measured accross the
-     samples
-    \item nsamples `integer` number of samples where the compound was found
+    \item rtmax `numeric` born max of the retention time measured accross
+    the samples
+    \item nsamples `integer` number of samples where the compound was
+    found
     \item best_score `numeric` best isotopic score seen
     \item best_deviation_mz `numeric` best m/z deviation seen
     \item best_npeak `integer` best number of isotopologues found
-    \item ... `integer` a column for each sample which contain the spectra ID
+    \item ... `integer` a column for each sample which contain the
+    spectra ID
 }}
 }
 \value{
@@ -39,6 +43,7 @@ with the columns:
         \item group_id `integer` group ID
         \item class `character` cpd class
         \item name `character` name
+        \item major_adduct `character` majoritary adduct for the compound
         \item formula `character` chemical formula
         \item adduct `character` adduct form
         \item ion_formula `character` ion chemical formula
@@ -65,6 +70,7 @@ with the columns:
         \item group_id `integer` group ID
         \item class `character` cpd class
         \item name `character` name
+        \item major_adduct `character` majoritary adduct for the compound
         \item formula `character` chemical formula
         \item adduct `character` adduct form
         \item ion_formula `character` ion chemical formula
@@ -89,5 +95,5 @@ with the columns:
 \description{
 Split the annotation `DataFrame` to get the conflicts
 Conflicts are when for a group of peaks multiple annotations are possible
-(it happens often when for an ion formula refers to multiple compounds)
+(it happens often when a chemical formula refers to multiple compounds)
 }

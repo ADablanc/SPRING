@@ -10,10 +10,8 @@
 #' It force to use the sample with the most peak as the center sample
 #'
 #' @param sqlite_path `character(1)` path to the sqlite file
-#' @param samples `character vector` name of the samples in the database, needed
-#' to load the `xcmsRaw` objects
-#' @param polarity `character(1)` "negative" or "positive", needed to load the
-#' good `xcmsRaw` objects
+#' @param sample_names `character vector` name of the samples in the database,
+#'  needed to load the `xcmsRaw` objects
 #' @param xsets `xcmsSet list`
 #' @param obw_params `ObiwarpParam` object
 #' @param operator function to use for parallelization (`\%dopar\%`)
@@ -25,8 +23,7 @@
 #'
 #' @seealso xcms::adjustRtime
 obiwarp <- function(sqlite_path,
-                    samples,
-                    polarity,
+                    sample_names,
                     xsets,
                     obw_params,
                     operator = foreach::"%do%",
@@ -48,43 +45,43 @@ obiwarp <- function(sqlite_path,
     xset <- do.call(c, xsets)
     xset@rt <- list(raw = rtcor, corrected = rtcor)
 
-    if (length(xsets) == 1) {
-        return(xset)
-    }
     if (nrow(peakmat) == 0) {
-        center <- 1
+        stop("No peaks where integrated in all the samples !")
     } else {
         center <- as.integer(names(which.max(table(peakmat[, "sample"]))))
+    }
+    if (length(xsets) == 1) {
+        return(xset)
     }
 
     # add new attributes `scantime_corrected` to ms_file which will contain
     # the retention times corrected
     db <- db_connect(sqlite_path)
-    center_ms_file <- db_read_ms_file(db, samples[center], polarity)
+    center_ms_file <- db_read_ms_file(db, sample_names[center])
     attributes(center_ms_file)$scantime_corrected <- center_ms_file@scantime
     center_profile <- suppressMessages(
         xcms::profMat(center_ms_file, step = obw_params@binSize))
-    db_record_ms_file(db, samples[center], polarity, center_ms_file)
+    db_record_ms_file(db, sample_names[center], center_ms_file)
     RSQLite::dbDisconnect(db)
     rm(center_ms_file)
 
     s <- NULL # just to get rid of the NOTE when checking package
     rtimecor <- operator(
         foreach::foreach(
-            s = iterators::iter(seq(1, length(samples))[-center]),
+            s = iterators::iter(seq(1, length(sample_names))[-center]),
             .combine = append,
             .options.snow = list(
                 progress = if (is.null(pb_fct)) {
                     NULL
                 } else {
                     function(n) {
-                        pb_fct(n, length(samples) - 1, "Correct rT")
+                        pb_fct(n, length(sample_names) - 1, "Correct rT")
                     }
                 }
             )
         ), {
             db <- db_connect(sqlite_path)
-            ms_file <- db_read_ms_file(db, samples[s], polarity)
+            ms_file <- db_read_ms_file(db, sample_names[s])
             RSQLite::dbDisconnect(db)
             if (is.null(ms_file)) {
                 return(list(rtcor[[s]]))
@@ -229,7 +226,7 @@ obiwarp <- function(sqlite_path,
 
             attributes(ms_file)$scantime_corrected <- tmp
             db <- db_connect(sqlite_path)
-            db_record_ms_file(db, samples[s], polarity, ms_file)
+            db_record_ms_file(db, sample_names[s], ms_file)
             RSQLite::dbDisconnect(db)
             rm(list = c("ms_file", "profile"))
             gc()
@@ -250,7 +247,7 @@ obiwarp <- function(sqlite_path,
     rtdevsmo <- lapply(seq(rtcor), function(i)
         round(rtcor[[i]] - rtimecor[[i]], 2))
 
-    for (i in seq(length(samples))) {
+    for (i in seq(length(sample_names))) {
         if (length(rtcor[[i]]) == 0) {
             next
         }

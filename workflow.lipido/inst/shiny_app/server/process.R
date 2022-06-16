@@ -92,6 +92,8 @@ shiny::updateNumericInput(
 #'
 #' @param sqlite_path,
 #' @param input$process_cores `numeric(1)` number of cores to use
+#' @param input$process_polarity `character(1)` polarity to use ("positive" or
+#' "negative")
 #' @param input$process_files `character` filepath to the files
 #' @param input$process_ppm `numeric(1)` Maximal tolerated m/z deviation in
 #' consecutive scans in parts sper million (ppm)
@@ -151,12 +153,17 @@ shiny::updateNumericInput(
 #'  peak which have an higher difference of relative abundance with its
 #'  corresponding theoretical peak will be discarded
 #' @param input$process_database `character` database to use for annotation
-#' @param input$process_adducts `character vector` adduct names from the enviPat
-#'  package
 #' @param input$process_instrument `character(1)` instrument names from the
 #'  enviPat package
 #' @param input$process_cpd_classes `character vector` compound classes to
 #' restrict the annotation from the database
+#' @param input$process_perfwhm `numeric(1)` percentage of the FWHM to use when
+#'  grouping peaks
+#' @param input$process_cor_eic_th `numeric(1)` correlation threshold for EICs
+#' @param input$process_graphMethod `character(1)` method to use for grouping
+#' peaks
+#' @param input$process_sigma `numeric(1)` multiplier of the standard deviation
+#' @param input$process_pval `numeric(1)` significant correlation threshold
 shiny::observeEvent(input$process_launch, {
     params <- list(
         process_files = input$process_files
@@ -171,6 +178,7 @@ shiny::observeEvent(input$process_launch, {
         params <- list(
             sqlite_path = sqlite_path(),
             Cores = input$process_cores,
+            polarity = input$process_polarity,
             Files = shinyFiles::parseFilePaths(
                 volumes,
                 input$process_files
@@ -200,17 +208,23 @@ shiny::observeEvent(input$process_launch, {
             `rT tolerance` = input$process_rt_tol,
             `Relative abundance tolerance` = input$process_abd_tol,
             Database = input$process_database,
-            Adducts = input$process_adducts,
             Instrument = input$process_instrument,
-            `Compound classes` = input$process_cpd_classes
+            `Compound classes` = input$process_cpd_classes,
+            `Percentage of the FWHM` = input$process_perfwhm,
+            `EIC correlation threshold` = input$process_cor_eic_th,
+            `Grouping method` = input$process_graphMethod,
+            Sigma = input$process_sigma,
+            `p-value` = input$process_pval
         )
-        inputs <- paste("process", c("cores", "files", "ppm", "peakwidth_min",
-            "peakwidth_max", "snthresh", "prefilter_step", "prefilter_level",
-            "mz_center_fun", "integrate", "mzdiff", "noise",
-            "first_baseline_check", "response", "dist_fun", "gap_init",
-            "gap_extend", "factor_diag", "factor_gap", "local_alignment",
-            "init_penalty", "bw", "mzwid", "mda_tol", "rt_tol", "abd_tol",
-            "database", "adducts", "instrument", "cpd_classes"), sep = "_")
+        inputs <- paste("process", c("sqlite_path", "cores", "polarity",
+             "files", "ppm", "peakwidth_min", "peakwidth_max", "snthresh",
+             "prefilter_step", "prefilter_level", "mz_center_fun", "integrate",
+             "mzdiff", "noise", "first_baseline_check", "response", "dist_fun",
+             "gap_init", "gap_extend", "factor_diag", "factor_gap",
+             "local_alignment", "init_penalty", "bw", "mzwid", "mda_tol",
+             "rt_tol", "abd_tol", "database", "instrument", "cpd_classes",
+             "perfwhm", "cor_eic_th", "graphMethod", "sigma", "pval"),
+             sep = "_")
 
         # check which are missing
         conditions <- !is.na(params) & lengths(params) > 0
@@ -223,7 +237,7 @@ shiny::observeEvent(input$process_launch, {
             "s/n", "Prefilter step", "Prefilter level", "Noise", "Gap init",
             "Gap extend", "Factor diag", "Factor gap", "Initiating penalty",
             "rT deviation", "m/z group slices", "m/z tolerance (annotation)",
-            "rT tolerance"))
+            "rT tolerance", "Sigma", "p-value"))
         conditions <- unlist(params[idx]) >= 0
         msgs <- paste(names(params[idx]), "need to be a positive number or 0")
         check_inputs(inputs[idx], conditions, msgs)
@@ -282,10 +296,18 @@ shiny::observeEvent(input$process_launch, {
             da_tol = params[["m/z tolerance (annotation)"]],
             rt_tol = params[["rT tolerance"]],
             abd_tol = params[["Relative abundance tolerance"]],
-            adduct_names = params[["Adducts"]],
             instrument = params[["Instrument"]],
             database = params[["Database"]],
             cpd_classes = params[["Compound classes"]]
+        )
+        camera_params <- CameraParam(
+            ann_params = ann_params,
+            cores = params[["Cores"]],
+            sigma = params[["Sigma"]],
+            perfwhm = params[["Percentage of the FWHM"]],
+            cor_eic_th = params[["EIC correlation threshold"]],
+            pval = params[["p-value"]],
+            graphMethod = params[["Grouping method"]]
         )
 
         shinyWidgets::progressSweetAlert(
@@ -301,6 +323,7 @@ shiny::observeEvent(input$process_launch, {
             cwt_params,
             obw_params,
             pd_params,
+            camera_params,
             ann_params,
             cores = params$Cores,
             show_txt_pb = FALSE,
@@ -320,10 +343,10 @@ shiny::observeEvent(input$process_launch, {
         }
 
         db(db_connect(sqlite_path()))
-        ann <- dbReadTable(db(), "ann")
+        ann <- db_get_annotations(db())
         if (nrow(ann) > 0) {
             conflicts <- split_conflicts(ann)$conflicts
-            conflicts(sapply(conflicts, function(x) x[1, "group_id"]))
+            conflicts(sapply(conflicts, function(x) x[[1]][1, "group_id"]))
             if (length(conflicts) > 0) conflict_id(1)
             else conflict_id(0)
         } else {

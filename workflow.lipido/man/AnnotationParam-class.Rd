@@ -18,9 +18,9 @@ A class containing the annotation parameters
 have an higher difference of relative abundance with its corresponding
 theoretical peak will be discarded}
 
-\item{\code{adduct_names}}{`character vector` adduct names from the enviPat package}
-
 \item{\code{instrument}}{`character(1)` instrument names from the enviPat package}
+
+\item{\code{polarity}}{`character(1)` "positive" or "negative"}
 
 \item{\code{database}}{`character(1)` name of the database to load}
 

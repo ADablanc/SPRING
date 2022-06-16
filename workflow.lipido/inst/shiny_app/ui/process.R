@@ -5,6 +5,22 @@ shinydashboard::tabItem(
         shiny::tabsetPanel(
             shiny::tabPanel(
                 title = "Conversion",
+                shinyWidgets::radioGroupButtons(
+                    inputId = "process_polarity",
+                    label = "Polarity",
+                    choices = c("positive", "negative"),
+                    individual = TRUE,
+                    checkIcon = list(
+                        yes = shiny::tags$i(
+                            class = "fa fa-circle",
+                            style = "color: steelblue"
+                        ),
+                        no = shiny::tags$i(
+                            class = "fa fa-circle-o",
+                            style = "color: steelblue"
+                        )
+                    )
+                ),
                 shiny::tags$div(
                     class = "form-group shiny-input-container",
                     shiny::tags$div(
@@ -436,88 +452,155 @@ shinydashboard::tabItem(
             ),
             shiny::tabPanel(
                 title = "Annotation",
-                shiny::tags$table(
-                    class = "table-params",
-                    shiny::tags$tr(
-                        shiny::tags$td(
-                            bsplus::shinyInput_label_embed(
-                                tag = shiny::numericInput(
-                                    inputId = "process_mda_tol",
-                                    label = "m/z tolerance (mDa)",
-                                    value = 15
+                shiny::tabsetPanel(
+                    shiny::tabPanel("General",
+                        shiny::tags$table(class = "table-params",
+                              shiny::tags$tr(
+                                  shiny::tags$td(
+                                    bsplus::shinyInput_label_embed(
+                                        tag = shiny::numericInput(
+                                            inputId = "process_mda_tol",
+                                            label = "m/z tolerance (mDa)",
+                                            value = 15
+                                        ),
+                                        element = bsplus::bs_embed_tooltip(
+                                            tag = bsplus::shiny_iconlink(),
+                                            placement = "top",
+                                            title = "m/z tolerance to use for
+                                                identification"
+                                        )
+                                    )
                                 ),
-                                element = bsplus::bs_embed_tooltip(
-                                    tag = bsplus::shiny_iconlink(),
-                                    placement = "top",
-                                    title = "m/z tolerance to use for
-                                        identification"
+                                shiny::tags$td(
+                                    bsplus::shinyInput_label_embed(
+                                        tag = shiny::numericInput(
+                                            inputId = "process_rt_tol",
+                                            label = "rT tolerance (s)",
+                                            value = 10
+                                        ),
+                                        element = bsplus::bs_embed_tooltip(
+                                            tag = bsplus::shiny_iconlink(),
+                                            placement = "top",
+                                            title = "rT tolerance to use for
+                                                identification"
+                                        )
+                                    )
                                 )
                             )
                         ),
-                        shiny::tags$td(
-                            bsplus::shinyInput_label_embed(
-                                tag = shiny::numericInput(
-                                    inputId = "process_rt_tol",
-                                    label = "rT tolerance (s)",
-                                    value = 10
-                                ),
-                                element = bsplus::bs_embed_tooltip(
-                                    tag = bsplus::shiny_iconlink(),
-                                    placement = "top",
-                                    title = "rT tolerance to use for
-                                        identification"
-                                )
+                        bsplus::shinyInput_label_embed(
+                            tag = shiny::sliderInput(
+                                inputId = "process_abd_tol",
+                                label = "Relative abundance tolerance (%)",
+                                min = 0,
+                                max = 100,
+                                value = 25,
+                                step = 1
+                            ),
+                            element = bsplus::bs_embed_tooltip(
+                                tag = bsplus::shiny_iconlink(),
+                                placement = "top",
+                                title = "Peaks which have a difference of this
+                                    percentage compared to the theoretical are
+                                    not considered part of the isotopic profile"
+                            )
+                        ),
+                        shiny::selectInput(
+                            inputId = "process_database",
+                            label = "Database",
+                            choices = ""
+                        ),
+                        shiny::selectInput(
+                            inputId = "process_instrument",
+                            label = "Instrument",
+                            choices = c()
+                        ),
+                        shinyWidgets::pickerInput(
+                            inputId = "process_cpd_classes",
+                            label = "Compound classes",
+                            choices = c(),
+                            multiple = TRUE,
+                            options = list(
+                                `actions-box` = TRUE,
+                                `live-search` = TRUE,
+                                `none-selected-text` = "No compound classes
+                                selected"
                             )
                         )
-                    )
-                ),
-                bsplus::shinyInput_label_embed(
-                    tag = shiny::sliderInput(
-                        inputId = "process_abd_tol",
-                        label = "Relative abundance tolerance (%)",
-                        min = 0,
-                        max = 100,
-                        value = 25,
-                        step = 1
                     ),
-                    element = bsplus::bs_embed_tooltip(
-                        tag = bsplus::shiny_iconlink(),
-                        placement = "top",
-                        title = "Peaks which have a difference of this
-                            percentage compared to the theoretical are not
-                            considered part of the isotopic profile"
-                    )
-                ),
-                shiny::selectInput(
-                    inputId = "process_database",
-                    label = "Database",
-                    choices = ""
-                ),
-                shinyWidgets::pickerInput(
-                    inputId = "process_adducts",
-                    label = "Adducts",
-                    choices = c(),
-                    multiple = TRUE,
-                    options = list(
-                        `actions-box` = TRUE,
-                        `live-search` = TRUE,
-                        `none-selected-text` = "No adducts selected"
-                    )
-                ),
-                shiny::selectInput(
-                    inputId = "process_instrument",
-                    label = "Instrument",
-                    choices = c()
-                ),
-                shinyWidgets::pickerInput(
-                    inputId = "process_cpd_classes",
-                    label = "Compound classes",
-                    choices = c(),
-                    multiple = TRUE,
-                    options = list(
-                        `actions-box` = TRUE,
-                        `live-search` = TRUE,
-                        `none-selected-text` = "No compound classes selected"
+                    shiny::tabPanel("Advanced",
+                        shiny::tags$table(class = "table-params",
+                              shiny::tags$tr(
+                                  shiny::tags$td(
+                                      bsplus::shinyInput_label_embed(
+                                          tag = shiny::numericInput(
+                                              inputId = "process_sigma",
+                                              label = "sigma",
+                                              value = 6
+                                          ),
+                                          element = bsplus::bs_embed_tooltip(
+                                              tag = bsplus::shiny_iconlink(),
+                                              placement = "top",
+                                              title = "Multiplier of the
+                                              standard deviation"
+                                          )
+                                      )
+                                  ),
+                                    shiny::tags$td(
+                                        bsplus::shinyInput_label_embed(
+                                            tag = shiny::numericInput(
+                                                inputId = "process_pval",
+                                                label = "p-value",
+                                                value = .05
+                                            ),
+                                            element = bsplus::bs_embed_tooltip(
+                                                tag = bsplus::shiny_iconlink(),
+                                                placement = "top",
+                                                title = "Significant correlation
+                                                 threshold"
+                                            )
+                                        )
+                                    )
+                              ),
+                              bsplus::shinyInput_label_embed(
+                                  tag = shiny::sliderInput(
+                                      inputId = "process_perfwhm",
+                                      label = "Percentage of the FWHM",
+                                      min = 0,
+                                      max = 1,
+                                      value = .6,
+                                      step = .1
+                                  ),
+                                  element = bsplus::bs_embed_tooltip(
+                                      tag = bsplus::shiny_iconlink(),
+                                      placement = "top",
+                                      title = "Percentage of the FWHM (Full
+                                      Width at Half Maximum to use to group
+                                      peaks which belong to the same compound"
+                                  )
+                              ),
+                              bsplus::shinyInput_label_embed(
+                                  tag = shiny::sliderInput(
+                                      inputId = "process_cor_eic_th",
+                                      label = "EIC correlation threshold",
+                                      min = 0,
+                                      max = 1,
+                                      value = .75,
+                                      step = .1
+                                  ),
+                                  element = bsplus::bs_embed_tooltip(
+                                      tag = bsplus::shiny_iconlink(),
+                                      placement = "top",
+                                      title = "Correlation threshold to use
+                                      when comparing EICs"
+                                  )
+                              ),
+                              shiny::selectInput(
+                                  inputId = "process_graphMethod",
+                                  label = "Grouping method",
+                                  choices = c("hcs", "lpc")
+                              )
+                        )
                     )
                 )
             ),

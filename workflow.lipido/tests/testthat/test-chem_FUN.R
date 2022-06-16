@@ -1,298 +1,109 @@
 testthat::test_that("load_chem_db", {
-    testthat::expect_error(
-        load_chem_db("toto"),
-        "toto doesn't exist in software"
+    empty_chem_db <- data.frame(matrix(, nrow = 0, ncol = 5, dimnames = list(
+        c(), c("class", "adduct", "name", "formula", "rt"))))
+    chem_db <- data.frame(
+        class = c("Cer", rep("LPC", 2)),
+        adduct = c("[M+H-H2O]+", rep("[M+H]+", 2)),
+        name = c("Cer (d18:1/C12:0)", "LPC 11:0", "LPC 11a:0"),
+        formula = c("C30H59N1O3", rep("C19H40N1O7P1", 2)),
+        rt = c(195.59999999999999, 295.79999999999995, 291)
     )
-
-    empty_file <- file.path(
-        system.file("extdata", "database", package = "workflow.lipido"),
-        "empty_db.csv"
+    database <- "test"
+    testthat::expect_identical(
+        load_chem_db(database),
+        chem_db
     )
-    write.csv(
-        matrix(, nrow = 0, ncol = 4, dimnames = list(
-            c(), c("class", "name", "formula", "rt"))),
-        empty_file,
-        row.names = FALSE
+    testthat::expect_identical(
+        load_chem_db(database, "positive"),
+        chem_db
     )
-    testthat::expect_error(
-        load_chem_db("empty_db"),
-        "no compound in database"
+    testthat::expect_identical(
+        nrow(load_chem_db(database, "negative")),
+        nrow(empty_chem_db)
     )
-    file.remove(empty_file)
-
-    testthat::expect_equal(
-        load_chem_db("test"),
-        data.frame(
-            class = c("FA", "Cer", "LPC", "LPC"),
-            name = c("FA 17:0", "Cer (d18:1/C12:0)", "LPC 11:0", "LPC 11a:0"),
-            formula = c("C17H34O2", "C30H59N1O3", "C19H40N1O7P1",
-                        "C19H40N1O7P1"),
-            rt = c(3.01, 3.26, 4.93, 4.85)
-        )
+    testthat::expect_identical(
+        nrow(load_chem_db(database, "positive", "HBCDD")),
+        nrow(empty_chem_db)
+    )
+    testthat::expect_identical(
+        load_chem_db(database, "positive", "LPC"),
+        chem_db[chem_db$class == "LPC", ]
+    )
+    testthat::expect_identical(
+        load_chem_db(database, "positive", cpd_names = "LPC 11a:0"),
+        chem_db[chem_db$name == "LPC 11a:0", ]
+    )
+    testthat::expect_identical(
+        load_chem_db(database, "positive"),
+        chem_db
     )
 })
 
 testthat::test_that("load_ion_db", {
-    empty_db <- data.frame(matrix(, nrow = 0, ncol = 11, dimnames = list(
+    empty_chem_db <- data.frame(matrix(, nrow = 0, ncol = 11, dimnames = list(
         c(), c("class", "formula", "name", "rt", "ion_id", "adduct",
                "ion_formula", "charge", "mz", "abd", "iso")
     )))
-
-    # 1st test : with an empty database
-    empty_file <- file.path(
-        system.file("extdata", "database", package = "workflow.lipido"),
-        "empty_database.csv"
+    chem_db <- data.frame(
+        formula = c(rep("C19H40N1O7P1", 8), rep("C30H59N1O3", 4)),
+        adduct = c(rep("[M+H]+", 8), rep("[M+H-H2O]+", 4)),
+        class = c(rep("LPC", 8), rep("Cer", 4)),
+        name = c(rep("LPC 11:0", 4), rep("LPC 11a:0", 4),
+                 rep("Cer (d18:1/C12:0)", 4)),
+        rt = c(rep(295.8, 4), rep(291, 4), rep(195.6, 4)),
+        ion_id = c(rep(1, 8), rep(2, 4)),
+        ion_formula = c(rep("C19H41N1O7P1", 8), rep("C30H58N1O2", 4)),
+        charge = rep(1, 12),
+        mz = c(426.26152, 427.26484, 428.26719, 429.26984, 426.26152, 427.26484,
+               428.26719, 429.26984, 464.44621, 465.44955, 466.45272,
+               467.45576),
+        abd = c(100, 21.7, 3.46, 0.42, 100, 21.7, 3.46, 0.42, 100, 33.55, 5.86,
+                0.65),
+        iso = c("M", "M+1", "M+2", "M+3", "M", "M+1", "M+2", "M+3", "M", "M+1",
+                "M+2", "M+3")
     )
-    write.csv(
-        matrix(, nrow = 0, ncol = 4, dimnames = list(
-            c(), c("class", "name", "formula", "rt"))),
-        empty_file,
-        row.names = FALSE
-    )
-    testthat::expect_error(
-        load_ion_db(c(), "QTOF_XevoG2-S_R25000@200", "empty_database"),
-        "no compound in database"
-    )
-    file.remove(empty_file)
-
-    # 2nd test : without adducts
+    database <- "test"
+    instrument <- "QTOF_XevoG2-S_R25000@200"
+    polarity <- "positive"
     testthat::expect_equal(
-        load_ion_db(c(), "QTOF_XevoG2-S_R25000@200", "test"),
-        empty_db
+        data.frame(load_ion_db(database, instrument, polarity),
+                   row.names = NULL),
+        chem_db
     )
-
-    # 3rd test : normal
+    testthat::expect_identical(
+        load_ion_db(database, instrument, "negative"),
+        empty_chem_db
+    )
+    testthat::expect_identical(
+        load_ion_db(database, instrument, polarity, "HBCDD"),
+        empty_chem_db
+    )
+    testthat::expect_equal(
+        data.frame(load_ion_db(database, instrument, polarity, "LPC"),
+                   row.names = NULL),
+        data.frame(chem_db[chem_db$class == "LPC", ], row.names = NULL)
+    )
     testthat::expect_equal(
         data.frame(load_ion_db(
-            c("[2M+H]+", "[M-H]-"),
-            "QTOF_XevoG2-S_R25000@200",
-            "test"
+            database,
+            instrument,
+            polarity,
+            cpd_names = "LPC 11a:0"
         ), row.names = NULL),
-        data.frame(
-            formula = c("C30H59N1O3", "C30H59N1O3", "C30H59N1O3", "C30H59N1O3",
-                       "C30H59N1O3", "C30H59N1O3", "C30H59N1O3", "C30H59N1O3",
-                       "C30H59N1O3", "C17H34O2", "C17H34O2", "C17H34O2",
-                       "C17H34O2", "C17H34O2", "C17H34O2", "C17H34O2",
-                       "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
-                       "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
-                       "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
-                       "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
-                       "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
-                       "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1"),
-            class = c("Cer", "Cer", "Cer", "Cer", "Cer", "Cer", "Cer", "Cer",
-                      "Cer", "FA", "FA", "FA", "FA", "FA", "FA", "FA", "LPC",
-                      "LPC", "LPC", "LPC", "LPC", "LPC", "LPC", "LPC", "LPC",
-                      "LPC", "LPC", "LPC", "LPC", "LPC", "LPC", "LPC", "LPC",
-                      "LPC"),
-            name = c("Cer (d18:1/C12:0)", "Cer (d18:1/C12:0)",
-                     "Cer (d18:1/C12:0)", "Cer (d18:1/C12:0)",
-                     "Cer (d18:1/C12:0)", "Cer (d18:1/C12:0)",
-                     "Cer (d18:1/C12:0)", "Cer (d18:1/C12:0)",
-                     "Cer (d18:1/C12:0)", "FA 17:0", "FA 17:0", "FA 17:0",
-                     "FA 17:0", "FA 17:0", "FA 17:0", "FA 17:0", "LPC 11:0",
-                     "LPC 11:0", "LPC 11:0", "LPC 11:0", "LPC 11:0", "LPC 11:0",
-                     "LPC 11:0", "LPC 11:0", "LPC 11:0", "LPC 11a:0",
-                     "LPC 11a:0", "LPC 11a:0", "LPC 11a:0", "LPC 11a:0",
-                     "LPC 11a:0", "LPC 11a:0", "LPC 11a:0", "LPC 11a:0"),
-            rt = c(195.6, 195.6, 195.6, 195.6, 195.6, 195.6, 195.6, 195.6,
-                   195.6, 180.6, 180.6, 180.6, 180.6, 180.6, 180.6, 180.6,
-                   295.8, 295.8, 295.8, 295.8, 295.8, 295.8, 295.8, 295.8,
-                   295.8, 291, 291, 291, 291, 291, 291, 291, 291, 291),
-            ion_id = c(6, 6, 6, 6, 6, 3, 3, 3, 3, 4, 4, 4, 4, 1, 1, 1, 5, 5, 5,
-                       5, 5, 2, 2, 2, 2, 5, 5, 5, 5, 5, 2, 2, 2, 2),
-            adduct = c("[2M+H]+", "[2M+H]+", "[2M+H]+", "[2M+H]+", "[2M+H]+",
-                       "[M-H]-", "[M-H]-", "[M-H]-", "[M-H]-", "[2M+H]+",
-                       "[2M+H]+", "[2M+H]+", "[2M+H]+", "[M-H]-", "[M-H]-",
-                       "[M-H]-", "[2M+H]+", "[2M+H]+", "[2M+H]+", "[2M+H]+",
-                       "[2M+H]+", "[M-H]-", "[M-H]-", "[M-H]-", "[M-H]-",
-                       "[2M+H]+", "[2M+H]+", "[2M+H]+", "[2M+H]+", "[2M+H]+",
-                       "[M-H]-", "[M-H]-", "[M-H]-", "[M-H]-"),
-            ion_formula = c("C60H119N2O6", "C60H119N2O6", "C60H119N2O6",
-                            "C60H119N2O6", "C60H119N2O6", "C30H58N1O3",
-                            "C30H58N1O3", "C30H58N1O3", "C30H58N1O3",
-                            "C34H69O4", "C34H69O4", "C34H69O4", "C34H69O4",
-                            "C17H33O2", "C17H33O2", "C17H33O2", "C38H81N2O14P2",
-                            "C38H81N2O14P2", "C38H81N2O14P2", "C38H81N2O14P2",
-                            "C38H81N2O14P2", "C19H39N1O7P1", "C19H39N1O7P1",
-                            "C19H39N1O7P1", "C19H39N1O7P1", "C38H81N2O14P2",
-                            "C38H81N2O14P2", "C38H81N2O14P2", "C38H81N2O14P2",
-                            "C38H81N2O14P2", "C19H39N1O7P1", "C19H39N1O7P1",
-                            "C19H39N1O7P1", "C19H39N1O7P1"),
-            charge = c(1, 1, 1, 1, 1, -1, -1, -1, -1, 1, 1, 1, 1, -1, -1, -1, 1,
-                       1, 1, 1, 1, -1, -1, -1, -1, 1, 1, 1, 1, 1, -1, -1, -1,
-                       -1),
-            mz = c(963.90627, 964.90961, 965.91283, 966.91595, 967.919,
-                   480.44222, 481.44557, 482.44866, 483.45159, 541.51904,
-                   542.52246, 543.52559, 544.5284, 269.2486, 270.25202,
-                   271.25481, 851.51575, 852.51908, 853.52182, 854.52452,
-                   855.52745, 424.24696, 425.25028, 426.25264, 427.25529,
-                   851.51575, 852.51908, 853.52182, 854.52452, 855.52745,
-                   424.24696, 425.25028, 426.25264, 427.25529),
-            abd = c(100, 67.29, 23.5, 5.58, 0.93, 100, 33.66, 6.07, 0.72, 100,
-                    37.79, 7.7, 1.07, 100, 18.84, 2.02, 100, 43.35, 12.03, 2.26,
-                    0.34, 100, 21.68, 3.46, 0.42, 100, 43.35, 12.03, 2.26, 0.34,
-                    100, 21.68, 3.46, 0.42),
-            iso = c("M", "M+1", "M+2", "M+3", "M+4", "M", "M+1", "M+2", "M+3",
-                    "M", "M+1", "M+2", "M+3", "M", "M+1", "M+2", "M", "M+1",
-                    "M+2", "M+3", "M+4", "M", "M+1", "M+2", "M+3", "M", "M+1",
-                    "M+2", "M+3", "M+4", "M", "M+1", "M+2", "M+3")
-        )
+        data.frame(chem_db[chem_db$name == "LPC 11a:0", ], row.names = NULL)
     )
-
-    # 4th test : with a compound name which doesn't exists
     testthat::expect_equal(
-        load_ion_db(
-            c("[2M+H]+", "[M-H]-"),
-            "QTOF_XevoG2-S_R25000@200",
-            "test",
-            "toto"
-        ),
-        empty_db
-    )
-
-    # 5th test : by compound name restriction
-    testthat::expect_equal(
-        load_ion_db(
-            c("[2M+H]+", "[M-H]-"),
-            "QTOF_XevoG2-S_R25000@200",
-            "test",
-            cpd_names = "FA 17:0"
-        ),
-        data.frame(
-            formula = c("C17H34O2", "C17H34O2", "C17H34O2", "C17H34O2",
-                        "C17H34O2", "C17H34O2", "C17H34O2"),
-            class = c("FA", "FA", "FA", "FA", "FA", "FA", "FA"),
-            name = c("FA 17:0", "FA 17:0", "FA 17:0", "FA 17:0", "FA 17:0",
-                     "FA 17:0", "FA 17:0"),
-            rt = c(180.6, 180.6, 180.6, 180.6, 180.6, 180.6, 180.6),
-            ion_id = c(2, 2, 2, 2, 1, 1, 1),
-            adduct = c("[2M+H]+", "[2M+H]+", "[2M+H]+", "[2M+H]+", "[M-H]-",
-                       "[M-H]-", "[M-H]-"),
-            ion_formula = c("C34H69O4", "C34H69O4", "C34H69O4", "C34H69O4",
-                            "C17H33O2", "C17H33O2", "C17H33O2"),
-            charge = c(1, 1, 1, 1, -1, -1, -1),
-            mz = c(541.51904, 542.52246, 543.52559, 544.5284, 269.2486,
-                   270.25202, 271.25481),
-            abd = c(100, 37.79, 7.7, 1.07, 100, 18.84, 2.02),
-            iso = c("M", "M+1", "M+2", "M+3", "M", "M+1", "M+2")
-        )
-    )
-
-    # 6th test : with a compound class which doesn't exists
-    testthat::expect_equal(
-        load_ion_db(
-            c("[2M+H]+", "[M-H]-"),
-            "QTOF_XevoG2-S_R25000@200",
-            "test",
-            cpd_classes = "IPO"
-        ),
-        empty_db
-    )
-
-    # 7th test : compound class restriction
-    testthat::expect_equal(
-        load_ion_db(
-            c("[2M+H]+", "[M-H]-"),
-            "QTOF_XevoG2-S_R25000@200",
-            "test",
-            cpd_classes = "LPC"
-        ),
-        data.frame(
-            formula = c("C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
-                        "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
-                        "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
-                        "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
-                        "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
-                        "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1"),
-            class = c("LPC", "LPC", "LPC", "LPC", "LPC", "LPC", "LPC", "LPC",
-                      "LPC", "LPC", "LPC", "LPC", "LPC", "LPC", "LPC", "LPC",
-                      "LPC", "LPC"),
-            name = c("LPC 11:0", "LPC 11:0", "LPC 11:0", "LPC 11:0", "LPC 11:0",
-                     "LPC 11:0", "LPC 11:0", "LPC 11:0", "LPC 11:0",
-                     "LPC 11a:0", "LPC 11a:0", "LPC 11a:0", "LPC 11a:0",
-                     "LPC 11a:0", "LPC 11a:0", "LPC 11a:0", "LPC 11a:0",
-                     "LPC 11a:0"),
-            rt = c(295.8, 295.8, 295.8, 295.8, 295.8, 295.8, 295.8, 295.8,
-                   295.8, 291, 291, 291, 291, 291, 291, 291, 291, 291),
-            ion_id = c(2, 2, 2, 2, 2, 1, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 1),
-            adduct = c("[2M+H]+", "[2M+H]+", "[2M+H]+", "[2M+H]+", "[2M+H]+",
-                       "[M-H]-", "[M-H]-", "[M-H]-", "[M-H]-", "[2M+H]+",
-                       "[2M+H]+", "[2M+H]+", "[2M+H]+", "[2M+H]+", "[M-H]-",
-                       "[M-H]-", "[M-H]-", "[M-H]-"),
-            ion_formula = c("C38H81N2O14P2", "C38H81N2O14P2", "C38H81N2O14P2",
-                            "C38H81N2O14P2", "C38H81N2O14P2", "C19H39N1O7P1",
-                            "C19H39N1O7P1", "C19H39N1O7P1", "C19H39N1O7P1",
-                            "C38H81N2O14P2", "C38H81N2O14P2", "C38H81N2O14P2",
-                            "C38H81N2O14P2", "C38H81N2O14P2", "C19H39N1O7P1",
-                            "C19H39N1O7P1", "C19H39N1O7P1", "C19H39N1O7P1"),
-            charge = c(1, 1, 1, 1, 1, -1, -1, -1, -1, 1, 1, 1, 1, 1, -1, -1, -1,
-                       -1),
-            mz = c(851.51575, 852.51908, 853.52182, 854.52452, 855.52745,
-                   424.24696, 425.25028, 426.25264, 427.25529, 851.51575,
-                   852.51908, 853.52182, 854.52452, 855.52745, 424.24696,
-                   425.25028, 426.25264, 427.25529),
-            abd = c(100, 43.35, 12.03, 2.26, 0.34, 100, 21.68, 3.46, 0.42, 100,
-                    43.35, 12.03, 2.26, 0.34, 100, 21.68, 3.46, 0.42),
-            iso = c("M", "M+1", "M+2", "M+3", "M+4", "M", "M+1", "M+2", "M+3",
-                    "M", "M+1", "M+2", "M+3", "M+4", "M", "M+1", "M+2", "M+3")
-        )
-    )
-
-    # 8th test : with a NULL compound name & a compound class
-    testthat::expect_equal(
-        load_ion_db(
-            c("[2M+H]+", "[M-H]-"),
-            "QTOF_XevoG2-S_R25000@200",
-            "test",
-            cpd_name = "OCO",
-            cpd_classes = "LPC"
-        ),
-        empty_db
-    )
-
-    # 9th test : with a compound name & a NULL compound class
-    testthat::expect_equal(
-        load_ion_db(
-            c("[2M+H]+", "[M-H]-"),
-            "QTOF_XevoG2-S_R25000@200",
-            "test",
-            cpd_name = "LPC 11a:0",
-            cpd_classes = "IPO"
-        ),
-        empty_db
-    )
-
-    # 10th test : with a compound name & a compound class
-    testthat::expect_equal(
-        load_ion_db(
-            c("[2M+H]+", "[M-H]-"),
-            "QTOF_XevoG2-S_R25000@200",
-            "test",
-            cpd_names = "LPC 11a:0",
-            cpd_classes = "LPC"
-        ),
-        data.frame(
-            formula = rep("C19H40N1O7P1", 9),
-            class = rep("LPC", 9),
-            name = rep("LPC 11a:0", 9),
-            rt = rep(291, 9),
-            ion_id = c(rep(2, 5), rep(1, 4)),
-            adduct = c(rep("[2M+H]+", 5), rep("[M-H]-", 4)),
-            ion_formula = c(rep("C38H81N2O14P2", 5), rep("C19H39N1O7P1", 4)),
-            charge = c(rep(1, 5), rep(-1, 4)),
-            mz = c(851.51575, 852.51908, 853.52182, 854.52452, 855.52745,
-                   424.24696, 425.25028, 426.25264, 427.25529),
-            abd = c(100, 43.35, 12.03, 2.26, 0.34, 100, 21.68, 3.46, 0.42),
-            iso = c("M", "M+1", "M+2", "M+3", "M+4", "M", "M+1", "M+2", "M+3")
-        )
+        data.frame(load_ion_db(
+            database,
+            instrument,
+            polarity
+        ), row.names = NULL),
+        data.frame(chem_db, row.names = NULL)
     )
 })
 
 testthat::test_that("get_ions", {
     instrument <- "QTOF_XevoG2-S_R25000@200"
-    empty_df_ions <- data.frame(matrix(, nrow = 0, ncol = 6, dimnames = list(
-        c(), c("formula", "adduct", "ion_formula", "charge", "mz", "abd")
-    )))
 
     # should return nothing cause the formula C2N2 don't contain any H
     testthat::expect_identical(
@@ -301,7 +112,7 @@ testthat::test_that("get_ions", {
             adducts[which(adducts$name == "[M-H]-"), ],
             instrument
         ),
-        empty_df_ions
+        list()
     )
     # should return nothing cause the m/z ion is out of the resolution list
     # of the instrument obtained from enviPat
@@ -311,7 +122,7 @@ testthat::test_that("get_ions", {
             adducts[which(adducts$name == "[M-H]-"), ],
             instrument
         ),
-        empty_df_ions
+        list()
     )
 
     # should return only the C18H38N1O7P1 with [2M+H]+
@@ -321,7 +132,7 @@ testthat::test_that("get_ions", {
             adducts[which(adducts$name == "[2M+H]+"), ],
             instrument
         ),
-        data.frame(
+        list(data.frame(
             formula = c("C18H38N1O7P1", "C18H38N1O7P1", "C18H38N1O7P1",
                         "C18H38N1O7P1", "C18H38N1O7P1"),
             adduct = c("[2M+H]+", "[2M+H]+", "[2M+H]+", "[2M+H]+", "[2M+H]+"),
@@ -331,7 +142,7 @@ testthat::test_that("get_ions", {
             mz = c(823.48445, 824.48777, 825.49047, 826.49316, 827.49541),
             abd = c(100, 41.14, 11.11, 2.03, 0.21),
             iso = c("M", "M+1", "M+2", "M+3", "M+4")
-        )
+        ))
     )
 
     # should return only the C18H38N1O7P1 with [M-H]-
@@ -341,16 +152,20 @@ testthat::test_that("get_ions", {
             adducts[which(adducts$name == "[2M+H]+"), ],
             instrument
         ),
-        data.frame(
-            formula = c("C18H38N1O7P1", "C18H38N1O7P1", "C18H38N1O7P1",
-                        "C18H38N1O7P1", "C18H38N1O7P1"),
-            adduct = c("[2M+H]+", "[2M+H]+", "[2M+H]+", "[2M+H]+", "[2M+H]+"),
-            ion_formula = c("C36H77N2O14P2", "C36H77N2O14P2", "C36H77N2O14P2",
-                            "C36H77N2O14P2", "C36H77N2O14P2"),
-            charge = c(1, 1, 1, 1, 1),
-            mz = c(823.48445, 824.48777, 825.49047, 826.49316, 827.49541),
-            abd = c(100, 41.14, 11.11, 2.03, 0.21),
-            iso = c("M", "M+1", "M+2", "M+3", "M+4")
+        list(
+            data.frame(
+                formula = c("C18H38N1O7P1", "C18H38N1O7P1", "C18H38N1O7P1",
+                            "C18H38N1O7P1", "C18H38N1O7P1"),
+                adduct = c("[2M+H]+", "[2M+H]+", "[2M+H]+", "[2M+H]+",
+                           "[2M+H]+"),
+                ion_formula = c("C36H77N2O14P2", "C36H77N2O14P2",
+                                "C36H77N2O14P2", "C36H77N2O14P2",
+                                "C36H77N2O14P2"),
+                charge = c(1, 1, 1, 1, 1),
+                mz = c(823.48445, 824.48777, 825.49047, 826.49316, 827.49541),
+                abd = c(100, 41.14, 11.11, 2.03, 0.21),
+                iso = c("M", "M+1", "M+2", "M+3", "M+4")
+            )
         )
     )
 })
@@ -518,8 +333,7 @@ testthat::test_that("get eic", {
     ))
     ms_file <- db_read_ms_file(
         db,
-        "220221CCM_global__02_ssleu_filtered",
-        "positive"
+        "220221CCM_global_POS_02_ssleu_filtered"
     )
 
     # test the Cer (d18:1/C12:0) in [M+Na]+ at 3.26 min
@@ -560,32 +374,33 @@ testthat::test_that("get eic", {
     testthat::expect_equal(
         get_eic(ms_file, mz_range, rt_range),
         data.frame(
-            rt = c(186.663589477539, 187.293151855469, 187.91943359375,
-                   188.541213989258, 189.160888671875, 190.390289306641,
-                   190.998886108398, 191.605331420898, 192.20849609375,
-                   192.808334350586, 193.404907226562, 193.997055053711,
-                   194.587020874023, 195.173706054688, 195.757110595703,
-                   196.336120605469, 196.912948608398, 197.48649597168,
-                   198.056732177734, 198.622650146484, 199.186340332031,
-                   199.74674987793, 200.85774230957, 201.407287597656,
-                   202.498657226562, 203.039428710938, 203.576934814453,
-                   204.110153198242, 204.641128540039, 205.168853759766,
-                   205.693283081055, 206.213485717773, 206.731414794922,
-                   207.246078491211, 207.75749206543, 208.264694213867,
-                   208.769592285156, 209.271240234375, 209.769638061523,
-                   210.264801025391, 210.755767822266, 211.244415283203,
-                   211.729843139648, 212.212005615234, 212.690032958984,
-                   213.165710449219, 213.638168334961, 214.107376098633,
-                   215.035217285156, 215.494720458984, 215.95100402832,
-                   216.403915405273),
-            int = c(0, 0, 0, 353.10546875, 0, 0, 0, 0, 0, 0, 402.763916015625,
-                    402.763916015625, 0, 0, 0, 0, 0, 0, 130.551635742188,
-                    130.551635742188, 134.438720703125, 0, 0, 0, 0,
-                    1104.9599609375, 0, 339133.5, 1723138, 642538.5,
+            rt = c(181.050979614258, 181.579986572266, 182.109024047852,
+                   182.637054443359, 183.166076660156, 183.695083618164,
+                   184.22412109375, 184.752136230469, 185.281158447266,
+                   185.810180664062, 186.339202880859, 186.868225097656,
+                   187.396240234375, 187.925262451172, 188.454284667969,
+                   188.983291625977, 189.511306762695, 190.040344238281,
+                   190.569366455078, 191.098373413086, 191.626403808594,
+                   192.155426025391, 192.684432983398, 193.213455200195,
+                   193.742462158203, 194.270477294922, 194.799499511719,
+                   195.328521728516, 195.857543945312, 196.38655090332,
+                   196.914566040039, 197.443588256836, 197.972610473633,
+                   198.501617431641, 199.029632568359, 199.558654785156,
+                   200.087677001953, 200.616683959961, 201.14469909668,
+                   201.673706054688, 202.202728271484, 202.731735229492,
+                   203.260757446289, 203.788772583008, 204.317779541016,
+                   204.846801757812, 205.375823974609, 205.903823852539,
+                   206.432830810547, 206.961853027344, 207.490859985352,
+                   208.018859863281, 208.547882080078, 209.076889038086,
+                   209.605911254883, 210.134918212891),
+            int = c(0, 0, 0, 353.10546875, 0, 0, 0, 0, 0, 0, 0,
+                    402.763916015625, 402.763916015625, 0, 0, 0, 0, 0, 0,
+                    130.551635742188, 130.551635742188, 134.438720703125, 0, 0,
+                    0, 0, 0, 0, 1104.9599609375, 0, 339133.5, 1723138, 642538.5,
                     42233.40625, 3690.009765625, 3690.009765625, 0, 0, 0,
                     796.83251953125, 796.83251953125, 178.636962890625, 0, 0, 0,
-                    0, 329.189453125, 0, 0, 0, 490.173828125, 149.362548828125,
-                    0, 219.229248046875, 0)
+                    0, 329.189453125, 0, 0, 0, 490.173828125, 490.173828125,
+                    149.362548828125, 0, 219.229248046875, 0)
         )
     )
 
@@ -631,8 +446,7 @@ testthat::test_that("get mzdev", {
     ))
     ms_file <- db_read_ms_file(
         db,
-        "220221CCM_global__02_ssleu_filtered",
-        "positive"
+        "220221CCM_global_POS_02_ssleu_filtered"
     )
 
     # test the Cer (d18:1/C12:0) in [M+Na]+ at 3.26 min
@@ -673,12 +487,12 @@ testthat::test_that("get mzdev", {
     testthat::expect_equal(
         get_mzdev(ms_file, mz_range, rt_range),
         data.frame(
-            rt = c(188.541213989258, 193.404907226562, 198.056732177734,
-                   199.186340332031, 203.039428710938, 204.110153198242,
-                   204.641128540039, 205.168853759766, 205.693283081055,
-                   206.213485717773, 208.769592285156, 209.769638061523,
-                   212.212005615234, 214.107376098633, 215.035217285156,
-                   215.95100402832),
+            rt = c(182.637054443359, 186.868225097656, 191.098373413086,
+                   192.155426025391, 195.857543945312, 196.914566040039,
+                   197.443588256836, 197.972610473633, 198.501617431641,
+                   199.029632568359, 201.673706054688, 202.731735229492,
+                   205.375823974609, 207.490859985352, 208.547882080078,
+                   209.605911254883),
             mz = c(504.440399169922, 504.4375, 504.437103271484,
                    504.436248779297, 504.441131591797, 504.441040039062,
                    504.440490722656, 504.440124511719, 504.441101074219,

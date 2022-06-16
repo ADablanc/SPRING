@@ -14,6 +14,7 @@ db_get_params(db)
 \itemize{
     \item filter `DataFrame` of one line with columns :
     \itemize{
+        \item polarity `character` "positive" or "negative"
         \item mz_range_min `numeric` m/z range min
         \item mz_range_max `numeric` m/z range max
         \item rt_range_min `numeric` rT range min
@@ -92,6 +93,29 @@ db_get_params(db)
         \item maxFeatures `integer` with the maximum number of peak groups
         to be identified in a single mz slice
     }
+    \item camera `DataFrame` of one line with columns :
+    \itemize{
+        \item cores `numeric` number of cores for parallelization
+        \item sigma `numeric` multiplier of the standard deviation
+        \item perfwhm `numeric` percentage of the FWHM
+        \item intval `character` "into", "maxo" or "intb"
+        \item cor_eic_th `numeric` correlation threshold
+        \item pval `numeric` significant correlation threshold
+        \item graphMethod `character` method selection for grouping peaks
+         after correlation analysis into pseudospectra, could be "hcs" or
+         "lpc"
+        \item calcIso `logical` use isotopic relationship for peak grouping
+        \item calcCiS `logical` use correlation inside samples for peak
+         grouping
+        \item calcCaS `logical` use correlation across samples for peak
+         grouping
+        \item maxiso `numeric(1)` max isotopologues
+        \item ppm `numeric` ppm tolerance
+        \item mzabs `numeric` mDa tolerance
+        \item minfrac `numeric` percentage number of samples which must
+         satisfy 12C/13C rule
+        \item max_peaks `numeric` max how much peaks per thread
+    }
     \item ann `DataFrame` of one line with columns :
     \itemize{
         \item da_tol `numeric` m/z tolerance in Dalton
@@ -99,11 +123,10 @@ db_get_params(db)
         \item abd_tol `numeric` relative abundance tolerance, each peak which
         have an higher difference of relative abundance with its
         corresponding theoretical peak will be discarded
-        \item adduct_names `character` adduct names from the enviPat package
-        collapsed with the character ";"
         \item instrument `character` instrument names from the enviPat
         package
-        \item database `character(1)` name of the database used
+        \item database `character` name of the database used
+        \item polarity `character` "positive" or "negative"
         \item cpd_classes `character vector` compound classes in database to
          used to restrict the annotations, collapsed with the character ";"
     }

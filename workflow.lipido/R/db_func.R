@@ -166,10 +166,8 @@ db_record_samples <- function(db, sample_names) {
         "sample",
         data.frame(
             sample = sample_names,
-            ms_file_positive = NA,
-            ms_file_negative = NA,
-            xset_positive = NA,
-            xset_negative = NA
+            ms_file = NA,
+            xsa = NA
         ),
         overwrite = TRUE
     )
@@ -209,23 +207,16 @@ decompress <- function(obj) {
 #' Record a `xcmsRaw` file in the database
 #' this object is compressed into a blob object before inserting in the
 #' database.
-#' These object are recorded in their corresponding "polarity" column (a sample
-#' could contain a `xcmsRaw` in positive AND a `xcmsRaw` in negative !)
 #' Before doing it, we must first use the function `db_record_samples` in order
 #' to prepopulate the database with the sample name (which is the primary key)
 #'
 #' @param db `SQLiteConnection`
 #' @param sample_name `character(1)` sample name (primary key)
-#' @param polarity `character(1)` "positive" or "negative"
 #' @param ms_file `xcmsRaw` object
-db_record_ms_file <- function(db, sample_name, polarity, ms_file) {
+db_record_ms_file <- function(db, sample_name, ms_file) {
     ms_file <- compress(ms_file)
     query <- sprintf(
-        "UPDATE sample
-        SET
-            ms_file_%s = :a
-        WHERE sample == \"%s\";",
-        polarity,
+        "UPDATE sample SET ms_file = :a WHERE sample == \"%s\";",
         sample_name
     )
     dbExecute(db, query, params = list(a = ms_file))
@@ -236,25 +227,23 @@ db_record_ms_file <- function(db, sample_name, polarity, ms_file) {
 #' @title Get ms file
 #'
 #' @description
-#' Get the `xcmsRaw` of corresponding sample in the polarity desired
+#' Get the `xcmsRaw` of corresponding sample
 #'
 #' @param db `SQLiteConnection`
 #' @param sample_name `character(1)` sample name
-#' @param polarity `character(1)` "positive" or "negative"
 #'
 #' @return an `xcmsRaw` object
-db_read_ms_file <- function(db, sample_name, polarity) {
+db_read_ms_file <- function(db, sample_name) {
     query <- sprintf(
-        "SELECT ms_file_%s
+        "SELECT ms_file
         FROM sample
         WHERE sample == \"%s\";",
-        polarity,
         sample_name
     )
     ms_file <- dbGetQuery(db, query)[1, 1]
     if (is.null(ms_file)) {
         NULL
-    } else if (is.na(ms_file[1])) {
+    } else if (is.na(ms_file)) {
         NULL
     } else {
         decompress(ms_file)
@@ -278,8 +267,6 @@ db_read_ms_file <- function(db, sample_name, polarity) {
 #' conversion was successful
 #' the `xcmsRaw` object is compressed into a `blob` object before inserting in
 #' the database.
-#' This object is recorded in their corresponding "polarity" column (a sample
-#' could contain a `xcmsRaw` in positive AND a `xcmsRaw` in negative !)
 #' Before doing it, we must first use the function `db_record_samples` in order
 #' to prepopulate the database with the sample name (which is the primary key)
 #'
@@ -287,7 +274,6 @@ db_read_ms_file <- function(db, sample_name, polarity) {
 #' @param sample_name `character(1)` sample name (primary key)
 #' @param raw_file `character(1)` filepath to the raw file to convert
 #' @param converter `character(1)` filepath to the msconvert.exe
-#' @param polarity `character(1)` "positive" or "negative"
 #' @param filter_params `FilterParam` object
 #'
 #' @seealso `convert_file`, `record_ms_file`
@@ -295,13 +281,11 @@ import_ms_file <- function(db,
                            sample_name,
                            raw_file,
                            converter,
-                           polarity,
                            filter_params) {
     ms_file <- tryCatch({
             ms_file <- convert_file(
                 raw_file,
                 converter,
-                polarity,
                 filter_params
             )
             attributes(ms_file)$scantime_corrected <- ms_file@scantime
@@ -312,44 +296,31 @@ import_ms_file <- function(db,
         }
     )
     if (class(ms_file) == "xcmsRaw") {
-        db_record_ms_file(db, sample_name, polarity, ms_file)
+        db_record_ms_file(db, sample_name, ms_file)
         "success"
     } else {
         ms_file
     }
 }
 
-#' @title Record `xcmsSet` in the database
+#' @title Record `xsAnnotate` in the database
 #'
 #' @description
-#' Record an `xcmsSet` with the positive results and another with the negative
-#' obtained by XCMS in the sample table
+#' Record an `xsAnnotate`
 #' This record is only use to debugging the `annotate_peaks` function to see why
 #' some peaks were not annotated
 #'
 #' @param db `SQLiteConnection`
-#' @param xset_pos `xcmsSet` object with only the positive result, can be NULL
-#' @param xset_neg `xcmsSet` object with only the negative result, can be NULL
+#' @param xsa `xsAnnotate`
 #' @param sample_name `character(1)` sample name
-db_record_xset <- function(db, xset_pos, xset_neg, sample_name) {
-    if (!is.null(xset_pos)) {
-        query <- sprintf(
-            "UPDATE sample
-            SET xset_positive = :a
-            WHERE sample == \"%s\";",
-            sample_name
-        )
-        dbExecute(db, query, params = list(a = compress(xset_pos)))
-    }
-    if (!is.null(xset_neg)) {
-        query <- sprintf(
-            "UPDATE sample
-            SET xset_negative = :a
-            WHERE sample == \"%s\";",
-            sample_name
-        )
-        dbExecute(db, query, params = list(a = compress(xset_neg)))
-    }
+db_record_xsa <- function(db, xsa, sample_name) {
+    query <- sprintf(
+        "UPDATE sample
+        SET xsa = :a
+        WHERE sample == \"%s\";",
+        sample_name
+    )
+    dbExecute(db, query, params = list(a = compress(xsa)))
 }
 
 #' @title Record the annotation results
@@ -407,70 +378,13 @@ db_record_xset <- function(db, xset_pos, xset_neg, sample_name) {
 #'     isotopologues annotated
 #'     \item rt `numeric` retention time
 #' }
-#' @param peaks `DataFrame` obtained from XCMS, it contains all peaks peak
-#' picked, it contains the columns :
-#' \itemize{
-#'     \item feature_id `integer` feature ID
-#'     \item mz `numeric` m/z
-#'     \item mz_min `numeric` m/z born min
-#'     \item mz_max `numeric` m/z born max
-#'     \item rt `numeric` retention time
-#'     \item rtmin `numeric` retention time born min
-#'     \item rtmax `numeric` retention time born max
-#'     \item int `numeric` area integrated
-#'     \item intb `numeric` area integrated with baseline substracted
-#'     \item maxo `numeric` maximum of intensity
-#'     \item sn `numeric` signal / noise
-#'     \item egauss `numeric` ignore
-#'     \item mu `numeric` ignore
-#'     \item sigma `numeric` ignore,
-#'     \item h `numeric` ignore
-#'     \item f `integer` ID of the ROI in the ROI list constructed by XCMS,
-#'     no use
-#'     \item dppm `numeric` m/z deviation of the peak in ppm
-#'     \item scale `integer` centwave scale used for the integration
-#'     (in scans & not in sec !!!)
-#'     \item scpos `integer` scan position
-#'     \item scmin `integer` scan born min before the optimization of the area
-#'     integrated
-#'     \item scmax `integer` scan born max before the optimization of the area
-#'     integrated
-#'     \item lmin `integer` scan born min after the optimization of the area
-#'     integrated
-#'     \item lmax `integer` scan born max after the optimization of the area
-#'     integrated
-#'     \item sample `character` sample name
-#'     \item polarity `character` polarity
-#' }
-#' @param peak_groups `DataFrame`, each line correspond to a group from XCMS,
-#' the columns are :
-#' \itemize{
-#'     \item group_id `integer` group ID
-#'     \item polarity `character` polarity
-#'     \item mzmed `numeric` m/z median
-#'     \item mzmin `numeric` m/z born min
-#'     (not the mzmin column from the peaklist !)
-#'     \item mzmax `numeric` m/z born max
-#'     (not the mzmax column from the peaklist !)
-#'     \item rtmed `numeric` rt median
-#'     \item rtmin `numeric` rt born min
-#'     (not the rtmin column from the peaklist !)
-#'     \item rtmax `numeric` rt born max
-#'     (not the rtmax column from the peaklist !)
-#'     \item npeaks `integer` number of peaks grouped
-#'     \item ... `integer` a column for each sample which contain the feature ID
-#' }
 db_record_ann <- function(db,
                           ann,
                           spectras,
-                          spectra_infos,
-                          peaks,
-                          peak_groups) {
+                          spectra_infos) {
     dbWriteTable(db, "ann", ann, overwrite = TRUE)
     dbWriteTable(db, "spectras", spectras, overwrite = TRUE)
     dbWriteTable(db, "spectra_infos", spectra_infos, overwrite = TRUE)
-    dbWriteTable(db, "peaks", peaks, overwrite = TRUE)
-    dbWriteTable(db, "peak_groups", peak_groups, overwrite = TRUE)
 }
 
 #' @title Record parameters in database
@@ -512,34 +426,36 @@ db_record_params <- function(db,
 #' Get annotations from database
 #'
 #' @param db `SQLiteConnection`
-#' @param polarity `character(1)` can be positive" or "negative", not mandatory
 #' @param names `character vector` the compound names, not mandatory
 #' @param group_ids `numeric vector` the group IDs, not mandatory
 #'
 #' @return `DataFrame` each line correspond to a compound found
 #' with the columns:
 #' \itemize{
-#'     \item group_id `integer` group ID
-#'     \item class `character` cpd class
-#'     \item name `character` name
-#'     \item formula `character` chemical formula
-#'     \item adduct `character` adduct form
-#'     \item ion_formula `character` ion chemical formula
-#'     \item rtdiff `numeric` retention time difference between the measured &
-#'     the expected
-#'     \item rt `numeric` retention time measured meanned accross the samples
-#'     \item rtmin `numeric` born min of retention time measured accross the
-#'     samples
-#'     \item rtmax `numeric` born max of the retention time measured accross the
-#'      samples
-#'     \item nsamples `integer` number of samples where the compound was found
-#'     \item best_score `numeric` best isotopic score seen
-#'     \item best_deviation_mz `numeric` best m/z deviation seen
-#'     \item best_npeak `integer` best number of isotopologues found
-#'     \item ... `integer` a column for each sample which contain the spectra ID
+#'         \item group_id `integer` group ID
+#'         \item class `character` cpd class
+#'         \item name `character` name
+#'         \item major_adduct `character` majoritary adduct for the compound
+#'         \item formula `character` chemical formula
+#'         \item adduct `character` adduct form
+#'         \item ion_formula `character` ion chemical formula
+#'         \item rtdiff `numeric` retention time difference between the measured
+#'          & the expected
+#'         \item rt `numeric` retention time measured meanned accross the
+#'         samples
+#'         \item rtmin `numeric` born min of retention time measured accross the
+#'         samples
+#'         \item rtmax `numeric` born max of the retention time measured accross
+#'          the samples
+#'         \item nsamples `integer` number of samples where the compound was
+#'         found
+#'         \item best_score `numeric` best isotopic score seen
+#'         \item best_deviation_mz `numeric` best m/z deviation seen
+#'         \item best_npeak `integer` best number of isotopologues found
+#'         \item ... `integer` a column for each sample which contain the
+#'         spectra ID
 #' }
-db_get_annotations <- function(db, polarity = "both", names = NULL,
-                               group_ids = NULL) {
+db_get_annotations <- function(db, names = NULL, group_ids = NULL) {
     query <- "SELECT * FROM ann"
     if (!is.null(group_ids)) {
         query2 <- sprintf(
@@ -554,19 +470,15 @@ db_get_annotations <- function(db, polarity = "both", names = NULL,
     } else {
         query2 <- NULL
     }
-    if (polarity == "positive") {
-        query2 <- c(query2, "adduct LIKE \"%+\"")
-    } else if (polarity == "negative") {
-        query2 <- c(query2, "adduct LIKE \"%-\"")
-    }
     if (!is.null(query2)) {
         query <- paste(
             query,
+            "WHERE",
             paste(
                 query2,
                 collapse = " AND "
             ),
-            sep = " WHERE "
+            sep = " "
         )
     }
     dbGetQuery(db, query)
@@ -617,15 +529,20 @@ db_get_spectra_infos <- function(db, spectra_ids = NULL) {
 #' its corresponding theoretical peak or the theoretical peak missed,
 #' with the columns :
 #' \itemize{
-#'     \item spectra_id `integer` spectra ID
-#'     \item feature_id `integer` feature ID
-#'     \item mz `numeric` m/z
-#'     \item int `numeric` area integrated
-#'     \item abd `numeric` relative abundance
-#'     \item ion_id_theo `integer` ignore
-#'     \item mz_theo `numeric` theoretical m/z
-#'     \item abd_theo `numeric` theoretical relative abundance
-#'     \item iso_theo `character` theoretical isotopologue annotation
+#'         \item spectra_id `integer` spectra ID
+#'         \item feature_id `integer` feature ID
+#'         \item mz `numeric` m/z
+#'         \item mzmin `numeric` m/z born min
+#'         \item mzmax `numeric` m/z born max
+#'         \item rt `numeric` rT
+#'         \item rtmin `numeric` rT born min
+#'         \item rtmax `numeric` rT born max
+#'         \item int `numeric` area integrated
+#'         \item abd `numeric` relative abundance
+#'         \item ion_id_theo `integer` ignore
+#'         \item mz_theo `numeric` theoretical m/z
+#'         \item abd_theo `numeric` theoretical relative abundance
+#'         \item iso_theo `character` theoretical isotopologue annotation
 #' }
 db_get_spectras <- function(db, spectra_ids = NULL) {
     if (is.null(spectra_ids)) {
@@ -654,6 +571,7 @@ db_get_spectras <- function(db, spectra_ids = NULL) {
 #' \itemize{
 #'     \item filter `DataFrame` of one line with columns :
 #'     \itemize{
+#'         \item polarity `character` "positive" or "negative"
 #'         \item mz_range_min `numeric` m/z range min
 #'         \item mz_range_max `numeric` m/z range max
 #'         \item rt_range_min `numeric` rT range min
@@ -733,22 +651,26 @@ db_get_spectras <- function(db, spectra_ids = NULL) {
 #'         to be identified in a single mz slice
 #'     }
 #'     \item camera `DataFrame` of one line with columns :
+#'     \itemize{
 #'         \item cores `numeric` number of cores for parallelization
 #'         \item sigma `numeric` multiplier of the standard deviation
 #'         \item perfwhm `numeric` percentage of the FWHM
 #'         \item intval `character` "into", "maxo" or "intb"
 #'         \item cor_eic_th `numeric` correlation threshold
 #'         \item pval `numeric` significant correlation threshold
-#'         \item graphMethod `character` method selection for grouping peaks after
-#'         correlation analysis into pseudospectra, could be "hcs" or "lpc"
+#'         \item graphMethod `character` method selection for grouping peaks
+#'          after correlation analysis into pseudospectra, could be "hcs" or
+#'          "lpc"
 #'         \item calcIso `logical` use isotopic relationship for peak grouping
-#'         \item calcCiS `logical` use correlation inside samples for peak grouping
-#'         \item calcCaS `logical` use correlation across samples for peak grouping
+#'         \item calcCiS `logical` use correlation inside samples for peak
+#'          grouping
+#'         \item calcCaS `logical` use correlation across samples for peak
+#'          grouping
 #'         \item maxiso `numeric(1)` max isotopologues
 #'         \item ppm `numeric` ppm tolerance
 #'         \item mzabs `numeric` mDa tolerance
-#'         \item minfrac `numeric` percentage number of samples which must satisfy
-#'          12C/13C rule
+#'         \item minfrac `numeric` percentage number of samples which must
+#'          satisfy 12C/13C rule
 #'         \item max_peaks `numeric` max how much peaks per thread
 #'     }
 #'     \item ann `DataFrame` of one line with columns :
@@ -758,11 +680,10 @@ db_get_spectras <- function(db, spectra_ids = NULL) {
 #'         \item abd_tol `numeric` relative abundance tolerance, each peak which
 #'         have an higher difference of relative abundance with its
 #'         corresponding theoretical peak will be discarded
-#'         \item adduct_names `character` adduct names from the enviPat package
-#'         collapsed with the character ";"
 #'         \item instrument `character` instrument names from the enviPat
 #'         package
-#'         \item database `character(1)` name of the database used
+#'         \item database `character` name of the database used
+#'         \item polarity `character` "positive" or "negative"
 #'         \item cpd_classes `character vector` compound classes in database to
 #'          used to restrict the annotations, collapsed with the character ";"
 
@@ -777,63 +698,6 @@ db_get_params <- function(db) {
         camera = dbReadTable(db, "camera_params")[1, ],
         ann = dbReadTable(db, "ann_params")[1, ]
     )
-}
-
-#' @title Get peaks
-#'
-#' @description
-#' Get peaks from database
-#'
-#' @param db `SQLiteConnection`
-#' @param feature_ids `integer vector` feature IDs
-#'
-#' @return `DataFrame` obtained from XCMS, it contains all peaks peak
-#' picked, it contains the columns :
-#' \itemize{
-#'     \item feature_id `integer` feature ID
-#'     \item mz `numeric` m/z
-#'     \item mz_min `numeric` m/z born min
-#'     \item mz_max `numeric` m/z born max
-#'     \item rt `numeric` retention time
-#'     \item rtmin `numeric` retention time born min
-#'     \item rtmax `numeric` retention time born max
-#'     \item int `numeric` area integrated
-#'     \item intb `numeric` area integrated with baseline substracted
-#'     \item maxo `numeric` maximum of intensity
-#'     \item sn `numeric` signal / noise
-#'     \item egauss `numeric` ignore
-#'     \item mu `numeric` ignore
-#'     \item sigma `numeric` ignore,
-#'     \item h `numeric` ignore
-#'     \item f `integer` ID of the ROI in the ROI list constructed by XCMS,
-#'     no use
-#'     \item dppm `numeric` m/z deviation of the peak in ppm
-#'     \item scale `integer` centwave scale used for the integration
-#'     (in scans & not in sec !!!)
-#'     \item scpos `integer` scan position
-#'     \item scmin `integer` scan born min before the optimization of the area
-#'     integrated
-#'     \item scmax `integer` scan born max before the optimization of the area
-#'     integrated
-#'     \item lmin `integer` scan born min after the optimization of the area
-#'     integrated
-#'     \item lmax `integer` scan born max after the optimization of the area
-#'     integrated
-#'     \item sample `character` sample name
-#'     \item polarity `character` polarity
-#' }
-db_get_peaks <- function(db, feature_ids = NULL) {
-    if (is.null(feature_ids)) {
-        dbReadTable(db, "peaks")
-    } else {
-        query <- sprintf(
-            "SELECT *
-                FROM peaks
-                WHERE feature_id IN (%s);",
-            paste(feature_ids, collapse = ", ")
-        )
-        dbGetQuery(db, query)
-    }
 }
 
 #' @title Count nsamples

@@ -6,8 +6,7 @@
 \usage{
 obiwarp(
   sqlite_path,
-  samples,
-  polarity,
+  sample_names,
   xsets,
   obw_params,
   operator = foreach::"\%do\%",
@@ -17,11 +16,8 @@ obiwarp(
 \arguments{
 \item{sqlite_path}{`character(1)` path to the sqlite file}
 
-\item{samples}{`character vector` name of the samples in the database, needed
-to load the `xcmsRaw` objects}
-
-\item{polarity}{`character(1)` "negative" or "positive", needed to load the
-good `xcmsRaw` objects}
+\item{sample_names}{`character vector` name of the samples in the database,
+needed to load the `xcmsRaw` objects}
 
 \item{xsets}{`xcmsSet list`}
 

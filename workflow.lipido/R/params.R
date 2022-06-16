@@ -104,11 +104,13 @@ check_ms_process_args <- function(raw_files,
 
 #' A class containing the filter parameters
 #'
+#' @slot polarity `character(1)` polarity to filter files
 #' @slot mz_range `numeric(2)` the m/z range to trim all ms files
 #' @slot rt_range `numeric(2)` the rT range to trim all ms files (in sec)
 setClass(
     "FilterParam",
     slots = c(
+        polarity = "character",
         mz_range = "numeric",
         rt_range = "numeric"
     )
@@ -124,35 +126,52 @@ setClass(
 #'
 #' @return `FilterParam` object
 FilterParam <- function(cwt_params, ann_params) {
-    chem_db <- load_ion_db(
-        ann_params@adduct_names,
-        ann_params@instrument,
+    chem_db <- load_chem_db(
         ann_params@database,
-        cpd_classes = ann_params@cpd_classes
+        ann_params@polarity,
+        ann_params@cpd_classes
     )
-    if (nrow(chem_db) == 0) {
-        stop("no chemical compounds can be loaded with the given parameters")
+    if (ann_params@polarity == "positive") {
+        adducts_restricted <- adducts[adducts$charge >= 1, , drop = FALSE]
+    } else if (ann_params@polarity == "negative") {
+        adducts_restricted <- adducts[adducts$charge <= -1, , drop = FALSE]
     }
+    ions <- do.call(rbind, get_ions(
+        unique(chem_db$formula),
+        list(
+            name = "[M]",
+            nmol = 1,
+            formula_add = FALSE,
+            formula_ded = FALSE,
+            charge = 0
+        ),
+        ann_params@instrument
+    ))
 
     # xcms define noiserange as peakwidth * 3 !
     rt_range <- range(chem_db$rt)
     rt_tol <- max(cwt_params@peakwidth[2] * 3, ann_params@rt_tol)
-    rt_range[1] <- rt_range[1] - rt_tol
+    rt_range[1] <- max(rt_range[1] - rt_tol, 0)
     rt_range[2] <- rt_range[2] + rt_tol
 
-    mz_range <- range(chem_db$mz)
+    mz_range <- range(ions$mz)
     mz_range <- c(
-        mz_range[1] - max(
+        max(0, mz_range[1] + min(adducts_restricted$massdiff) - max(
             convert_ppm_da(cwt_params@ppm, mz_range[1]),
             ann_params@da_tol
-        ),
-        mz_range[2] + max(
+        )),
+        mz_range[2] + max(adducts_restricted$massdiff) + max(
             convert_ppm_da(cwt_params@ppm, mz_range[2]),
             ann_params@da_tol
         )
     )
 
-    methods::new("FilterParam", mz_range = mz_range, rt_range = rt_range)
+    methods::new(
+        "FilterParam",
+        polarity = ann_params@polarity,
+        mz_range = mz_range,
+        rt_range = rt_range
+    )
 }
 
 #' A class containing the filter parameters
@@ -225,10 +244,6 @@ setClass(
                 any(object@perfwhm >= 1)) {
             msg <- c(msg, "perfwhm need to be a number between 0 and 1")
         }
-        if (length(object@intval) != 1 | !any(object@intval %in%
-                                              c("into", "intb", "maxo"))) {
-            msg <- c(msg, "intval must be \"into\", \"intb\" or \"maxo\"")
-        }
         if (length(object@cor_eic_th) != 1 | any(object@cor_eic_th <= 0) |
                 any(object@cor_eic_th >= 1)) {
             msg <- c(msg, "cor_eic_th must be a number between 0 and 1")
@@ -240,31 +255,6 @@ setClass(
         if (length(object@graphMethod) != 1 |
                 !any(object@graphMethod %in% c("lpc", "hcs"))) {
             msg <- c(msg, "graphMethod must be \"lpc\" or \"hcs\"")
-        }
-        if (length(object@calcIso) != 1) {
-            msg <- c(msg, "calcIso must be a unique boolean")
-        }
-        if (length(object@calcCiS) != 1) {
-            msg <- c(msg, "calcIso must be a unique boolean")
-        }
-        if (length(object@calcCaS) != 1) {
-            msg <- c(msg, "calcIso must be a unique boolean")
-        }
-        if (length(object@maxiso) != 1 | any(object@maxiso <= 0)) {
-            msg <- c(msg, "maxiso must be a positive number")
-        }
-        if (length(object@ppm) != 1 | any(object@ppm < 0)) {
-            msg <- c(msg, "ppm must be a positive number")
-        }
-        if (length(object@mzabs) != 1 | any(object@mzabs <= 0)) {
-            msg <- c(msg, "mzabs must be a positive number")
-        }
-        if (length(object@minfrac) != 1 | any(object@minfrac < 0) |
-                any(object@minfrac > 1)) {
-            msg <- c(msg, "minfrac must be a number between 0 and 1")
-        }
-        if (length(object@max_peaks) != 1 | any(object@max_peaks <= 0)) {
-            msg <- c(msg, "max_peaks must be a positive number")
         }
         if (length(msg) > 0) {
             paste(msg, collapse = "\n  ")
@@ -279,17 +269,15 @@ setClass(
 #' @description
 #' Create CameraParam object, some parameters like `max_iso` will be computed by
 #'  loading the chemical database
-#' This object will store CAMERA parameters but a lot of them will be computed
-#' on the fly according the adducts recorded on the app & the polarity choose
-#' along the processing
+#' This object will store CAMERA parameters
 #'
 #' @param ann_params `AnnotationParam` object
-#' @slot cores `numeric(1)` number of cores for parallelization
-#' @slot sigma `numeric(1)` multiplier of the standard deviation
-#' @slot perfwhm `numeric(1)` percentage of the FWHM
-#' @slot cor_eic_th `numeric(1)` correlation threshold
-#' @slot pval `numeric(1)` significant correlation threshold
-#' @slot graphMethod `character(1)` method selection for grouping peaks after
+#' @param cores `numeric(1)` number of cores for parallelization
+#' @param sigma `numeric(1)` multiplier of the standard deviation
+#' @param perfwhm `numeric(1)` percentage of the FWHM
+#' @param cor_eic_th `numeric(1)` correlation threshold
+#' @param pval `numeric(1)` significant correlation threshold
+#' @param graphMethod `character(1)` method selection for grouping peaks after
 #' correlation analysis into pseudospectra, could be "hcs" or "lpc"
 
 #' @return `CameraParam` object
@@ -326,26 +314,27 @@ CameraParam <- function(ann_params, cores = 1, sigma = 6, perfwhm = .6,
     if (class(ann_params) != "AnnotationParam") {
         stop("ann_params must be an AnnotationParam object")
     }
-    chem_db <- load_chem_db(ann_params@database)
-    ions <- get_ions(
-        chem_db$formula,
-        list(
-            name = "[M]+",
-            nmol = 1,
-            formula_add = FALSE,
-            formula_ded = FALSE,
-            charge = 0
-        ),
-        ann_params@instrument
+    chem_db <- load_ion_db(
+        ann_params@database,
+        ann_params@instrument,
+        ann_params@polarity,
+        cpd_classes = ann_params@cpd_classes
     )
+
     max_iso <- max(
-        suppressWarnings(as.numeric(gsub("M\\+", "", ions$iso))),
+        suppressWarnings(as.numeric(gsub("M\\+", "", chem_db$iso))),
         na.rm = TRUE
-    )
+    ) + 1
+    if (ann_params@polarity == "positive") {
+        adducts_restricted <- adducts[adducts$charge >= 1, , drop = FALSE]
+    } else if (ann_params@polarity == "negative") {
+        adducts_restricted <- adducts[adducts$charge <= -1, , drop = FALSE]
+    }
+
     methods::new(
         "CameraParam",
         cores = cores,
-        polarity = NA_character_,
+        polarity = ann_params@polarity,
         sigma = sigma,
         perfwhm = perfwhm,
         intval = "into",
@@ -355,53 +344,17 @@ CameraParam <- function(ann_params, cores = 1, sigma = 6, perfwhm = .6,
         calcIso = TRUE,
         calcCiS = TRUE,
         calcCaS = TRUE,
-        maxcharge = 0, # will be defined according the polarity at the moment
-        maxiso = max_iso, # will be defined according the polarity at the moment
+        maxcharge = max(abs(adducts_restricted$charge)),
+        maxiso = max_iso,
         ppm = 0,
         mzabs = ann_params@da_tol,
         minfrac = 0,
-        rules = data.frame(), # will be defined according the polarity at the moment
-        multiplier = 0,
+        rules = adducts_restricted[, c("name", "nmol", "charge", "massdiff",
+                                       "oidscore", "quasi", "ips")],
+        multiplier = max(adducts_restricted$nmol),
         max_peaks = 100
     )
 }
-
-#' @title Restrict the camera params
-#'
-#' @description
-#' Restrict the parameters `rules` parameters by reducing the adducts at only
-#' those which match the `polarity` parameter
-#' It will also optimize the parameters `maxcharge` and `multiplier` according
-#' the restricted list of adducts
-#'
-#' @param object `CameraParam` object
-#' @param polarity `character(1)` "positive" or "negative" only
-#'
-#' @return `CameraParam` object with the slots `rules`, `polarity`, `multiplier`
-#'  and `charge` updated
-setGeneric("restrict_camera_param_polarity", function(object, polarity)
-    standardGeneric("restrict_camera_param_polarity")
-)
-setMethod(
-    "restrict_camera_param_polarity",
-    "CameraParam",
-    function(object, polarity) {
-        if (polarity == "positive") {
-            adducts_restricted <- adducts[adducts$charge >= 1, , drop = FALSE]
-        } else if (polarity == "negative") {
-            adducts_restricted <- adducts[adducts$charge <= -1, , drop = FALSE]
-        } else {
-            stop("polarity must be set to \"positive\" or \"negative\"")
-        }
-        object@polarity <- polarity
-        object@maxcharge <- max(abs(adducts_restricted$charge))
-        object@multiplier <- max(adducts_restricted$nmol)
-        object@rules <- adducts_restricted[, c("name", "nmol", "charge",
-                                               "massdiff", "oidscore", "quasi",
-                                               "ips")]
-        object
-    }
-)
 
 #' A class containing the annotation parameters
 #'
@@ -410,8 +363,8 @@ setMethod(
 #' @slot abd_tol `numeric(1)` relative abundance tolerance, each peak which
 #' have an higher difference of relative abundance with its corresponding
 #' theoretical peak will be discarded
-#' @slot adduct_names `character vector` adduct names from the enviPat package
 #' @slot instrument `character(1)` instrument names from the enviPat package
+#' @slot polarity `character(1)` "positive" or "negative"
 #' @slot database `character(1)` name of the database to load
 #' @slot cpd_classes `character vector` compound classes in database to
 #' restrict for annotation
@@ -421,8 +374,8 @@ setClass(
         da_tol = "numeric",
         rt_tol = "numeric",
         abd_tol = "numeric",
-        adduct_names = "character",
         instrument = "character",
+        polarity = "character",
         database = "character",
         cpd_classes = "character"
     ),
@@ -440,16 +393,6 @@ setClass(
             msg <- c(msg,
                      "abd_tol need to be a positive number between 0 & 100")
         }
-        test <- which(!object@adduct_names %in% adducts$name)
-        if (length(test) > 0) {
-            msg <- c(msg, sprintf(
-                "%s doesn't exists in the adduct list",
-                paste(
-                    object@adduct_names[test],
-                    collapse = " and "
-                )
-            ))
-        }
         if (length(object@instrument) != 1) {
             msg <- c(msg, "an instrument is required")
         }
@@ -459,28 +402,19 @@ setClass(
                 object@instrument
             ))
         }
-        if (!object@database %in% get_available_database()) {
-            msg <- c(msg, sprintf(
-                "%s doesn't exist in software",
-                object@database
-            ))
-        } else {
-            test <- which(!object@cpd_classes %in%
-                              unique(load_chem_db(object@database)$class))
-            if (length(test) > 0) {
-                msg <- c(msg, sprintf(
-                    "%s doesn't exists in database",
-                    paste(
-                        object@cpd_classes[test],
-                        collapse = " and "
-                    )
-                ))
-            }
-        }
         if (length(msg) > 0) {
             paste(msg, collapse = "\n  ")
         } else {
-            TRUE
+            chem_db <- load_chem_db(
+                object@database,
+                object@polarity,
+                object@cpd_classes
+            )
+            if (nrow(chem_db) == 0) {
+                "No chemicals can be loaded with the given parameters"
+            } else {
+                TRUE
+            }
         }
     }
 )
@@ -495,10 +429,9 @@ setClass(
 #' @param abd_tol `numeric(1)` relative abundance tolerance, each peak which
 #' have an higher difference of relative abundance with its corresponding
 #' theoretical peak will be discarded
-#' @param adduct_names `character vector` adduct names from the enviPat package
-#' (optional)
 #' @param instrument `character(1)` instrument names from the enviPat package
 #' @param database `character(1)` name of the database to load
+#' @param polarity `character(1)` "positive" or "negative"
 #' @param cpd_classes `character vector` compound classes in database to
 #' restrict for annotation
 #'
@@ -510,71 +443,36 @@ setClass(
 #'      da_tol = .015,
 #'      rt_tol = 10,
 #'      abd_tol = 25,
-#'      adduct_name = c("[M+H]+", "[M+Na]+", "[M+H-H2O]+", "[M+NH4]+",
-#'                      "[M-H]-"),
 #'      instrument = "QTOF_XevoG2-S_R25000@200",
 #'      database = "test"
 #' )}
 AnnotationParam <- function(da_tol = 0.015,
                             rt_tol = 10,
                             abd_tol = 25,
-                            adduct_names = NULL,
                             instrument = "QTOF_XevoG2-S_R25000@200",
-                            database = NULL,
+                            database = "test",
+                            polarity = "positive",
                             cpd_classes = NULL) {
-    if (length(adduct_names) == 0) {
-        adduct_names <- adducts$name
+    if (!database %in% get_available_database()) {
+        stop(sprintf("database %s doesn't exist in software", database))
     }
-    if (length(database) == 0) {
-        database <- get_available_database()[1]
+    if (polarity != "positive" & polarity != "negative") {
+        stop("polarity needs to be \"positive\" or \"negative\"")
     }
     if (length(cpd_classes) == 0) {
-        cpd_classes <- unique(load_chem_db(database)$class)
+        cpd_classes <- unique(load_chem_db(database, polarity)$class)
     }
     methods::new(
         "AnnotationParam",
         da_tol = da_tol,
         rt_tol = rt_tol,
         abd_tol = abd_tol,
-        adduct_names = adduct_names,
         instrument = instrument,
         database = database,
+        polarity = polarity,
         cpd_classes = cpd_classes
     )
 }
-
-#' @title Restrict Annotation parameters
-#'
-#' @description
-#' will recreate a new `AnnotationParam` with a set of adduct according a
-#' polarity
-#'
-#' @param object `AnnotationParam`
-#' @param polarity `character(1)` "positive" or "negative"
-#'
-#' @return `AnnotationParam` object
-setGeneric("restrict_ann_param_polarity", function(object, polarity)
-    standardGeneric("restrict_ann_param_polarity")
-)
-setMethod(
-    "restrict_ann_param_polarity",
-    "AnnotationParam",
-    function(object, polarity) {
-        adducts_restricted <- adducts[adducts$name %in% object@adduct_names,
-                                      , drop = FALSE]
-        if (polarity == "positive") {
-            adducts_restricted <- adducts_restricted[
-                adducts_restricted$charge >= 1, , drop = FALSE]
-        } else if (polarity == "negative") {
-            adducts_restricted <- adducts_restricted[
-                adducts_restricted$charge <= -1, , drop = FALSE]
-        } else {
-            stop("polarity must be set to \"positive\" or \"negative\"")
-        }
-        object@adduct_names <- adducts_restricted$name
-        object
-    }
-)
 
 setGeneric("params_to_dataframe", function(object)
     standardGeneric("params_to_dataframe")
@@ -589,6 +487,7 @@ setGeneric("params_to_dataframe", function(object)
 #'
 #' @return `DataFrame` with one line & the columns:
 #' \itemize{
+#'     \item polarity `character` "positive" or "negative"
 #'     \item mz_range_min `numeric` m/z range min
 #'     \item mz_range_max `numeric` m/z range max
 #'     \item rt_range_min `numeric` rT range min
@@ -599,6 +498,7 @@ setMethod(
     "FilterParam",
     function(object) {
         data.frame(
+            polarity = object@polarity,
             mz_range_min = object@mz_range[1],
             mz_range_max = object@mz_range[2],
             rt_range_min = object@rt_range[1],
@@ -795,6 +695,7 @@ setMethod(
             calcIso = as.numeric(object@calcIso),
             calcCiS = as.numeric(object@calcCiS),
             calcCaS = as.numeric(object@calcCaS),
+            maxcharge = object@maxcharge,
             maxiso = object@maxiso,
             ppm = object@ppm,
             mzabs = object@mzabs,
@@ -818,10 +719,10 @@ setMethod(
 #'     \item abd_tol `numeric` relative abundance tolerance, each peak which
 #'     have an higher difference of relative abundance with its corresponding
 #'     theoretical peak will be discarded
-#'     \item adduct_names `character` adduct names from the enviPat package
 #'     collapsed with the character ";"
 #'     \item instrument `character` instrument names from the enviPat package
-#'     \item database `character(1)` name of the database to load
+#'     \item database `character` name of the database to load
+#'     \item polarity `character` "positive" or "negative"
 #'     \item cpd_classes `character` compound classes in database to restrict
 #'     for annotation collapsed with the character ";"
 #' }
@@ -833,12 +734,9 @@ setMethod(
             da_tol = object@da_tol,
             rt_tol = object@rt_tol,
             abd_tol = object@abd_tol,
-            adduct_names = paste(
-                object@adduct_names,
-                collapse = ";"
-            ),
             instrument = object@instrument,
             database = object@database,
+            polarity = object@polarity,
             cpd_classes = paste(
                 object@cpd_classes,
                 collapse = ";"

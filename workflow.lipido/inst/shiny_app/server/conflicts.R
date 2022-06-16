@@ -82,11 +82,9 @@ output$conflicts_info <- shiny::renderText({
 #'     \item Max iso `numeric` max number of isopologue identified
 #' }
 output$conflicts_table <- DT::renderDataTable({
-    default_table <- data.frame(matrix(, nrow = 0, ncol = 8, dimnames = list(
-        c(), c("Already seen with", "Conflicted adduct",
-                 "Already seen in nSamples", "Conflicted nSamples",
-                 "Diff rT (sec)", "Best score (%)", "Best m/z dev (mDa)",
-                 "Max iso"))),
+    default_table <- data.frame(matrix(, nrow = 0, ncol = 7, dimnames = list(
+        c(), c("nSamples", "rT (min)", "Diff rT (sec)", "Adducts",
+               "Best score (%)", "Best m/z dev (mDa)", "Max iso"))),
         check.names = FALSE)
 
     params <- list(
@@ -103,54 +101,34 @@ output$conflicts_table <- DT::renderDataTable({
             stop("something wrongs with conflict_id")
         }
 
-        params$conflict <- db_get_annotations(
+        ann <- db_get_annotations(
             db(),
             group_ids = conflicts()[conflict_id()]
         )
-        conflict <- params$conflict[, c("name", "rtdiff", "adduct", "nsamples",
-                                 "best_score", "best_deviation_mz",
-                                 "best_npeak")]
-
-        params$ann <- db_get_annotations(db(), names = conflict$name)
         nsamples <- db_get_nsamples(db())
-        ann <- params$ann[!params$ann$group_id %in% conflicts(), , drop = FALSE]
-        spectra_ids <- without_na(unlist(
-            ann[, (ncol(ann) - nsamples + 1):ncol(ann)]
-        ))
+        spectra_ids <- na.omit(unlist(
+            ann[, (ncol(ann) - nsamples + 1):ncol(ann)]))
         spectra_infos <- db_get_spectra_infos(db(), spectra_ids)
-        info_conflict <- summarise_ann(ann, spectra_infos, nsamples)
-        info_conflict <- info_conflict[, c("name", "Adducts", "nSamples")]
-        conflict <- merge(conflict, info_conflict, all.x = TRUE)
-
-        cpd_names <- conflict$name
-        conflict <- conflict[c("Adducts", "adduct", "nSamples", "nsamples",
-                               "rtdiff", "best_score", "best_deviation_mz",
-                               "best_npeak")]
-        conflict[, c("rtdiff", "best_score")] <- round(
-            conflict[, c("rtdiff", "best_score")])
-        conflict$best_deviation_mz <- round(conflict$best_deviation_mz, 2)
-        colnames(conflict) <- c("Already seen with", "Conflicted adduct",
-                                "Already seen in nSamples",
-                                "Conflicted nSamples", "Diff rT (sec)",
-                                "Best score (%)", "Best m/z dev (mDa)",
-                                "Max iso")
-
-        conflict <- cbind(
-            Valid = sapply(seq(nrow(conflict)), function(bttn_val)
+        ann <- summarise_ann(ann, spectra_infos, nsamples)$resume
+        ann <- ann[, c("Name", "nSamples", "rT (min)", "Diff rT (sec)",
+                       "Adducts", "Best score (%)", "Best m/z dev (mDa)",
+                       "Max iso")]
+        ann <- cbind(
+            Valid = sapply(seq(nrow(ann)), function(bttn_val)
                 as.character(
                     shiny::actionButton(
-                        inputId = paste("conflicts_table_bttn", bttn_val),
+                        inputId = paste("conflicts_table_bttn-", bttn_val),
                         label = "",
                         icon = shiny::icon("check"),
                         class = "btn-success",
-                        value = bttn_val
+                        value = as.character(ann[bttn_val, "Name"])
                     )
                 )
             ),
-            conflict
+            ann
         )
-        rownames(conflict) <- cpd_names
-        conflict
+        rownames(ann) <- as.character(ann$Name)
+        ann[, -2]
     }, invalid = function(i) {
         print("########## conflicts_table")
         print(params)
@@ -189,13 +167,13 @@ output$conflicts_table <- DT::renderDataTable({
                         // select first row
                         $(table.row(0).node()).addClass("selected");
                         Shiny.onInputChange(
-                             "conflict_row_selected",
-                             table.row(0).index() + 1
+                             "conflict_name_selected",
+                             table.cell(0, 0).data()
                          );
                     } else {
                         Shiny.onInputChange(
                              "conflict_name_selected",
-                             0
+                             ""
                          );
                     }
                 }
@@ -207,8 +185,8 @@ output$conflicts_table <- DT::renderDataTable({
                 $(table.rows(".selected").nodes()).removeClass("selected");
                 $(table.row(this).node()).addClass("selected");
                  Shiny.onInputChange(
-                     "conflict_row_selected",
-                     table.row(this).index() + 1
+                     "conflict_name_selected",
+                     table.cell(".selected", 0).data()
                  );
             }
          })
@@ -239,39 +217,25 @@ output$conflicts_table <- DT::renderDataTable({
 #' }
 #'
 #' @param db `reactive value` contains the pointer to the db
-#' @param conflicts() `reactive value` group IDs where a conflict was detected
-#' @param conflict_id `reactive value` conflict ID
-#' @param input$conflict_row_selected `numeric` row ID selected in the conflict
+#' @param input$conflict_name_selected `character` name of the conflicted cpd
 #'  table
 #'
 #' @param `plotly`
 output$conflicts_ms <- plotly::renderPlotly({
     params <- list(
         db = db(),
-        conflicts = conflicts(),
-        conflict_id = conflict_id(),
-        conflict_row_selected = input$conflict_row_selected
+        conflict_name_selected = input$conflict_name_selected
     )
+    print(params)
     tryCatch({
-        if (length(params$conflicts) == 0) {
-            custom_stop("invalid", "no conflicts")
-        } else if (
-            params$conflict_id > length(params$conflicts) |
-            params$conflict_id < 1
-        ) {
-            stop("something wrongs with conflict_id")
-        } else if (length(params$conflict_row_selected) == 0) {
+        if (length(params$conflict_name_selected) == 0) {
             custom_stop("invalid", "no row selected")
-        } else if (params$conflict_row_selected == "0") {
+        } else if (params$conflict_name_selected == "") {
             custom_stop("invalid", "no rows in the table")
         }
-        params$conflict <- db_get_annotations(
-            db(),
-            group_ids = conflicts()[conflict_id()]
-        )
         plot_annotation_ms(
             db(),
-            params$conflict[params$conflict_row_selected, "name"]
+            params$conflict_name_selected
         )
     }, invalid = function(i) {
         print("########## conflicts_ms")
@@ -304,19 +268,14 @@ observeEvent(input$conflicts_table_valid, {
         db = db(),
         conflicts = conflicts(),
         conflict_id = conflict_id(),
-        conflicts_table_valid = input$conflicts_table_valid
+        conflicts_table_valid = input$conflicts_table_valid$value
     )
     tryCatch({
-        params$conflict <- db_get_annotations(
-            db(),
-            group_ids = conflicts()[conflict_id()]
-        )
-        i <- as.numeric(params$conflicts_table_valid$value)
-        db_resolve_conflict(
-            db(),
-            params$conflict[i, "group_id"],
-            params$conflict[i, "name"]
-        )
+        # db_resolve_conflict(
+        #     db(),
+        #     conflicts()[conflict_id()],
+        #     params$conflicts_table_valid
+        # )
         conflicts(conflicts()[-conflict_id()])
         conflict_id(
             if (length(conflicts()) == 0) 0
@@ -325,9 +284,8 @@ observeEvent(input$conflicts_table_valid, {
         )
         # to force all the outputs to reload if they use the data from the db
         toastr_success(sprintf(
-            "%s %s annotated",
-            params$conflict[i, "name"],
-            params$conflict[i, "adduct"]
+            "%s annotated",
+            params$conflicts_table_valid
         ))
     }, error = function(e) {
         print("########## conflicts_table_valid")

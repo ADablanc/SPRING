@@ -5,20 +5,19 @@
 \title{Get all ions of chemical database}
 \usage{
 load_ion_db(
-  adduct_names,
-  instrument,
   database,
+  instrument,
+  polarity,
   cpd_classes = NULL,
   cpd_names = NULL
 )
 }
 \arguments{
-\item{adduct_names}{`character vector`vector of adduct names present in the
-enviPat list}
+\item{database}{`character(1)` name of the database to load}
 
 \item{instrument}{`character(1)` instrument name for enviPat}
 
-\item{database}{`character(1)` name of the database to load}
+\item{polarity}{`character(1)` polarity to restrict database}
 
 \item{cpd_classes}{`character vector` compound classes to restrict}
 
@@ -28,11 +27,11 @@ enviPat list}
 DataFrame with
 \itemize{
      \item formula chemical formula
+     \item adduct majoritary adduct used for the compound
      \item class class of the compound
      \item name of the compound
      \item rt retention time of the compound
      \item ion_id id unique for an entry of the database + adduct associated
-     \item adduct adduct name
      \item ion_formula ion chemical formula
      \item charge charge of the ion
      \item mz m/z
@@ -42,4 +41,6 @@ DataFrame with
 }
 \description{
 Get all m/z & relative abundance for the internal database
+It will compute each m/z by taking the adduct given in the database for each
+compound
 }

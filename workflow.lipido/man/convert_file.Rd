@@ -4,14 +4,12 @@
 \alias{convert_file}
 \title{Convert RAW file}
 \usage{
-convert_file(raw_file, converter, polarity, filter_params)
+convert_file(raw_file, converter, filter_params)
 }
 \arguments{
 \item{raw_file}{`character(1)` filepath}
 
 \item{converter}{`character(1)` filepath to msconvert executable}
-
-\item{polarity}{`character(1)` "positive" or "negative" only !}
 
 \item{filter_params}{`FilterParam` object}
 }
