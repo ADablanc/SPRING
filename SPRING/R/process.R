@@ -136,7 +136,7 @@ ms_process <- function(raw_files,
         filter_params <- FilterParam(cwt_params, ann_params)
 
         if (cores > 1) {
-            cl <- parallel::makeCluster(cores)
+            cl <- parallel::makeCluster(min(cores, length(raw_files)))
             parallel::clusterExport(
                 cl,
                 list("sqlite_path", "db_connect", "dbExecute", "dbWriteTable",
