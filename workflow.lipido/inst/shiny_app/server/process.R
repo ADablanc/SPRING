@@ -349,9 +349,23 @@ shiny::observeEvent(input$process_launch, {
             conflicts(sapply(conflicts, function(x) x[[1]][1, "group_id"]))
             if (length(conflicts) > 0) conflict_id(1)
             else conflict_id(0)
+            shiny::updateSliderInput(
+                session,
+                inputId = "ms_map_int_threshold",
+                max = dbGetQuery(
+                    db(),
+                    "SELECT ROUND(MAX(basepeak_int))
+                FROM spectra_infos"
+                )[1, 1]
+            )
         } else {
             conflicts(c())
             conflict_id(0)
+            shiny::updateSliderInput(
+                session,
+                inputId = "ms_map_int_threshold",
+                max = 0
+            )
         }
     }, invalid = function(i) NULL
     , invalid_2 = function(i) {

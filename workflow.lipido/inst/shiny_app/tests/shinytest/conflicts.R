@@ -102,6 +102,7 @@ app$setInputs(
     wait_ = FALSE,
     values_ = FALSE
 )
+Sys.sleep(1)
 app$snapshot(
     items = list(
         input = c(
@@ -161,6 +162,7 @@ app$snapshot(
 # 4th test : click on the second line (the ms plot should change)
 app$executeScript(paste0("$($(\"#conflicts_table\").data(\"datatable\").row(1)",
                          ".node()).click()"))
+Sys.sleep(1)
 app$snapshot(
     items = list(
         input = c(

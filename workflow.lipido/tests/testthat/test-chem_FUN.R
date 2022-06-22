@@ -541,3 +541,13 @@ testthat::test_that("get_mz_range", {
         c(464.4449818, 464.4496263)
     )
 })
+
+testthat::test_that("kendrick", {
+    testthat::expect_equal(
+        get_kendrick_mass(c(428.26777, 504.44048)),
+        list(
+            x = c(427.789562382051, 503.87721725357),
+            y = c(0.789562382051429, 0.877217253570052)
+        )
+    )
+})

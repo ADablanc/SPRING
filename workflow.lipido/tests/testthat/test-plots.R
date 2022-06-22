@@ -676,3 +676,305 @@ testthat::test_that("plot EIC m/z dev", {
         unlist(p[[8]]) == unlist(p2$plot_eic_mzdev[[5]][[8]])
     ))
 })
+
+testthat::test_that("plot MS map", {
+    db_empty <- db_connect(":memory:")
+    db <- db_connect(system.file(
+        "testdata",
+        "220221CCM_global.sqlite",
+        package = "workflow.lipido"
+    ))
+
+    # 1st test : without db
+    testthat::expect_error(
+        plot_ms_map(NULL),
+        "db must be a connection to the sqlite database"
+    )
+
+    # 2nd test : with no sample files in database (not yet processed)
+    p <- plot_ms_map(db_empty)
+    p2 <- readRDS(system.file(
+        "testdata",
+        "plots.RDS",
+        package = "workflow.lipido"
+    ))
+    RSQLite::dbDisconnect(db_empty)
+    testthat::expect_true(all(
+        unlist(p[[1]]$attrs) == unlist(p2$plot_ms_map[[1]][[1]]$attrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$layoutAttrs) ==
+            unlist(p2$plot_ms_map[[1]][[1]]$layoutAttrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$config) == unlist(p2$plot_ms_map[[1]][[1]]$config)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[8]]) == unlist(p2$plot_ms_map[[1]][[8]])
+    ))
+
+    # 3rd test : error on type of plot
+    testthat::expect_error(
+        plot_ms_map(db, type = "type error"),
+        "type must be \"MS map\" or \"Kendrick plot\""
+    )
+
+    # 4th test : MS map
+    p <- plot_ms_map(db, type = "MS map")
+    testthat::expect_true(all(
+        unlist(p[[1]]$attrs) == unlist(p2$plot_ms_map[[2]][[1]]$attrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$layoutAttrs) ==
+            unlist(p2$plot_ms_map[[2]][[1]]$layoutAttrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$config) == unlist(p2$plot_ms_map[[2]][[1]]$config)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[8]]) == unlist(p2$plot_ms_map[[2]][[8]])
+    ))
+
+
+    # 5th test : test kendrick mass defect plot
+    p <- plot_ms_map(db, type = "Kendrick plot")
+    testthat::expect_true(all(
+        unlist(p[[1]]$attrs) == unlist(p2$plot_ms_map[[3]][[1]]$attrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$layoutAttrs) ==
+            unlist(p2$plot_ms_map[[3]][[1]]$layoutAttrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$config) == unlist(p2$plot_ms_map[[3]][[1]]$config)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[8]]) == unlist(p2$plot_ms_map[[3]][[8]])
+    ))
+
+
+    # 6th test : error with annotation_filter
+    testthat::expect_error(
+        plot_ms_map(db, annotation_filter = 1),
+        "annotation_filter must be a character"
+    )
+
+    # 7th test : error with annotation_filter
+    testthat::expect_error(
+        plot_ms_map(db, annotation_filter = "test"),
+        "annotation_filter must be \"no annotated\", \"annotated\" or
+            \"all\""
+    )
+
+    # 8th test : no annotated on MS map
+    p <- plot_ms_map(db, type = "MS map", annotation_filter = "no annotated")
+    testthat::expect_true(all(
+        unlist(p[[1]]$attrs) == unlist(p2$plot_ms_map[[4]][[1]]$attrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$layoutAttrs) ==
+            unlist(p2$plot_ms_map[[4]][[1]]$layoutAttrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$config) == unlist(p2$plot_ms_map[[4]][[1]]$config)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[8]]) == unlist(p2$plot_ms_map[[4]][[8]])
+    ))
+
+    # 9th test : no annotated on Kendrick plot
+    p <- plot_ms_map(
+        db,
+        type = "Kendrick plot",
+        annotation_filter = "no annotated"
+    )
+    testthat::expect_true(all(
+        unlist(p[[1]]$attrs) == unlist(p2$plot_ms_map[[5]][[1]]$attrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$layoutAttrs) ==
+            unlist(p2$plot_ms_map[[5]][[1]]$layoutAttrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$config) == unlist(p2$plot_ms_map[[5]][[1]]$config)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[8]]) == unlist(p2$plot_ms_map[[5]][[8]])
+    ))
+
+
+    # 10th test : annotated on MS map
+    p <- plot_ms_map(db, type = "MS map", annotation_filter = "annotated")
+    testthat::expect_true(all(
+        unlist(p[[1]]$attrs) == unlist(p2$plot_ms_map[[6]][[1]]$attrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$layoutAttrs) ==
+            unlist(p2$plot_ms_map[[6]][[1]]$layoutAttrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$config) == unlist(p2$plot_ms_map[[6]][[1]]$config)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[8]]) == unlist(p2$plot_ms_map[[6]][[8]])
+    ))
+
+    # 11th test : annotated on MS map
+    p <- plot_ms_map(
+        db,
+        type = "Kendrick plot",
+        annotation_filter = "annotated"
+    )
+    testthat::expect_true(all(
+        unlist(p[[1]]$attrs) == unlist(p2$plot_ms_map[[7]][[1]]$attrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$layoutAttrs) ==
+            unlist(p2$plot_ms_map[[7]][[1]]$layoutAttrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$config) == unlist(p2$plot_ms_map[[7]][[1]]$config)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[8]]) == unlist(p2$plot_ms_map[[7]][[8]])
+    ))
+
+    # 12th test : error on threshold
+    testthat::expect_error(
+        plot_ms_map(db, int_threshold = "a"),
+        "int_treshold must be a numeric"
+    )
+
+    # 13th test : test with a too high threshold (no possible points)
+    p <- plot_ms_map(db, type = "MS map", int_threshold = 10**12)
+    testthat::expect_true(all(
+        unlist(p[[1]]$attrs) == unlist(p2$plot_ms_map[[1]][[1]]$attrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$layoutAttrs) ==
+            unlist(p2$plot_ms_map[[1]][[1]]$layoutAttrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$config) == unlist(p2$plot_ms_map[[1]][[1]]$config)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[8]]) == unlist(p2$plot_ms_map[[1]][[8]])
+    ))
+
+    # 14th test : threshold at 6M on MS map
+    p <- plot_ms_map(db, type = "MS map", int_threshold = 6000000)
+    testthat::expect_true(all(
+        unlist(p[[1]]$attrs) == unlist(p2$plot_ms_map[[8]][[1]]$attrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$layoutAttrs) ==
+            unlist(p2$plot_ms_map[[8]][[1]]$layoutAttrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$config) == unlist(p2$plot_ms_map[[8]][[1]]$config)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[8]]) == unlist(p2$plot_ms_map[[8]][[8]])
+    ))
+
+    # 15th test : threshold at 6M on kendrick plot
+    p <- plot_ms_map(db, type = "Kendrick plot", int_threshold = 6000000)
+    testthat::expect_true(all(
+        unlist(p[[1]]$attrs) == unlist(p2$plot_ms_map[[9]][[1]]$attrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$layoutAttrs) ==
+            unlist(p2$plot_ms_map[[9]][[1]]$layoutAttrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$config) == unlist(p2$plot_ms_map[[9]][[1]]$config)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[8]]) == unlist(p2$plot_ms_map[[9]][[8]])
+    ))
+
+    # 16th test : no annotated & threshold at 6M on MS map
+    p <- plot_ms_map(
+        db,
+        type = "MS map",
+        annotation_filter = "no annotated",
+        int_threshold = 6000000
+    )
+    testthat::expect_true(all(
+        unlist(p[[1]]$attrs) == unlist(p2$plot_ms_map[[10]][[1]]$attrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$layoutAttrs) ==
+            unlist(p2$plot_ms_map[[10]][[1]]$layoutAttrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$config) == unlist(p2$plot_ms_map[[10]][[1]]$config)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[8]]) == unlist(p2$plot_ms_map[[10]][[8]])
+    ))
+
+    # 17th test : no annotated & threshold at 6M on kendrick plot
+    p <- plot_ms_map(
+        db,
+        type = "Kendrick plot",
+        annotation_filter = "no annotated",
+        int_threshold = 6000000
+    )
+    testthat::expect_true(all(
+        unlist(p[[1]]$attrs) == unlist(p2$plot_ms_map[[11]][[1]]$attrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$layoutAttrs) ==
+            unlist(p2$plot_ms_map[[11]][[1]]$layoutAttrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$config) == unlist(p2$plot_ms_map[[11]][[1]]$config)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[8]]) == unlist(p2$plot_ms_map[[11]][[8]])
+    ))
+
+    # 18th test : annotated & threshold at 6M on MS map
+    p <- plot_ms_map(
+        db,
+        type = "MS map",
+        annotation_filter = "annotated",
+        int_threshold = 6000000
+    )
+    testthat::expect_true(all(
+        unlist(p[[1]]$attrs) == unlist(p2$plot_ms_map[[12]][[1]]$attrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$layoutAttrs) ==
+            unlist(p2$plot_ms_map[[12]][[1]]$layoutAttrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$config) == unlist(p2$plot_ms_map[[12]][[1]]$config)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[8]]) == unlist(p2$plot_ms_map[[12]][[8]])
+    ))
+
+    # 19th test : annotated & threshold at 6M on Kendrick plot
+    p <- plot_ms_map(
+        db,
+        type = "Kendrick plot",
+        annotation_filter = "annotated",
+        int_threshold = 6000000
+    )
+    RSQLite::dbDisconnect(db)
+    testthat::expect_true(all(
+        unlist(p[[1]]$attrs) == unlist(p2$plot_ms_map[[13]][[1]]$attrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$layoutAttrs) ==
+            unlist(p2$plot_ms_map[[13]][[1]]$layoutAttrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$config) == unlist(p2$plot_ms_map[[13]][[1]]$config)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[8]]) == unlist(p2$plot_ms_map[[13]][[8]])
+    ))
+})

@@ -1184,5 +1184,253 @@ plot_eic_mzdev <- function(db, sample_name, name) {
             "}"
         )
     )
+}
 
+#' @title Plot empty MS map
+#'
+#' @description
+#' Plot an empty MS map with custom axis
+#'
+#' @param title `character(1)` title of the plot
+#' @param xaxis_title `character(1)` title of the x axis
+#' @param yaxis_title `character(1)` title of the y axis
+#'
+#' @return `plotly` object
+plot_empty_ms_map <- function(title = "MS map", xaxis_title = "Retention time",
+                              yaxis_title = "m/z") {
+    p <- plotly::plot_ly(
+        type = "scatter",
+        mode = "markers"
+    )
+    p <- plotly::layout(
+        p,
+        title = list(
+            text = sprintf("<b>%s</b>", title),
+            y = .95,
+            x = .5,
+            font = list(
+                family = "\"Open Sans\",verdana,arial,sans-serif",
+                size = 18
+            ),
+            xanchor = "center",
+            yanchor = "bottom"
+        ),
+        margin = list(t = 50),
+        xaxis = list(
+            title = xaxis_title,
+            titlefont = list(
+                family = "\"Open Sans\",verdana,arial,sans-serif",
+                size = 18
+            )
+        ),
+        yaxis = list(
+            title = ""
+        ),
+        annotations = list(
+            list(
+                xref = "paper",
+                yref = "paper",
+                x = 0,
+                y = 1,
+                xanchor = "left",
+                yanchor = "bottom",
+                text = yaxis_title,
+                showarrow = FALSE,
+                font = list(
+                    family = "\"Open Sans\",verdana,arial,sans-serif",
+                    size = 18
+                )
+            )
+        )
+    )
+    plotly::config(
+        p,
+        responsive = TRUE,
+        displaylogo = FALSE,
+        # scrollZoom = FALSE,
+        edits = list(
+            annotationTail = TRUE
+        ),
+        modeBarButtons = list(
+            list(
+                list(
+                    name = "toImage",
+                    title = "Download plot as a png",
+                    icon = htmlwidgets::JS("Plotly.Icons.camera"),
+                    click = htmlwidgets::JS(paste0("function(gd) {Plotly.down",
+                                                   "loadImage(gd, {format:'png",
+                                                   "', width:1200, height:400,",
+                                                   " filename:'Chromatogram'})}"
+                    ))
+                )
+            )
+        )
+    )
+}
+
+#' @title Plot MS map
+#'
+#' @description
+#' Plot a MS map or Kendrick plot
+#' Each basepeak are plotted with their annotations
+#' Hover a trace will show all popup for all basepeak with the same group ID (
+#' same compound flagged by CAMERA)
+#' Possibility to trace the "MS map" (m/z fct(rT)) or a Kendrick plot
+#'
+#' @param db `SQLiteConnection`
+#' @param annotation_filter `character(1)` annotation to filter (can be
+#' "no annotated", "annotated" or "all")
+#' @param int_threshold `numeric(1)` intensity threshold
+#' @param type `character(1)` "MS map" or "Kendrick plot"
+#'
+#' @return `plotly`
+#'
+#' @export
+#' @examples
+#' \dontrun{
+#' plot_ms_map(db)
+#' }
+plot_ms_map <- function(db, annotation_filter = "all", int_threshold = 0,
+                        type = "MS map") {
+    if (class(db) != "SQLiteConnection") {
+        stop("db must be a connection to the sqlite database")
+    } else if (!is.numeric(int_threshold)) {
+        stop("int_treshold must be a numeric")
+    } else if (class(annotation_filter) != "character") {
+        stop("annotation_filter must be a character")
+    } else if (!annotation_filter %in% c("no annotated", "annotated", "all")) {
+        stop("annotation_filter must be \"no annotated\", \"annotated\" or
+            \"all\"")
+    } else if (!type %in% c("MS map", "Kendrick plot")) {
+        stop("type must be \"MS map\" or \"Kendrick plot\"")
+    }
+
+    if (type == "MS map") {
+        xaxis <- "Retention time"
+        yaxis <- "m/z"
+    } else {
+        xaxis <- "Kendrick mass"
+        yaxis <- "Kendrick mass defect"
+    }
+    p <- plot_empty_ms_map(
+        title = type,
+        xaxis_title = xaxis,
+        yaxis_title = yaxis
+    )
+
+    # get data
+    nsamples <- db_get_nsamples(db)
+    int_ann <- get_int_ann(
+        db_get_annotations(db),
+        db_get_spectra_infos(db),
+        nsamples
+    )
+    mz_ann <- get_int_ann(
+        db_get_annotations(db),
+        db_get_spectra_infos(db),
+        nsamples,
+        val = "mz"
+    )
+    if (nrow(int_ann) == 0) {
+        return(p)
+    }
+
+    # get the lines which respect the filters
+    if (annotation_filter == "no annotated") {
+        idx <- which(is.na(int_ann$Name))
+    } else if (annotation_filter == "annotated") {
+        idx <- which(!is.na(int_ann$Name))
+    } else {
+        idx <- seq(nrow(int_ann))
+    }
+    ints <- apply(int_ann[, (ncol(int_ann) - nsamples + 1):ncol(int_ann)],
+                  1, max, na.rm = TRUE)
+    idx <- intersect(idx, which(ints >= int_threshold))
+    if (length(idx) == 0) {
+        return(p)
+    }
+
+    # get data points
+    int_ann <- int_ann[idx, , drop = FALSE]
+    mz_ann <- mz_ann[idx, , drop = FALSE]
+    ints <- ints[idx]
+    mzs <- apply(mz_ann[, (ncol(mz_ann) - nsamples + 1):ncol(mz_ann)],
+                 1, median, na.rm = TRUE)
+    rts <- mz_ann[, "rT (min)"]
+    if (type == "Kendrick plot") {
+        KM <- get_kendrick_mass(mzs)
+        x <- KM$x
+        y <- KM$y
+    } else {
+        x <- rts
+        y <- mzs
+    }
+
+    # trace
+    p <- plotly::add_trace(
+        p,
+        x = x,
+        y = y,
+        name = mz_ann[, "Group ID"],
+        color = ints,
+        hoverinfo = "text",
+        text = paste0(
+            apply(mz_ann, 1, function(x)
+                if (is.na(x["Name"])) ""
+                else paste0(x["Name"], "<br />", x["Adduct"], "<br />")),
+            sprintf(
+                "m/z: %s<br />rT: %smin<br />Intensity: %s",
+                round(mzs, 5),
+                round(rts, 2),
+                prettyNum(round(ints), big.mark = " ")
+            )
+        ),
+        showlegend = FALSE
+    )
+    if (any(!is.na(mz_ann$Name))) {
+        idx <- which(!is.na(mz_ann$Name))
+        p <- plotly::add_annotations(
+            p,
+            x = x[idx],
+            y = y[idx],
+            text = sprintf(
+                "%s<br />%s",
+                mz_ann[idx, "Name"],
+                mz_ann[idx, "Adduct"]
+            ),
+            xref = "x",
+            yref = "y",
+            showarrow = TRUE
+        )
+    }
+    htmlwidgets::onRender(p, '
+        function(el, x) {
+            el.on("plotly_hover", function(eventdata) {
+                var group_id_index = el._fullData.findIndex(
+                    obj => obj.name == eventdata.points[0].data.name);
+                Plotly.Fx.hover(
+                    el,
+                    Array(el._fullData[group_id_index].x.length)
+                        .fill()
+                        .map((_, i) =>
+                            ({
+                                curveNumber: group_id_index,
+                                pointNumber: i
+                            })
+                        )
+                    );
+                /*
+                Plotly.restyle(el, {opacity: .4});
+                Plotly.restyle(
+                    el,
+                    {opacity: 1},
+                    eventdata.points[0].data.name
+                );
+                */
+            });
+            el.on("plotly_unhover", function(eventdata) {
+                //Plotly.restyle(el, {opacity: 1});
+            });
+        }
+    ')
 }

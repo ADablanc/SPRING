@@ -101,6 +101,17 @@
 	vertical-align: bottom;
 }
 
+.table-filters {
+	width: max(900px, 45vw);
+	table-layout: fixed;
+}
+.table-filters td{
+	width: max(300px, 15vw);
+	padding: 5px;
+	text-align: center;
+	vertical-align: middle;
+}
+
 .tabbable {
     padding-top: 20px;
 }

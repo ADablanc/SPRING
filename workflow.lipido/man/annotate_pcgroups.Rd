@@ -68,6 +68,7 @@ annotate_pcgroups(xsa, ann_params, pb_fct = NULL)
         \item score `numeric` isotopic score observed
         \item deviation_mz `numeric` m/z deviation observed
         \item npeak `integer` number of isotopologue annotated
+        \item basepeak_mz `numeric` m/z of the basepeak annotated
         \item basepeak_int `numeric` area of the basepeak annotated
         \item sum_int `numeric` cumulative sum off all the area of the
         isotopologues annotated

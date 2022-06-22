@@ -15,7 +15,7 @@
 run_shiny_app <- function(log_file_path = NULL,
                           converter = "pwiz/msconvert.exe") {
     # test to only stop the process if no database is available
-    test <- get_available_database()
+    capture.output(get_available_database())
     if (length(log_file_path) > 0) {
         log_file <- file(log_file_path, open = "wt")
         sink(log_file, type = "message")

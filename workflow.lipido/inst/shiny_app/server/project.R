@@ -125,6 +125,15 @@ observeEvent(input$project_load, {
         conflicts <- split_conflicts(db_get_annotations(db()))$conflicts
         conflicts(sapply(conflicts, function(x) x[[1]][1, "group_id"]))
         conflict_id(if (length(conflicts) > 0) 1 else 0)
+        shiny::updateSliderInput(
+            getDefaultReactiveDomain(),
+            inputId = "ms_map_int_threshold",
+            max = dbGetQuery(
+                db(),
+                "SELECT ROUND(MAX(basepeak_int))
+                FROM spectra_infos"
+            )[1, 1]
+        )
         shiny::removeModal()
     }, invalid = function(i) {
         NULL

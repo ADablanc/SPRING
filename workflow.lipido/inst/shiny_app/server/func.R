@@ -8,7 +8,7 @@
 #'
 #' @examples
 #' \dontrun{toastr_error("Aaaaaaargh", "A zombie bite me...")}
-toastr_error <- function(msg = "")
+toastr_error <- function(msg = "") {
     shinyFeedback::showToast(
         type = "error",
         msg,
@@ -20,6 +20,7 @@ toastr_error <- function(msg = "")
             positionClass = "toast-top-center"
         )
     )
+}
 
 #' @title Send toastr success msg
 #'
@@ -31,7 +32,7 @@ toastr_error <- function(msg = "")
 #'
 #' @examples
 #' \dontrun{toastr_success("yeeeeees", "Just dodged a zombie...")}
-toastr_success <- function(msg = "")
+toastr_success <- function(msg = "") {
     shinyFeedback::showToast(
         type = "success",
         msg,
@@ -43,6 +44,7 @@ toastr_success <- function(msg = "")
             positionClass = "toast-top-center"
         )
     )
+}
 
 #' @title Send toastr warning msg
 #'
@@ -54,7 +56,7 @@ toastr_success <- function(msg = "")
 #'
 #' @examples
 #' \dontrun{toastr_error("Ohoh", "Is it a zombie ?...")}
-toastr_warning <- function(msg = "")
+toastr_warning <- function(msg = "") {
     shinyFeedback::showToast(
         type = "warning",
         msg,
@@ -66,6 +68,8 @@ toastr_warning <- function(msg = "")
             positionClass = "toast-top-center"
         )
     )
+}
+
 
 #' @title Send sweet alert error msg
 #'
@@ -77,7 +81,7 @@ toastr_warning <- function(msg = "")
 #'
 #' @examples
 #' \dontrun{sweet_alert_error("Garrrrrrrr", "Braiiiinn...")}
-sweet_alert_error <- function(title = "", msg = "")
+sweet_alert_error <- function(title = "", msg = "") {
     shinyWidgets::sendSweetAlert(
         session,
         html = TRUE,
@@ -99,15 +103,18 @@ sweet_alert_error <- function(title = "", msg = "")
             )
         )
     )
+}
 
-condition <- function(subclass, message, call=sys.call(-1), ...)
+condition <- function(subclass, message, call = sys.call(-1), ...) {
     structure(
         class = c(subclass, "condition"),
         list(message = message, call = call),
         ...
     )
-custom_stop <- function(subclass, message, call=sys.call(-1), ...)
+}
+custom_stop <- function(subclass, message, call = sys.call(-1), ...) {
     stop(condition(c(subclass, "error"), message, call = call, ...))
+}
 
 #' @title Check inputs
 #'

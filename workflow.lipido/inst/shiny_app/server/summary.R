@@ -38,10 +38,6 @@ summary_table_options <- list(
                 className = "dt-head-center dt-center",
                 targets = "_all",
                 width = 80
-            ),
-            list(
-                targets = "th:nth-child(n+9)",
-                type = "num-fmt"
             )
         ),
         language = list(

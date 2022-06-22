@@ -81,6 +81,10 @@ sidebar <- shinydashboard::dashboardSidebar(
                 tabName = "check_data"
             ),
             shinydashboard::menuSubItem(
+                "MS map",
+                tabName = "ms_map"
+            ),
+            shinydashboard::menuSubItem(
                 "Summary",
                 tabName = "summary"
             )
@@ -106,6 +110,7 @@ body <- shinydashboard::dashboardBody(
                     source("ui/process.R", local = TRUE)$value,
                     source("ui/conflicts.R", local = TRUE)$value,
                     source("ui/check_data.R", local = TRUE)$value,
+                    source("ui/ms_map.R", local = TRUE)$value,
                     source("ui/summary.R", local = TRUE)$value,
                     source("ui/database.R", local = TRUE)$value
                 )

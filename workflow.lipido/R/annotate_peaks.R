@@ -77,6 +77,7 @@
 #'         \item score `numeric` isotopic score observed
 #'         \item deviation_mz `numeric` m/z deviation observed
 #'         \item npeak `integer` number of isotopologue annotated
+#'         \item basepeak_mz `numeric` m/z of the basepeak annotated
 #'         \item basepeak_int `numeric` area of the basepeak annotated
 #'         \item sum_int `numeric` cumulative sum off all the area of the
 #'         isotopologues annotated
@@ -127,9 +128,9 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
                "rtmin", "rtmax", "int", "abd", "ion_id_theo", "mz_theo",
                "abd_theo", "iso_theo")
     )))
-    spectra_infos <- data.frame(matrix(, nrow = 0, ncol = 8, dimnames = list(
-        c(), c("spectra_id", "score", "deviation_mz", "npeak", "basepeak_int",
-               "sum_int", "sample", "rt")
+    spectra_infos <- data.frame(matrix(, nrow = 0, ncol = 9, dimnames = list(
+        c(), c("spectra_id", "score", "deviation_mz", "npeak", "basepeak_mz",
+               "basepeak_int", "sum_int", "sample", "rt")
     )))
     ann <- data.frame(
         matrix(, nrow = 0, ncol = 15 + length(samples), dimnames = list(
@@ -187,7 +188,7 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
             # any adduct identified by CAMERA ?
             hypo_adducts <- which(xsa@annoID[, "id"] ==
                                       cluster[cluster$iso == "M", "group_id"])
-            if (nrow(chem_db_match) > 0 & length(hypo_adducts) > 0) {
+            if (nrow(chem_db_match) > 0 && length(hypo_adducts) > 0) {
                 l_spectras2 <- do.call(c, lapply(hypo_adducts,
                                                      function(hypo_adduct)
                     get_ions(
@@ -234,7 +235,7 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
                     ann_params@abd_tol
                 )
                 for (l in seq(length(tmp))) {
-                    if (tmp[[l]]$score == 0 & l > 1) {
+                    if (tmp[[l]]$score == 0 && l > 1) {
                         # register at least one time the spectra of the pcgroup
                         next
                     }
@@ -256,6 +257,8 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
                             score = tmp[[l]]$score,
                             deviation_mz = tmp[[l]]$deviation_mz,
                             npeak = tmp[[l]]$npeak,
+                            basepeak_mz = peaks[cluster[cluster$iso == "M", j],
+                                                "mz"],
                             basepeak_int = peaks[cluster[cluster$iso == "M", j],
                                                  "int"],
                             sum_int = sum(tmp[[l]]$spectra[
@@ -451,6 +454,7 @@ split_conflicts <- function(ann) {
 #'     \item score `numeric` isotopic score observed
 #'     \item deviation_mz `numeric` m/z deviation observed
 #'     \item npeak `integer` number of isotopologue annotated
+#'     \item basepeak_mz `numeric` m/z of the basepeak annotated
 #'     \item basepeak_int `numeric` area of the basepeak annotated
 #'     \item sum_int `numeric` cumulative sum off all the area of the
 #'     isotopologues annotated
@@ -560,7 +564,7 @@ summarise_ann <- function(ann, spectra_infos, nsamples) {
 #'
 #' @description
 #' Replace the feature ID in the annotation `DataFrame` with the intensity of
-#' the basepeak
+#' the basepeak or the m/z
 #'
 #' @param ann `DataFrame` each line correspond to a compound found
 #' with the columns:
@@ -595,6 +599,7 @@ summarise_ann <- function(ann, spectra_infos, nsamples) {
 #'     \item score `numeric` isotopic score observed
 #'     \item deviation_mz `numeric` m/z deviation observed
 #'     \item npeak `integer` number of isotopologue annotated
+#'     \item basepeak_mz `numeric` m/z of the basepeak annotated
 #'     \item basepeak_int `numeric` area of the basepeak annotated
 #'     \item sum_int `numeric` cumulative sum off all the area of the
 #'     isotopologues annotated
@@ -602,6 +607,8 @@ summarise_ann <- function(ann, spectra_infos, nsamples) {
 #' }
 #' @param nsamples `integer` the number of samples processed in total, it is use
 #'  as an offset on the "ann" DataFrame
+#' @param val `character(1)` "int" or "mz" to specify which type of value is
+#' desired
 #'
 #' @return `DataFrame` each line represent an ion with the columns
 #' \itemize{
@@ -622,7 +629,7 @@ summarise_ann <- function(ann, spectra_infos, nsamples) {
 #'     \item ... `integer` a column for each sample which contain the
 #'     intensity the basepeak
 #' }
-get_int_ann <- function(ann, spectra_infos, nsamples) {
+get_int_ann <- function(ann, spectra_infos, nsamples, val = "int") {
     if (nrow(ann) == 0) {
         return(data.frame(matrix(, nrow = 0, ncol = 11,
             dimnames = list(c(),
@@ -649,9 +656,12 @@ get_int_ann <- function(ann, spectra_infos, nsamples) {
               c(1, 2), function(x) {
             if (is.na(x)) {
                 NA
-            } else {
+            } else if (val == "int") {
                 spectra_infos[spectra_infos$spectra_id == as.numeric(x),
                               "basepeak_int"]
+            } else if (val == "mz") {
+                spectra_infos[spectra_infos$spectra_id == as.numeric(x),
+                              "basepeak_mz"]
             }
         }),
         check.names = FALSE, row.names = NULL

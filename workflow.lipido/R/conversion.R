@@ -17,7 +17,18 @@
 #'
 #' @return `xcmsRaw` object
 convert_file <- function(raw_file, converter, filter_params) {
-    filepath <- gsub("\\\\", "/", tempfile(fileext = ".mzXML"))
+    filepath <- gsub(
+        "\\\\",
+        "/",
+        file.path(
+            tempdir(),
+            paste(
+                tools::file_path_sans_ext(basename(raw_file)),
+                "mzXML",
+                sep = "."
+            )
+        )
+    )
 
     # if it is a wiff file it needs the corresponding wiff.scan file
     if (grepl("\\.WIFF$", raw_file, ignore.case = TRUE)) {
@@ -25,7 +36,7 @@ convert_file <- function(raw_file, converter, filter_params) {
             stop("missing corresponding wiff.scan in same directory")
         }
     }
-    if (grepl("\\.mzXML$", raw_file) | grepl("\\.mzML$", raw_file)
+    if (grepl("\\.mzXML$", raw_file) || grepl("\\.mzML$", raw_file)
     ) algorithm <- "cwt" else algorithm <- "vendor"
 
     query <- sprintf(
@@ -77,8 +88,9 @@ check_ms_file <- function(filepath, exp_polarity) {
     # check if file can be read
     ms_file <- tryCatch(
         xcms::xcmsRaw(filepath, profstep = 0),
-        error = function(e)
-            e$message)
+        error = function(e) {
+            e$message
+        })
     if (class(ms_file) != "xcmsRaw") {
         stop(ms_file)
     }
@@ -88,7 +100,9 @@ check_ms_file <- function(filepath, exp_polarity) {
     } else if (length(unique(obs_polarity)) > 1) {
         scan_idx <- which(obs_polarity == exp_polarity)
         ms_file[scan_idx]
-    } else ms_file
+    } else {
+        ms_file
+    }
 }
 
 #' @title Filter MS file
@@ -103,7 +117,7 @@ check_ms_file <- function(filepath, exp_polarity) {
 #' @return `xcmsRaw` object filtered
 filter_ms_file <- function(ms_file, filter_params) {
     obs_rt_range <- ms_file@scantime
-    if (range(obs_rt_range)[1] <= filter_params@rt_range[1] |
+    if (range(obs_rt_range)[1] <= filter_params@rt_range[1] ||
         range(obs_rt_range)[2] >= filter_params@rt_range[2]
     ) {
         scan_idx <- which(

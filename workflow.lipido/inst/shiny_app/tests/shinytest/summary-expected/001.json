@@ -84,10 +84,6 @@
               "className": "dt-head-center dt-center",
               "targets": "_all",
               "width": 80
-            },
-            {
-              "targets": "th:nth-child(n+9)",
-              "type": "num-fmt"
             }
           ],
           "language": {

@@ -456,7 +456,7 @@ AnnotationParam <- function(da_tol = 0.015,
     if (!database %in% get_available_database()) {
         stop(sprintf("database %s doesn't exist in software", database))
     }
-    if (polarity != "positive" & polarity != "negative") {
+    if (polarity != "positive" && polarity != "negative") {
         stop("polarity needs to be \"positive\" or \"negative\"")
     }
     if (length(cpd_classes) == 0) {

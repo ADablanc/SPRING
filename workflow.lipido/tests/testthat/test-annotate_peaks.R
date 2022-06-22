@@ -74,6 +74,12 @@ testthat::test_that("annotate peaks", {
                          .0010986328125, .001251220703125, .001312255859375,
                          .00177001953125, NaN, NaN, NaN, NaN, NaN),
         npeak = c(0, 0, 0, 0, 1, 2, 2, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0),
+        basepeak_mz = c(428.267772595199, 428.268471709284, 428.267855601901,
+                        428.268539638095, 408.251325886322, 426.261908233279,
+                        426.262343531217, 448.243644005027, 448.244163142448,
+                        464.447304014051, 464.447454557257, 504.440032161331,
+                        504.44048100644, 428.2675574767, 428.267840674347,
+                        505.443534603, 505.44383474773, 429.270782294993),
         basepeak_int = c(21634957.3317308, 19992518.2568646, 7556081.77126924,
                          7375409.9176154, 88824.635233072, 6139220.0505469,
                          6234084.85605467, 260064.992761365, 288524.169413714,
@@ -642,6 +648,7 @@ testthat::test_that("get int in annotation df", {
                 score = 79.8211975097656,
                 deviation_mz = 0.0003662109375,
                 npeak = 1,
+                basepeak_mz = 408.251325886322,
                 basepeak_int = 88824.635233072,
                 sum_int = 88824.635233072,
                 sample = "220221CCM_global_POS_02_ssleu_filtered",
@@ -663,6 +670,61 @@ testthat::test_that("get int in annotation df", {
             `Max iso` = 1,
             `220221CCM_global_POS_01_ssleu_filtered` = as.numeric(NA),
             `220221CCM_global_POS_02_ssleu_filtered` = 88824.635233072,
+            check.names = FALSE
+        )
+    )
+
+    testthat::expect_equal(
+        get_int_ann(
+            data.frame(
+                group_id = 1,
+                class = "LPC",
+                name = "LPC 11:0",
+                formula = "C19H40N1O7P1",
+                major_adduct = "[M+H]+",
+                adduct = "[M+H-H2O]+",
+                ion_formula = "C19H39N1O6P1",
+                rtdiff = 9.52199999999993,
+                rt = 286.278,
+                rtmin = 284.692,
+                rtmax = 287.864,
+                nsamples = 1,
+                best_score = 79.8211975097656,
+                best_deviation_mz = 0.0003662109375,
+                best_npeak = 1,
+                `220221CCM_global_POS_01_ssleu_filtered` = NA,
+                `220221CCM_global_POS_02_ssleu_filtered` = 1,
+                check.names = FALSE
+            ),
+            data.frame(
+                group_id = 1,
+                spectra_id = 1,
+                score = 79.8211975097656,
+                deviation_mz = 0.0003662109375,
+                npeak = 1,
+                basepeak_mz = 408.251325886322,
+                basepeak_int = 88824.635233072,
+                sum_int = 88824.635233072,
+                sample = "220221CCM_global_POS_02_ssleu_filtered",
+                rt = 286.278
+            ),
+            nsamples = 2,
+            val = "mz"
+        ),
+        data.frame(
+            `Group ID` = factor(1, levels = 1),
+            Class = factor("LPC", levels = "LPC"),
+            Name = "LPC 11:0",
+            `rT (min)` = 4.77,
+            `Diff rT (sec)` = 10,
+            `Major adduct` = "[M+H]+",
+            Adduct = "[M+H-H2O]+",
+            nSamples = 1,
+            `Best score (%)` = 80,
+            `Best m/z dev (mDa)` = 0,
+            `Max iso` = 1,
+            `220221CCM_global_POS_01_ssleu_filtered` = as.numeric(NA),
+            `220221CCM_global_POS_02_ssleu_filtered` = 408.251325886322,
             check.names = FALSE
         )
     )
@@ -727,6 +789,12 @@ testthat::test_that("summarise ann df", {
                          .0010986328125, .001251220703125, .001312255859375,
                          .00177001953125, NaN, NaN, NaN, NaN, NaN),
         npeak = c(0, 0, 0, 0, 1, 2, 2, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0),
+        basepeak_mz = c(428.267772595199, 428.268471709284, 428.267855601901,
+                        428.268539638095, 408.251325886322, 426.261908233279,
+                        426.262343531217, 448.243644005027, 448.244163142448,
+                        464.447304014051, 464.447454557257, 504.440032161331,
+                        504.44048100644, 428.2675574767, 428.267840674347,
+                        505.443534603, 505.44383474773, 429.270782294993),
         basepeak_int = c(21634957.3317308, 19992518.2568646, 7556081.77126924,
                          7375409.9176154, 88824.635233072, 6139220.0505469,
                          6234084.85605467, 260064.992761365, 288524.169413714,

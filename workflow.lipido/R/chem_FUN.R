@@ -164,8 +164,7 @@ get_ions <- function(forms,
     )
     if (length(out_resmass) == length(forms)) {
         return(list())
-    }
-    else if (length(out_resmass) > 0) {
+    } else if (length(out_resmass) > 0) {
         forms <- forms[-out_resmass]
         ion_forms <- ion_forms[-out_resmass, ]
     }
@@ -369,4 +368,29 @@ convert_ppm_da <- function(ppm, mass) {
 get_mz_range <- function(mz, ppm) {
     da <- convert_ppm_da(ppm, mz)
     mz + c(-da, da)
+}
+
+#' @title Compute Kendrick Mass
+#'
+#' @description
+#' Compute Kendrick mass according the base "CH2"
+#' KM : Kendrick Mass
+#' KMD : Kendrick Mass Defect
+#'
+#' @param mzs `numeric` m/z vector
+#'
+#' @return `list` with items:
+#' \itemize{
+#'     \item x `numeric` x coordinates (KM)
+#'     \item y `numeric` y coordinates (KMD)
+#' }
+#'
+#' @source \url{https://doi.org/10.1007/s13361-018-2040-9}
+get_kendrick_mass <- function(mzs) {
+    k <- 14 / 14.01565
+    km <- mzs * k
+    list(
+        x = km,
+        y = km %% 1
+    )
 }

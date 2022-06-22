@@ -82,6 +82,7 @@ app$snapshot(
 
 # 3rd test : load LPC 11:0
 app$setInputs(check_data_cpd = "LPC 11:0")
+Sys.sleep(1)
 app$snapshot(
     items = list(
         output = c(

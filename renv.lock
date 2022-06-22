@@ -274,13 +274,13 @@
     },
     "MassSpecWavelet": {
       "Package": "MassSpecWavelet",
-      "Version": "1.60.0",
+      "Version": "1.60.1",
       "Source": "Bioconductor",
       "git_url": "https://git.bioconductor.org/packages/MassSpecWavelet",
       "git_branch": "RELEASE_3_14",
-      "git_last_commit": "dd4d52f",
-      "git_last_commit_date": "2021-10-26",
-      "Hash": "43aea675513a0e37ff20759da85e893b",
+      "git_last_commit": "78ed31d",
+      "git_last_commit_date": "2022-04-04",
+      "Hash": "c2fdc0885425714439e85090154b96c2",
       "Requirements": [
         "waveslim"
       ]
@@ -435,13 +435,13 @@
     },
     "S4Vectors": {
       "Package": "S4Vectors",
-      "Version": "0.32.3",
+      "Version": "0.32.4",
       "Source": "Bioconductor",
       "git_url": "https://git.bioconductor.org/packages/S4Vectors",
       "git_branch": "RELEASE_3_14",
-      "git_last_commit": "ad90e78",
-      "git_last_commit_date": "2021-11-18",
-      "Hash": "7c01112d4a7528159c335b486a046101",
+      "git_last_commit": "6703ee8",
+      "git_last_commit_date": "2022-03-23",
+      "Hash": "a60f752f43d02ebcacd6fdfa02e1d97b",
       "Requirements": [
         "BiocGenerics"
       ]
@@ -1356,13 +1356,13 @@
     },
     "limma": {
       "Package": "limma",
-      "Version": "3.50.1",
+      "Version": "3.50.3",
       "Source": "Bioconductor",
       "git_url": "https://git.bioconductor.org/packages/limma",
       "git_branch": "RELEASE_3_14",
-      "git_last_commit": "3c2641f",
-      "git_last_commit_date": "2022-02-16",
-      "Hash": "1ffea80c91b4d2403fb3e3935626d336",
+      "git_last_commit": "724632d",
+      "git_last_commit_date": "2022-04-06",
+      "Hash": "b7308f398f87cb720d86a7992af92f6f",
       "Requirements": []
     },
     "lobstr": {
@@ -1819,10 +1819,10 @@
     },
     "renv": {
       "Package": "renv",
-      "Version": "0.15.4",
+      "Version": "0.15.5",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "c1078316e1d4f70275fc1ea60c0bc431",
+      "Hash": "6a38294e7d12f5d8e656b08c5bd8ae34",
       "Requirements": []
     },
     "rlang": {

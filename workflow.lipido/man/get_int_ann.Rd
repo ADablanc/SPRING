@@ -4,7 +4,7 @@
 \alias{get_int_ann}
 \title{Get annotations with intensity}
 \usage{
-get_int_ann(ann, spectra_infos, nsamples)
+get_int_ann(ann, spectra_infos, nsamples, val = "int")
 }
 \arguments{
 \item{ann}{`DataFrame` each line correspond to a compound found
@@ -41,6 +41,7 @@ annotated, with the columns :
     \item score `numeric` isotopic score observed
     \item deviation_mz `numeric` m/z deviation observed
     \item npeak `integer` number of isotopologue annotated
+    \item basepeak_mz `numeric` m/z of the basepeak annotated
     \item basepeak_int `numeric` area of the basepeak annotated
     \item sum_int `numeric` cumulative sum off all the area of the
     isotopologues annotated
@@ -49,6 +50,9 @@ annotated, with the columns :
 
 \item{nsamples}{`integer` the number of samples processed in total, it is use
 as an offset on the "ann" DataFrame}
+
+\item{val}{`character(1)` "int" or "mz" to specify which type of value is
+desired}
 }
 \value{
 `DataFrame` each line represent an ion with the columns
@@ -73,5 +77,5 @@ as an offset on the "ann" DataFrame}
 }
 \description{
 Replace the feature ID in the annotation `DataFrame` with the intensity of
-the basepeak
+the basepeak or the m/z
 }
