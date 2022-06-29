@@ -28,6 +28,16 @@ app$waitForValue(
     ignore = list("")
 )
 app$executeScript("$(\"a[href=\\\"#shiny-tab-check_data\\\"]\").click()")
+heatmap <- app$waitForValue(
+    "check_data_heatmap",
+    iotype = "output",
+    ignore = list(NULL)
+)
+eic_mzdev <- app$waitForValue(
+    "check_data_eic_mzdev",
+    iotype = "output",
+    ignore = list(NULL)
+)
 app$snapshot(
     items = list(
         input = "check_data_cpd", # NULL
@@ -82,7 +92,11 @@ app$snapshot(
 
 # 3rd test : load LPC 11:0
 app$setInputs(check_data_cpd = "LPC 11:0")
-Sys.sleep(1)
+heatmap <- app$waitForValue(
+    "check_data_heatmap",
+    iotype = "output",
+    ignore = list(heatmap)
+)
 app$snapshot(
     items = list(
         output = c(
@@ -98,6 +112,11 @@ app$snapshot(
 
 # 4th test : load Cer (d18:1/C12:0)
 app$setInputs(check_data_cpd = c("LPC 11:0", "Cer (d18:1/C12:0)"))
+heatmap <- app$waitForValue(
+    "check_data_heatmap",
+    iotype = "output",
+    ignore = list(heatmap)
+)
 app$snapshot(
     items = list(
         output = c(
@@ -120,6 +139,11 @@ app$executeScript(
             cpd_name: \"Cer (d18:1/C12:0)\"
         })"
 )
+eic_mzdev <- app$waitForValue(
+    "check_data_eic_mzdev",
+    iotype = "output",
+    ignore = list(eic_mzdev)
+)
 app$snapshot(
     items = list(
         output = c(
@@ -138,6 +162,11 @@ app$executeScript(
             sample: \"220221CCM_global_POS_02_ssleu_filtered\",
             cpd_name: \"Cer (d18:1/C12:0)\"
         })"
+)
+eic_mzdev <- app$waitForValue(
+    "check_data_eic_mzdev",
+    iotype = "output",
+    ignore = list(eic_mzdev)
 )
 app$snapshot(
     items = list(
@@ -158,7 +187,11 @@ app$executeScript(
             cpd_name: \"LPC 11:0\"
         })"
 )
-Sys.sleep(1)
+eic_mzdev <- app$waitForValue(
+    "check_data_eic_mzdev",
+    iotype = "output",
+    ignore = list(eic_mzdev)
+)
 app$snapshot(
     items = list(
         output = c(
@@ -178,7 +211,11 @@ app$executeScript(
             cpd_name: \"LPC 11:0\"
         })"
 )
-Sys.sleep(1)
+eic_mzdev <- app$waitForValue(
+    "check_data_eic_mzdev",
+    iotype = "output",
+    ignore = list(eic_mzdev)
+)
 app$snapshot(
     items = list(
         output = c(

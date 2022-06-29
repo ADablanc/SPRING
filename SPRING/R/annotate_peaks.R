@@ -146,6 +146,13 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
 
     # for each pcgroup
     for (i in seq(length(xsa@pspectra))) {
+        if (!is.null(pb_fct)) {
+            # update the progress bar only every 1%
+            if (i %% ceiling(length(xsa@pspectra) / 100) == 0) {
+                pb_fct(i, length(xsa@pspectra), "Annotate")
+            }
+        }
+
         pcgroup <- peak_groups[xsa@pspectra[[i]], , drop = FALSE]
         idx <- lapply(seq(nrow(pcgroup)), function(i)
             which(

@@ -753,6 +753,92 @@ plot_eic <- function(db, sample_name, name) {
     )
 }
 
+#' @title Plot DB EIC
+#'
+#' @description
+#' Plot the EIC for all the sample for a basepeak mass recorded in the database
+#' The line dashed correspond to the area not integrated & the line colored the
+#' retention time range where integrated by XCMS.
+#' It contains a special behavior when the mouse hover a trace : it will display
+#'  all the hovertext of all traces in a unique textbox allowing the user to
+#'   differentiate all the y coordinates of the traces in one shot
+#' If available it will use the retention time corrected in the slot
+#' `scantime_corrected` added by the function `obiwarp`
+#'
+#' @param db `SQLiteConnection`
+#' @param eic_id `numeric(1)` eic ID in database, it corresponds to the row ID
+#' for the annotation table in the database
+#'
+#' @return `plotly`
+#'
+#' @export
+#' @examples
+#' \dontrun{
+#' plot_db_eic(db, eic_id = 1)
+#' }
+plot_db_eic <- function(db, eic_id) {
+    if (class(db) != "SQLiteConnection") {
+        stop("db must be a connection to the sqlite database")
+    } else if (class(eic_id) != "numeric" && class(eic_id) != "integer") {
+        stop("eic_id must be a numeric")
+    } else if (length(eic_id) != 1) {
+        stop("eic_id must contain only ONE ID")
+    }
+
+    p <- plot_empty_chromato("EIC")
+
+    # get eic data
+    ann <- db_get_annotations(db, row = eic_id)
+    data <- db_get_eic(db, eic_id)
+    nsamples <- db_get_nsamples(db)
+
+    for (i in 2:ncol(data)) {
+        eic <- data[, c(1, i)]
+
+        # search the born rT where the peak was integrated
+        spec_id <- ann[1, ncol(ann) - nsamples + i - 1]
+        if (!is.na(spec_id)) {
+            spectra <- db_get_spectras(db, spec_id)
+            basepeak <- spectra[which(spectra$abd == 100), ]
+            idx <- which(eic$rt >= basepeak$rtmin & eic$rt <= basepeak$rtmax)
+            idx <- seq(
+                if (idx[1] != 1) idx[1] <- idx[1] - 1 else 1,
+                if (idx[length(idx)] < nrow(eic)) idx[length(idx)] + 1
+                else nrow(eic)
+            )
+            integrated <- eic
+            integrated[-idx, 2] <- NA
+            eic[idx, 2] <- NA
+        } else {
+            integrated <- eic[0, ]
+        }
+
+        # find spec id in database
+        p <- plotly::add_trace(
+            p,
+            mode = "lines",
+            x = round(integrated$rt / 60, 3),
+            y = integrated[, 2],
+            name = colnames(data)[i],
+            showlegend = FALSE
+        )
+        p <- plotly::add_trace(
+            p,
+            mode = "lines",
+            x = round(eic$rt / 60, 3),
+            y = eic[, 2],
+            name = colnames(data)[i],
+            showlegend = FALSE,
+            line = list(
+                color = "rgb(0,0,0)",
+                width = 1,
+                dash = "dash"
+            )
+        )
+    }
+    p
+}
+
 #' @title Plot empty m/z dev
 #'
 #' @description
@@ -1276,6 +1362,7 @@ plot_empty_ms_map <- function(title = "MS map", xaxis_title = "Retention time",
 #' Hover a trace will show all popup for all basepeak with the same group ID (
 #' same compound flagged by CAMERA)
 #' Possibility to trace the "MS map" (m/z fct(rT)) or a Kendrick plot
+#' Each trace will contain the EIC ID in their `customdata` slot
 #'
 #' @param db `SQLiteConnection`
 #' @param annotation_filter `character(1)` annotation to filter (can be
@@ -1334,6 +1421,7 @@ plot_ms_map <- function(db, annotation_filter = "all", int_threshold = 0,
     if (nrow(int_ann) == 0) {
         return(p)
     }
+    eic_ids <- seq(nrow(mz_ann))
 
     # get the lines which respect the filters
     if (annotation_filter == "no annotated") {
@@ -1351,9 +1439,9 @@ plot_ms_map <- function(db, annotation_filter = "all", int_threshold = 0,
     }
 
     # get data points
-    int_ann <- int_ann[idx, , drop = FALSE]
     mz_ann <- mz_ann[idx, , drop = FALSE]
     ints <- ints[idx]
+    eic_ids <- eic_ids[idx]
     mzs <- apply(mz_ann[, (ncol(mz_ann) - nsamples + 1):ncol(mz_ann)],
                  1, median, na.rm = TRUE)
     rts <- mz_ann[, "rT (min)"]
@@ -1371,6 +1459,7 @@ plot_ms_map <- function(db, annotation_filter = "all", int_threshold = 0,
         p,
         x = x,
         y = y,
+        customdata = eic_ids,
         name = mz_ann[, "Group ID"],
         color = ints,
         hoverinfo = "text",
@@ -1408,28 +1497,19 @@ plot_ms_map <- function(db, annotation_filter = "all", int_threshold = 0,
             el.on("plotly_hover", function(eventdata) {
                 var group_id_index = el._fullData.findIndex(
                     obj => obj.name == eventdata.points[0].data.name);
-                Plotly.Fx.hover(
-                    el,
-                    Array(el._fullData[group_id_index].x.length)
-                        .fill()
-                        .map((_, i) =>
-                            ({
-                                curveNumber: group_id_index,
-                                pointNumber: i
-                            })
-                        )
-                    );
-                /*
-                Plotly.restyle(el, {opacity: .4});
-                Plotly.restyle(
-                    el,
-                    {opacity: 1},
-                    eventdata.points[0].data.name
-                );
-                */
-            });
-            el.on("plotly_unhover", function(eventdata) {
-                //Plotly.restyle(el, {opacity: 1});
+                if (group_id_index != -1) {
+                    Plotly.Fx.hover(
+                        el,
+                        Array(el._fullData[group_id_index].x.length)
+                            .fill()
+                            .map((_, i) =>
+                                ({
+                                    curveNumber: group_id_index,
+                                    pointNumber: i
+                                })
+                            )
+                        );
+                }
             });
         }
     ')

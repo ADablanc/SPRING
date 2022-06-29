@@ -8,7 +8,7 @@ app$snapshotInit("load_project")
 app$waitForValue("project_load", ignore = list(NULL))
 app$executeScript(paste0("Shiny.setInputValue(\"project_modal_visible\", $(\"#",
                          "project_modal\").length != 0)"))
-Sys.sleep(.5)
+app$waitForValue("project_modal_visible", iotype = "input", ignore = list(NULL))
 app$snapshot(
     items = list(
         input = "project_modal_visible", # TRUE
@@ -44,7 +44,7 @@ app$executeScript(sprintf(
     )
 ))
 
-Sys.sleep(.5)
+app$waitForValue("project_name", iotype = "output", ignore = list(""))
 app$executeScript(paste0("Shiny.setInputValue(\"project_modal_visible\", $(\"#",
                          "project_modal\").length !=  0)"))
 app$snapshot(

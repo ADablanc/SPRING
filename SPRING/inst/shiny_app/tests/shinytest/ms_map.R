@@ -28,7 +28,7 @@ app$waitForValue(
     ignore = list("")
 )
 app$executeScript("$(\"a[href=\\\"#shiny-tab-ms_map\\\"]\").click()")
-Sys.sleep(1)
+app$waitForValue("ms_map_plot", iotype = "output", ignore = list(NULL))
 app$setInputs(
     ms_map_max_int_threshold = stringr::str_extract(
         app$findWidget("ms_map_int_threshold")$getHtml(),
@@ -96,7 +96,35 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 4th test : only no annotated on MS map
+# 4th test : click on a point to update the graph
+app$executeScript("Shiny.setInputValue(\"ms_map_eic_id\", 5)")
+ms_map_eic <- app$waitForValue(
+    "ms_map_eic",
+    iotype = "output",
+    ignore = list(NULL)
+)
+app$snapshot(
+    items = list(
+        output = c("ms_map_plot", "ms_map_eic")
+    ),
+    screenshot = TRUE
+)
+
+# 5th test : update the graph by clicking on another point
+app$executeScript("Shiny.setInputValue(\"ms_map_eic_id\", 3)")
+app$waitForValue(
+    "ms_map_eic",
+    iotype = "output",
+    ignore = list(ms_map_eic)
+)
+app$snapshot(
+    items = list(
+        output = c("ms_map_plot", "ms_map_eic")
+    ),
+    screenshot = TRUE
+)
+
+# 6th test : only no annotated on MS map
 app$setInputs(ms_map_type = "MS map")
 app$setInputs(ms_map_annotation_filter = "no annotated")
 app$snapshot(
@@ -106,7 +134,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 5th test : only no annotated on Kendrick plot
+# 7th test : only no annotated on Kendrick plot
 app$setInputs(ms_map_type = "Kendrick plot")
 app$setInputs(ms_map_annotation_filter = "no annotated")
 app$snapshot(
@@ -116,7 +144,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 6th test : only annotated on MS map
+# 8th test : only annotated on MS map
 app$setInputs(ms_map_type = "MS map")
 app$setInputs(ms_map_annotation_filter = "annotated")
 app$snapshot(
@@ -126,7 +154,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 7th test : only annotated on Kendrick plot
+# 9th test : only annotated on Kendrick plot
 app$setInputs(ms_map_type = "Kendrick plot")
 app$setInputs(ms_map_annotation_filter = "annotated")
 app$snapshot(
@@ -136,7 +164,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 8th test : intensity threshold on MS map
+# 10th test : intensity threshold on MS map
 app$setInputs(ms_map_type = "MS map")
 app$setInputs(ms_map_annotation_filter = "all")
 app$setInputs(ms_map_int_threshold = 6000000)
@@ -149,7 +177,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 9th test : intensity threshold on Kendrick plot
+# 11th test : intensity threshold on Kendrick plot
 app$setInputs(ms_map_type = "Kendrick plot")
 app$setInputs(ms_map_annotation_filter = "all")
 app$setInputs(ms_map_int_threshold = 6000000)
@@ -162,7 +190,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 10th test : no annotated points + intensity threshold on MS map
+# 12th test : no annotated points + intensity threshold on MS map
 app$setInputs(ms_map_type = "MS map")
 app$setInputs(ms_map_annotation_filter = "no annotated")
 app$setInputs(ms_map_int_threshold = 6000000)
@@ -176,7 +204,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 11th test : no annotated points + intensity threshold on Kendrick plot
+# 13th test : no annotated points + intensity threshold on Kendrick plot
 app$setInputs(ms_map_type = "Kendrick plot")
 app$setInputs(ms_map_annotation_filter = "no annotated")
 app$setInputs(ms_map_int_threshold = 6000000)
@@ -190,7 +218,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 12th test : no annotated points + intensity threshold on MS map
+# 14th test : no annotated points + intensity threshold on MS map
 app$setInputs(ms_map_type = "MS map")
 app$setInputs(ms_map_annotation_filter = "annotated")
 app$setInputs(ms_map_int_threshold = 6000000)
@@ -204,7 +232,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 13th test : no annotated points + intensity threshold on Kendrick plot
+# 15th test : no annotated points + intensity threshold on Kendrick plot
 app$setInputs(ms_map_type = "Kendrick plot")
 app$setInputs(ms_map_annotation_filter = "annotated")
 app$setInputs(ms_map_int_threshold = 6000000)

@@ -364,6 +364,80 @@ testthat::test_that("plot EIC", {
     ))
 })
 
+testthat::test_that("plot DB EIC", {
+    db_empty <- db_connect(":memory:")
+    db <- db_connect(system.file(
+        "testdata",
+        "220221CCM_global.sqlite",
+        package = "SPRING"
+    ))
+    p2 <- readRDS(system.file(
+        "testdata",
+        "plots.RDS",
+        package = "SPRING"
+    ))
+
+    # 1st test : with no db
+    testthat::expect_error(
+        plot_db_eic(NULL, NULL),
+        "db must be a connection to the sqlite database"
+    )
+
+    # 2nd test : with no EIC ID
+    testthat::expect_error(
+        plot_db_eic(db, NULL),
+        "eic_id must be a numeric"
+    )
+
+    # 3rd test : with a character as EIC ID
+    testthat::expect_error(
+        plot_db_eic(db, "a"),
+        "eic_id must be a numeric"
+    )
+
+    # 4th test : with more than one EIC ID
+    testthat::expect_error(
+        plot_db_eic(db, c(1, 2)),
+        "eic_id must contain only ONE ID"
+    )
+
+    # 5th test : normal test
+    p <- plot_db_eic(db, 5)
+    testthat::expect_true(all(na.omit(
+        unlist(p[[1]]$attrs) == unlist(p2$plot_db_eic[[1]][[1]]$attrs)
+    )))
+    testthat::expect_true(all(
+        unlist(p[[1]]$layoutAttrs) ==
+            unlist(p2$plot_db_eic[[1]][[1]]$layoutAttrs)
+    ))
+
+    testthat::expect_true(all(
+        unlist(p[[1]]$config) == unlist(p2$plot_db_eic[[1]][[1]]$config)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[8]]) == unlist(p2$plot_db_eic[[1]][[8]])
+    ))
+
+    # 6th test : test where one of the file doesn't contain a trace
+    p <- plot_db_eic(db, 3)
+    RSQLite::dbDisconnect(db)
+    testthat::expect_true(all(na.omit(
+        unlist(p[[1]]$attrs) == unlist(p2$plot_db_eic[[2]][[1]]$attrs)
+    )))
+    testthat::expect_true(all(
+        unlist(p[[1]]$layoutAttrs) ==
+            unlist(p2$plot_db_eic[[2]][[1]]$layoutAttrs)
+    ))
+
+    testthat::expect_true(all(
+        unlist(p[[1]]$config) == unlist(p2$plot_db_eic[[2]][[1]]$config)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[8]]) == unlist(p2$plot_db_eic[[2]][[8]])
+    ))
+
+})
+
 testthat::test_that("plot empty m/z dev", {
     p <- plot_empty_mzdev()
     p2 <- readRDS(system.file(
@@ -819,7 +893,7 @@ testthat::test_that("plot MS map", {
         unlist(p[[8]]) == unlist(p2$plot_ms_map[[6]][[8]])
     ))
 
-    # 11th test : annotated on MS map
+    # 11th test : annotated on Kendrick map
     p <- plot_ms_map(
         db,
         type = "Kendrick plot",

@@ -456,7 +456,7 @@ db_record_params <- function(db,
 #'         \item ... `integer` a column for each sample which contain the
 #'         spectra ID
 #' }
-db_get_annotations <- function(db, names = NULL, group_ids = NULL) {
+db_get_annotations <- function(db, names = NULL, group_ids = NULL, row = NULL) {
     query <- "SELECT * FROM ann"
     if (!is.null(group_ids)) {
         query2 <- sprintf(
@@ -468,19 +468,13 @@ db_get_annotations <- function(db, names = NULL, group_ids = NULL) {
             "name IN (%s)",
             paste("\"", names, "\"", sep = "", collapse = ", ")
         )
+    } else if (!is.null(row)) {
+        query2 <- sprintf("ROWID == %s", row)
     } else {
         query2 <- NULL
     }
     if (!is.null(query2)) {
-        query <- paste(
-            query,
-            "WHERE",
-            paste(
-                query2,
-                collapse = " AND "
-            ),
-            sep = " "
-        )
+        query <- paste(query, "WHERE", query2, sep = " ")
     }
     dbGetQuery(db, query)
 }
@@ -731,4 +725,119 @@ db_resolve_conflict <- function(db, group_id, name) {
         group_id,
         name
     ))
+}
+
+#' @title Record EICs
+#'
+#' @description
+#' Record EICs for each basepeak for each group ID for each sample
+#' It will be faster than reloading each raw file from database & retrace the
+#' corresponding EIC
+#'
+#' @param db `SQLiteConnection`
+db_record_eics <- function(db, pb_fct = NULL) {
+    if (!is.null(pb_fct)) {
+        pb_fct(n = 0, total = 1, title = "Generate EICs")
+    }
+
+    # get data
+    params <- db_get_params(db)
+    nsamples <- db_get_nsamples(db)
+    mz_ann <- get_int_ann(
+        db_get_annotations(db),
+        db_get_spectra_infos(db),
+        nsamples,
+        val = "mz"
+    )
+    mzs <- apply(mz_ann[, (ncol(mz_ann) - nsamples + 1):ncol(mz_ann)],
+                 1, median, na.rm = TRUE)
+    da_tol <- convert_ppm_da(params$cwt$ppm, mzs)
+    rt_tol <- max(params$cwt$peakwidth_max, params$ann$rt_tol)
+    data <- data.frame(
+        mzmin = mzs - da_tol,
+        mzmax = mzs + da_tol,
+        rtmin = mz_ann[, "rT (min)"] * 60 - rt_tol,
+        rtmax = mz_ann[, "rT (min)"] * 60 + rt_tol
+    )
+    sample_names <- colnames(mz_ann)[(ncol(mz_ann) - nsamples + 1):ncol(mz_ann)]
+
+    # record eic first in a temporary database
+    tmp_db <- db_connect(tempfile(fileext = ".sqlite"))
+    dbExecute(db, "DROP TABLE IF EXISTS eic")
+    for (i in seq(length(sample_names))) {
+        if (!is.null(pb_fct)) {
+            # update the progress bar only every 21%
+            if (i %% ceiling(length(sample_names) / 100) == 0) {
+                pb_fct(i, length(sample_names), "Generate EICs")
+            }
+        }
+        ms_file <- db_read_ms_file(db, sample_names[i])
+        invisible(capture.output(lapply(seq(nrow(data)), function(j)
+            dbWriteTable(
+                tmp_db,
+                "eic",
+                cbind(
+                    eic_id = j,
+                    sample = sample_names[i],
+                    get_eic(
+                        ms_file,
+                        mz_range = data[j, c("mzmin", "mzmax")],
+                        rt_range = data[j, c("rtmin", "rtmax")]
+                    )
+                ),
+                append = TRUE
+            )
+        )))
+    }
+
+    # now for each group id align the EICs
+    dbExecute(db, "DROP TABLE IF EXISTS eic")
+    for (i in seq(nrow(data))) {
+        if (!is.null(pb_fct)) {
+            # update the progress bar only every 1%
+            if (i %% ceiling(nrow(data) / 100) == 0) {
+                pb_fct(i, nrow(data), "Align EICs")
+            }
+        }
+        eics <- dbGetQuery(
+            tmp_db,
+            sprintf("SELECT * FROM eic WHERE eic_id == %s", i)
+        )
+        dbWriteTable(
+            db,
+            "eic",
+            cbind.data.frame(
+                eic_id = i,
+                rt = eics[eics$sample == sample_names[1], "rt"],
+                do.call(cbind, split(eics$int, eics$sample))
+            ),
+            append = TRUE
+        )
+    }
+    RSQLite::dbDisconnect(tmp_db)
+    if (!is.null(pb_fct)) {
+        pb_fct(n = 1, total = 1, title = "Align EICs")
+    }
+}
+
+#' @title Get EIC from data
+#'
+#' @description
+#' Get all the EIC for all the files in the database for ONE basepeak mass
+#'
+#' @param db `SQLiteConnection`
+#' @param eic_id `numeric(1)` eic ID in database, it corresponds to the row ID
+#' for the annotation table in the database
+#'
+#' @return `DataFrame` with a variable number of columns
+#'  (one sample = one column):
+#' @itemize{
+#'     @item rt `numeric` retention time (in sec)
+#'     @item ... `numeric` intensity of the sample
+#' }
+db_get_eic <- function(db, eic_id) {
+    dbGetQuery(db, sprintf(
+        "SELECT * FROM eic WHERE eic_id == %s;",
+        eic_id
+    ))[, -1]
 }

@@ -75,10 +75,20 @@ shinydashboard::tabItem(
 
     shinydashboard::box(
         width = 12,
-        shinycssloaders::withSpinner(
-            plotly::plotlyOutput(
-                "ms_map_plot",
-                height = "65vh"
+        shiny::column(width = 9,
+            shinycssloaders::withSpinner(
+                plotly::plotlyOutput(
+                    "ms_map_plot",
+                    height = "65vh"
+                )
+            )
+        ),
+        shiny::column(width = 3,
+            shinycssloaders::withSpinner(
+                plotly::plotlyOutput(
+                    "ms_map_eic",
+                    height = "65vh"
+                )
             )
         )
     )

@@ -35,7 +35,7 @@ app$waitForValue(
 )
 
 # 1st test : get an empty summary table
-Sys.sleep(1)
+app$waitForValue("summary_table", iotype = "output", ignore = list(NULL))
 app$snapshot(
     items = list(
         output = "summary_table" # should be empty

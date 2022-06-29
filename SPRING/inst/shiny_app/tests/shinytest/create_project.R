@@ -116,11 +116,11 @@ app$snapshot(
 # 7th test : normal
 app$setInputs(project_create_name = "test")
 app$setInputs(project_create_valid = "click")
-Sys.sleep(.5)
 app$executeScript(paste0("Shiny.setInputValue(\"project_modal_visible\", $(\"#",
                          "project_modal\").length !=  0)"))
 app$executeScript(paste0("Shiny.setInputValue(\"project_create_modal_visible\"",
                         ", $(\"#project_create_modal\").length !=  0)"))
+app$waitForValue("project_name", iotype = "output", ignore = list(""))
 app$snapshot(
     items = list(
         input = c(

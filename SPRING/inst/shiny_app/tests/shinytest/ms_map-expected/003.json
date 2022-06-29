@@ -178,6 +178,7 @@
             "type": "scatter",
             "x": 427.789914141076,
             "y": 0.789914141076395,
+            "customdata": 1,
             "name": "1",
             "hoverinfo": "text",
             "text": "m/z: 428.26812<br />rT: 4.65min<br />Intensity: 21 634 957",
@@ -209,6 +210,7 @@
             "type": "scatter",
             "x": 427.789989524565,
             "y": 0.789989524565158,
+            "customdata": 2,
             "name": "2",
             "hoverinfo": "text",
             "text": "m/z: 428.2682<br />rT: 4.32min<br />Intensity: 7 556 082",
@@ -253,6 +255,14 @@
               0.786157784438728,
               0.743390426582039,
               0.743390426582039
+            ],
+            "customdata": [
+              3,
+              4,
+              5,
+              6,
+              7,
+              8
             ],
             "name": "3",
             "hoverinfo": [
@@ -525,6 +535,10 @@
               0.928773192763458,
               0.876994086924128
             ],
+            "customdata": [
+              9,
+              10
+            ],
             "name": "4",
             "hoverinfo": [
               "text",
@@ -774,6 +788,7 @@
             "type": "scatter",
             "x": 427.789350096056,
             "y": 0.789350096056467,
+            "customdata": 11,
             "name": "5",
             "hoverinfo": "text",
             "text": "m/z: 428.26756<br />rT: 4.97min<br />Intensity: 2 235 868",
@@ -805,6 +820,7 @@
             "type": "scatter",
             "x": 427.789632977483,
             "y": 0.789632977482597,
+            "customdata": 12,
             "name": "6",
             "hoverinfo": "text",
             "text": "m/z: 428.26784<br />rT: 5.14min<br />Intensity: 753 310",
@@ -836,6 +852,7 @@
             "type": "scatter",
             "x": 504.879301741633,
             "y": 0.87930174163273,
+            "customdata": 13,
             "name": "7",
             "hoverinfo": "text",
             "text": "m/z: 505.44368<br />rT: 3.29min<br />Intensity: 444 013",
@@ -867,6 +884,7 @@
             "type": "scatter",
             "x": 428.791454704555,
             "y": 0.791454704555406,
+            "customdata": 14,
             "name": "8",
             "hoverinfo": "text",
             "text": "m/z: 429.27078<br />rT: 5.12min<br />Intensity: 323 002",
@@ -1067,7 +1085,11 @@
       "jsHooks": {
         "render": [
           {
-            "code": "\n        function(el, x) {\n            el.on(\"plotly_hover\", function(eventdata) {\n                var group_id_index = el._fullData.findIndex(\n                    obj => obj.name == eventdata.points[0].data.name);\n                Plotly.Fx.hover(\n                    el,\n                    Array(el._fullData[group_id_index].x.length)\n                        .fill()\n                        .map((_, i) =>\n                            ({\n                                curveNumber: group_id_index,\n                                pointNumber: i\n                            })\n                        )\n                    );\n                /*\n                Plotly.restyle(el, {opacity: .4});\n                Plotly.restyle(\n                    el,\n                    {opacity: 1},\n                    eventdata.points[0].data.name\n                );\n                */\n            });\n            el.on(\"plotly_unhover\", function(eventdata) {\n                //Plotly.restyle(el, {opacity: 1});\n            });\n        }\n    ",
+            "code": "\n        function(el, x) {\n            el.on(\"plotly_hover\", function(eventdata) {\n                debugger;\n                var group_id_index = el._fullData.findIndex(\n                    obj => obj.name == eventdata.points[0].data.name);\n                if (group_id_index != -1) {\n                    Plotly.Fx.hover(\n                        el,\n                        Array(el._fullData[group_id_index].x.length)\n                            .fill()\n                            .map((_, i) =>\n                                ({\n                                    curveNumber: group_id_index,\n                                    pointNumber: i\n                                })\n                            )\n                        );\n                }\n            });\n        }\n    ",
+            "data": null
+          },
+          {
+            "code": "function(el, x) {\n                el.on(\"plotly_click\", function(data) {\n                    Shiny.onInputChange(\n                        \"ms_map_eic_id\",\n                        data[\"points\"][0].customdata\n                    );\n                })\n            }",
             "data": null
           }
         ]

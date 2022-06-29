@@ -174,10 +174,10 @@ ms_process <- function(raw_files,
             }
         }
         raw_file <- NULL # just to get rid of the NOTE
+        print("Conversion")
         if (!is.null(pb_fct)) {
             pb_fct(n = 0, total = length(raw_files), title = "Conversion")
         }
-        ("Conversion")
         infos <- operator(
             foreach::foreach(
                 raw_file = iterators::iter(raw_files),
@@ -216,10 +216,10 @@ ms_process <- function(raw_files,
             stop("some of the file was not imported correctly")
         }
 
+        print("Peak picking")
         if (!is.null(pb_fct)) {
             pb_fct(n = 0, total = 1, title = "PeakPicking")
         }
-        print("Peak picking")
         xsets <- operator(
             foreach::foreach(
                 sample_name = iterators::iter(sample_names),
@@ -264,7 +264,7 @@ ms_process <- function(raw_files,
         print("Alignment")
         xset <- group_peaks(xset, pd_params, operator, pb_fct)
 
-        print("Group")
+        print("Annotate")
         invisible(utils::capture.output(xsa <- CAMERA::annotate(
             xset,
             sigma = camera_params@sigma,
@@ -288,7 +288,6 @@ ms_process <- function(raw_files,
             intval = camera_params@intval
         )))
 
-        print("Annotate")
         xsa <- annotate_pcgroups(xsa, ann_params, pb_fct)
 
         if (!is.null(pb_fct)) {
@@ -311,6 +310,10 @@ ms_process <- function(raw_files,
             camera_params,
             ann_params
         )
+        if (nrow(xsa@ann) > 0) {
+            print("Generate EICs")
+            db_record_eics(db, pb_fct)
+        }
         RSQLite::dbDisconnect(db)
         if (show_txt_pb) {
             close(pb)
