@@ -62,9 +62,9 @@ app$executeScript(sprintf(
     paste(
         seq(raw_files),
         ": [",
-        lapply(strsplit(raw_files, "/"), function(x)
+        lapply(strsplit(raw_files, "/"), function(x) {
             paste("\"", x[-1], "\"", sep = "", collapse = ", ")
-        ),
+        }),
         "]",
         sep = "",
         collapse = ", "

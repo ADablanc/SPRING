@@ -1088,7 +1088,7 @@
       "jsHooks": {
         "render": [
           {
-            "code": "\n        function(el, x) {\n            el.on(\"plotly_hover\", function(eventdata) {\n                debugger;\n                var group_id_index = el._fullData.findIndex(\n                    obj => obj.name == eventdata.points[0].data.name);\n                if (group_id_index != -1) {\n                    Plotly.Fx.hover(\n                        el,\n                        Array(el._fullData[group_id_index].x.length)\n                            .fill()\n                            .map((_, i) =>\n                                ({\n                                    curveNumber: group_id_index,\n                                    pointNumber: i\n                                })\n                            )\n                        );\n                }\n            });\n        }\n    ",
+            "code": "\n        function(el, x) {\n            el.on(\"plotly_hover\", function(eventdata) {\n                var group_id_index = el._fullData.findIndex(\n                    obj => obj.name == eventdata.points[0].data.name);\n                if (group_id_index != -1) {\n                    Plotly.Fx.hover(\n                        el,\n                        Array(el._fullData[group_id_index].x.length)\n                            .fill()\n                            .map((_, i) =>\n                                ({\n                                    curveNumber: group_id_index,\n                                    pointNumber: i\n                                })\n                            )\n                        );\n                }\n            });\n        }\n    ",
             "data": null
           },
           {

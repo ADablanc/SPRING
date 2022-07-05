@@ -35,9 +35,9 @@ check_ms_process_args <- function(raw_files,
 
     file_ext <- c("\\.mzML$", "\\.mzXML$", "\\.RAW$", "\\.d$",
                   "\\.YEP$", "\\.BAF$", "\\.FID$", "\\.WIFF$", "\\.MGF$")
-    test_ext <- sapply(raw_files, function(x)
+    test_ext <- sapply(raw_files, function(x) {
         any(sapply(file_ext, grepl, x, ignore.case = TRUE))
-    )
+    })
     if (any(!test_ext)) {
         stop(sprintf(
             "file extension of %s are not supported",
@@ -183,7 +183,7 @@ FilterParam <- function(cwt_params, ann_params) {
 #' @slot intval `character(1)` "into", "maxo" or "intb"
 #' @slot cor_eic_th `numeric(1)` correlation threshold
 #' @slot pval `numeric(1)` significant correlation threshold
-#' @slot graphMethod `character(1)` method selection for grouping peaks after
+#' @slot graph_method `character(1)` method selection for grouping peaks after
 #' correlation analysis into pseudospectra, could be "hcs" or "lpc"
 #' @slot calcIso `logical(1)` use isotopic relationship for peak grouping
 #' @slot calcCiS `logical(1)` use correlation inside samples for peak grouping
@@ -219,7 +219,7 @@ setClass(
         intval = "character",
         cor_eic_th = "numeric",
         pval = "numeric",
-        graphMethod = "character",
+        graph_method = "character",
         calcIso = "logical",
         calcCiS = "logical",
         calcCaS = "logical",
@@ -252,9 +252,9 @@ setClass(
                 any(object@pval >= 1)) {
             msg <- c(msg, "pval must be a number between 0 and 1")
         }
-        if (length(object@graphMethod) != 1 |
-                !any(object@graphMethod %in% c("lpc", "hcs"))) {
-            msg <- c(msg, "graphMethod must be \"lpc\" or \"hcs\"")
+        if (length(object@graph_method) != 1 |
+                !any(object@graph_method %in% c("lpc", "hcs"))) {
+            msg <- c(msg, "graph_method must be \"lpc\" or \"hcs\"")
         }
         if (length(msg) > 0) {
             paste(msg, collapse = "\n  ")
@@ -277,7 +277,7 @@ setClass(
 #' @param perfwhm `numeric(1)` percentage of the FWHM
 #' @param cor_eic_th `numeric(1)` correlation threshold
 #' @param pval `numeric(1)` significant correlation threshold
-#' @param graphMethod `character(1)` method selection for grouping peaks after
+#' @param graph_method `character(1)` method selection for grouping peaks after
 #' correlation analysis into pseudospectra, could be "hcs" or "lpc"
 
 #' @return `CameraParam` object
@@ -306,11 +306,11 @@ setClass(
 #'    perfwhm = .6,
 #'    cor_eic_th = .75,
 #'    pval = .05,
-#'    graphMethod = "hcs"
+#'    graph_method = "hcs"
 #' )
 #' }
 CameraParam <- function(ann_params, cores = 1, sigma = 6, perfwhm = .6,
-                        cor_eic_th = .75, pval = .05, graphMethod = "hcs") {
+                        cor_eic_th = .75, pval = .05, graph_method = "hcs") {
     if (class(ann_params) != "AnnotationParam") {
         stop("ann_params must be an AnnotationParam object")
     }
@@ -340,7 +340,7 @@ CameraParam <- function(ann_params, cores = 1, sigma = 6, perfwhm = .6,
         intval = "into",
         cor_eic_th = cor_eic_th,
         pval = pval,
-        graphMethod = graphMethod,
+        graph_method = graph_method,
         calcIso = TRUE,
         calcCiS = TRUE,
         calcCaS = TRUE,
@@ -474,9 +474,9 @@ AnnotationParam <- function(da_tol = 0.015,
     )
 }
 
-setGeneric("params_to_dataframe", function(object)
+setGeneric("params_to_dataframe", function(object) {
     standardGeneric("params_to_dataframe")
-)
+})
 
 #' @title Convert `FilterParam` to `DataFrame`
 #'
@@ -668,7 +668,7 @@ setMethod(
 #'     \item intval `character` "into", "maxo" or "intb"
 #'     \item cor_eic_th `numeric` correlation threshold
 #'     \item pval `numeric` significant correlation threshold
-#'     \item graphMethod `character` method selection for grouping peaks after
+#'     \item graph_method `character` method selection for grouping peaks after
 #' correlation analysis into pseudospectra, could be "hcs" or "lpc"
 #'     \item calcIso `logical` use isotopic relationship for peak grouping
 #'     \item calcCiS `logical` use correlation inside samples for peak grouping
@@ -691,7 +691,7 @@ setMethod(
             intval = object@intval,
             cor_eic_th = object@cor_eic_th,
             pval = object@pval,
-            graphMethod = object@graphMethod,
+            graph_method = object@graph_method,
             calcIso = as.numeric(object@calcIso),
             calcCiS = as.numeric(object@calcCiS),
             calcCaS = as.numeric(object@calcCaS),

@@ -25,6 +25,7 @@ Each basepeak are plotted with their annotations
 Hover a trace will show all popup for all basepeak with the same group ID (
 same compound flagged by CAMERA)
 Possibility to trace the "MS map" (m/z fct(rT)) or a Kendrick plot
+Each trace will contain the EIC ID in their `customdata` slot
 }
 \examples{
 \dontrun{

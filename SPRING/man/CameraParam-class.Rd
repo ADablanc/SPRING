@@ -24,7 +24,7 @@ A class containing the filter parameters
 
 \item{\code{pval}}{`numeric(1)` significant correlation threshold}
 
-\item{\code{graphMethod}}{`character(1)` method selection for grouping peaks after
+\item{\code{graph_method}}{`character(1)` method selection for grouping peaks after
 correlation analysis into pseudospectra, could be "hcs" or "lpc"}
 
 \item{\code{calcIso}}{`logical(1)` use isotopic relationship for peak grouping}

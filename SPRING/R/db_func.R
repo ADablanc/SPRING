@@ -10,12 +10,12 @@
 #' @seealso RSQLite::dbConnect
 db_connect <- function(sqlite_path) {
     db <- RSQLite::dbConnect(RSQLite::SQLite(), sqlite_path)
-    dbExecute(db, "PRAGMA temp_store = memory;")
-    dbExecute(db, "PRAGMA synchronous = normal;")
-    dbExecute(db, "PRAGMA locking_mode = normal;")
-    dbExecute(db, "PRAGMA cache_size = 1000000;")
-    dbExecute(db, "PRAGMA journal_mode = wal;")
-    dbExecute(db, "PRAGMA auto_vacuum = FULL;")
+    db_execute(db, "PRAGMA temp_store = memory;")
+    db_execute(db, "PRAGMA synchronous = normal;")
+    db_execute(db, "PRAGMA locking_mode = normal;")
+    db_execute(db, "PRAGMA cache_size = 1000000;")
+    db_execute(db, "PRAGMA journal_mode = wal;")
+    db_execute(db, "PRAGMA auto_vacuum = FULL;")
     return(db)
 }
 
@@ -34,7 +34,7 @@ db_connect <- function(sqlite_path) {
 #' @param ... other parameters passed on the method
 #'
 #' @seealso `DBI::dbWriteTable`
-dbWriteTable <- function(db,
+db_write_table <- function(db,
                          table_name,
                          data,
                          overwrite = FALSE,
@@ -73,7 +73,7 @@ dbWriteTable <- function(db,
 #' @param ... other parameters passed on the method
 #'
 #' @seealso `DBI::dbExecute`
-dbExecute <- function(db, query, ...) {
+db_execute <- function(db, query, ...) {
     msg <- "database is locked"
     while (msg == "database is locked") {
         msg <- tryCatch({
@@ -102,7 +102,7 @@ dbExecute <- function(db, query, ...) {
 #' @return `DataFrame` of the result query
 #'
 #' @seealso `DBI::dbGetQuery`
-dbGetQuery <- function(db, query, ...) {
+db_get_query <- function(db, query, ...) {
     res <- tryCatch({
         RSQLite::dbGetQuery(db, query, ...)
     },
@@ -133,7 +133,7 @@ dbGetQuery <- function(db, query, ...) {
 #' @return `DataFrame` of the table
 #'
 #' @seealso `DBI::dbReadTable`
-dbReadTable <- function(db, table_name, ...) {
+db_read_table <- function(db, table_name, ...) {
     res <- tryCatch({
         RSQLite::dbReadTable(db, table_name, check.names = FALSE, ...)
     },
@@ -161,7 +161,7 @@ dbReadTable <- function(db, table_name, ...) {
 #' @param db `SQLiteConnection`
 #' @param sample_names `character vector` sample names, should be unique !!!!
 db_record_samples <- function(db, sample_names) {
-    dbWriteTable(
+    db_write_table(
         db,
         "sample",
         data.frame(
@@ -219,7 +219,7 @@ db_record_ms_file <- function(db, sample_name, ms_file) {
         "UPDATE sample SET ms_file = :a WHERE sample == \"%s\";",
         sample_name
     )
-    dbExecute(db, query, params = list(a = ms_file))
+    db_execute(db, query, params = list(a = ms_file))
     rm(ms_file)
     gc()
 }
@@ -240,7 +240,7 @@ db_read_ms_file <- function(db, sample_name) {
         WHERE sample == \"%s\";",
         sample_name
     )
-    ms_file <- dbGetQuery(db, query)[1, 1]
+    ms_file <- db_get_query(db, query)[1, 1]
     if (is.null(ms_file)) {
         NULL
     } else if (is.na(ms_file)) {
@@ -320,7 +320,7 @@ db_record_xsa <- function(db, xsa, sample_name) {
         WHERE sample == \"%s\";",
         sample_name
     )
-    dbExecute(db, query, params = list(a = compress(xsa)))
+    db_execute(db, query, params = list(a = compress(xsa)))
 }
 
 #' @title Record the annotation results
@@ -383,9 +383,9 @@ db_record_ann <- function(db,
                           ann,
                           spectras,
                           spectra_infos) {
-    dbWriteTable(db, "ann", ann, overwrite = TRUE)
-    dbWriteTable(db, "spectras", spectras, overwrite = TRUE)
-    dbWriteTable(db, "spectra_infos", spectra_infos, overwrite = TRUE)
+    db_write_table(db, "ann", ann, overwrite = TRUE)
+    db_write_table(db, "spectras", spectras, overwrite = TRUE)
+    db_write_table(db, "spectra_infos", spectra_infos, overwrite = TRUE)
 }
 
 #' @title Record parameters in database
@@ -413,12 +413,12 @@ db_record_params <- function(db,
     pd_params <- params_to_dataframe(pd_params)
     camera_params <- params_to_dataframe(camera_params)
     ann_params <- params_to_dataframe(ann_params)
-    dbWriteTable(db, "filter_params", filter_params, overwrite = TRUE)
-    dbWriteTable(db, "cwt_params", cwt_params, overwrite = TRUE)
-    dbWriteTable(db, "obw_params", obw_params, overwrite = TRUE)
-    dbWriteTable(db, "pd_params", pd_params, overwrite = TRUE)
-    dbWriteTable(db, "camera_params", camera_params, overwrite = TRUE)
-    dbWriteTable(db, "ann_params", ann_params, overwrite = TRUE)
+    db_write_table(db, "filter_params", filter_params, overwrite = TRUE)
+    db_write_table(db, "cwt_params", cwt_params, overwrite = TRUE)
+    db_write_table(db, "obw_params", obw_params, overwrite = TRUE)
+    db_write_table(db, "pd_params", pd_params, overwrite = TRUE)
+    db_write_table(db, "camera_params", camera_params, overwrite = TRUE)
+    db_write_table(db, "ann_params", ann_params, overwrite = TRUE)
 }
 
 #' @title Get Annotations
@@ -429,6 +429,8 @@ db_record_params <- function(db,
 #' @param db `SQLiteConnection`
 #' @param names `character vector` the compound names, not mandatory
 #' @param group_ids `numeric vector` the group IDs, not mandatory
+#' @param row `numeric` the rowID to extract for the annotation table in the DB,
+#' not mandatory
 #'
 #' @return `DataFrame` each line correspond to a compound found
 #' with the columns:
@@ -476,7 +478,7 @@ db_get_annotations <- function(db, names = NULL, group_ids = NULL, row = NULL) {
     if (!is.null(query2)) {
         query <- paste(query, "WHERE", query2, sep = " ")
     }
-    dbGetQuery(db, query)
+    db_get_query(db, query)
 }
 
 #' @title Get spectra infos
@@ -502,9 +504,9 @@ db_get_annotations <- function(db, names = NULL, group_ids = NULL, row = NULL) {
 #' }
 db_get_spectra_infos <- function(db, spectra_ids = NULL) {
     if (is.null(spectra_ids)) {
-        dbReadTable(db, "spectra_infos")
+        db_read_table(db, "spectra_infos")
     } else {
-        dbGetQuery(db, sprintf(
+        db_get_query(db, sprintf(
             "SELECT *
             FROM spectra_infos
             WHERE spectra_id IN (%s)",
@@ -542,9 +544,9 @@ db_get_spectra_infos <- function(db, spectra_ids = NULL) {
 #' }
 db_get_spectras <- function(db, spectra_ids = NULL) {
     if (is.null(spectra_ids)) {
-        dbReadTable(db, "spectras")
+        db_read_table(db, "spectras")
     } else {
-        dbGetQuery(
+        db_get_query(
             db,
             sprintf(
                 "SELECT *
@@ -654,7 +656,7 @@ db_get_spectras <- function(db, spectra_ids = NULL) {
 #'         \item intval `character` "into", "maxo" or "intb"
 #'         \item cor_eic_th `numeric` correlation threshold
 #'         \item pval `numeric` significant correlation threshold
-#'         \item graphMethod `character` method selection for grouping peaks
+#'         \item graph_method `character` method selection for grouping peaks
 #'          after correlation analysis into pseudospectra, could be "hcs" or
 #'          "lpc"
 #'         \item calcIso `logical` use isotopic relationship for peak grouping
@@ -687,12 +689,12 @@ db_get_spectras <- function(db, spectra_ids = NULL) {
 #' }
 db_get_params <- function(db) {
     list(
-        filter = dbReadTable(db, "filter_params")[1, ],
-        cwt = dbReadTable(db, "cwt_params")[1, ],
-        obw = dbReadTable(db, "obw_params")[1, ],
-        pd = dbReadTable(db, "pd_params")[1, ],
-        camera = dbReadTable(db, "camera_params")[1, ],
-        ann = dbReadTable(db, "ann_params")[1, ]
+        filter = db_read_table(db, "filter_params")[1, ],
+        cwt = db_read_table(db, "cwt_params")[1, ],
+        obw = db_read_table(db, "obw_params")[1, ],
+        pd = db_read_table(db, "pd_params")[1, ],
+        camera = db_read_table(db, "camera_params")[1, ],
+        ann = db_read_table(db, "ann_params")[1, ]
     )
 }
 
@@ -705,7 +707,7 @@ db_get_params <- function(db) {
 #'
 #' @return `numeric` number of samples recorded in database
 db_get_nsamples <- function(db) {
-    max(0, dbGetQuery(db, "select count(sample) from sample")[1, 1])
+    max(0, db_get_query(db, "select count(sample) from sample")[1, 1])
 }
 
 #' @title Resolve annotation conflict
@@ -718,7 +720,7 @@ db_get_nsamples <- function(db) {
 #' @param group_id `numeric(1)` ID of the peak groups
 #' @param name `character(1)` name of the annotation to keep instead of others
 db_resolve_conflict <- function(db, group_id, name) {
-    dbExecute(db, sprintf(
+    db_execute(db, sprintf(
         "DELETE FROM ann
             WHERE group_id == %s
                 AND name != \"%s\";",
@@ -735,6 +737,7 @@ db_resolve_conflict <- function(db, group_id, name) {
 #' corresponding EIC
 #'
 #' @param db `SQLiteConnection`
+#' @param pb_fct `function` used to update the progress bar
 db_record_eics <- function(db, pb_fct = NULL) {
     if (!is.null(pb_fct)) {
         pb_fct(n = 0, total = 1, title = "Generate EICs")
@@ -763,7 +766,7 @@ db_record_eics <- function(db, pb_fct = NULL) {
 
     # record eic first in a temporary database
     tmp_db <- db_connect(tempfile(fileext = ".sqlite"))
-    dbExecute(db, "DROP TABLE IF EXISTS eic")
+    db_execute(db, "DROP TABLE IF EXISTS eic")
     for (i in seq(length(sample_names))) {
         if (!is.null(pb_fct)) {
             # update the progress bar only every 21%
@@ -772,8 +775,8 @@ db_record_eics <- function(db, pb_fct = NULL) {
             }
         }
         ms_file <- db_read_ms_file(db, sample_names[i])
-        invisible(capture.output(lapply(seq(nrow(data)), function(j)
-            dbWriteTable(
+        invisible(capture.output(lapply(seq(nrow(data)), function(j) {
+            db_write_table(
                 tmp_db,
                 "eic",
                 cbind(
@@ -787,11 +790,11 @@ db_record_eics <- function(db, pb_fct = NULL) {
                 ),
                 append = TRUE
             )
-        )))
+        })))
     }
 
     # now for each group id align the EICs
-    dbExecute(db, "DROP TABLE IF EXISTS eic")
+    db_execute(db, "DROP TABLE IF EXISTS eic")
     for (i in seq(nrow(data))) {
         if (!is.null(pb_fct)) {
             # update the progress bar only every 1%
@@ -799,11 +802,11 @@ db_record_eics <- function(db, pb_fct = NULL) {
                 pb_fct(i, nrow(data), "Align EICs")
             }
         }
-        eics <- dbGetQuery(
+        eics <- db_get_query(
             tmp_db,
             sprintf("SELECT * FROM eic WHERE eic_id == %s", i)
         )
-        dbWriteTable(
+        db_write_table(
             db,
             "eic",
             cbind.data.frame(
@@ -836,7 +839,7 @@ db_record_eics <- function(db, pb_fct = NULL) {
 #'     @item ... `numeric` intensity of the sample
 #' }
 db_get_eic <- function(db, eic_id) {
-    dbGetQuery(db, sprintf(
+    db_get_query(db, sprintf(
         "SELECT * FROM eic WHERE eic_id == %s;",
         eic_id
     ))[, -1]

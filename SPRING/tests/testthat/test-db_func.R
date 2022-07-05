@@ -9,7 +9,7 @@ testthat::test_that("db connect", {
 
 testthat::test_that("db write table", {
     db <- db_connect(":memory:")
-    dbWriteTable(db, "mtcars", mtcars, row.names = TRUE)
+    db_write_table(db, "mtcars", mtcars, row.names = TRUE)
     testthat::expect_identical(
         RSQLite::dbReadTable(db, "mtcars", row.names = TRUE),
         mtcars
@@ -19,9 +19,9 @@ testthat::test_that("db write table", {
 
 testthat::test_that("db execute", {
     db <- db_connect(":memory:")
-    dbWriteTable(db, "mtcars", mtcars, row.names = TRUE)
+    db_write_table(db, "mtcars", mtcars, row.names = TRUE)
     testthat::expect_error(
-        dbExecute(
+        db_execute(
             db,
             "INSERT INTO mtcars
                   (mpg, cyl, disp, hp, drat, wt, qsec, vs, am, gear, carb)
@@ -29,7 +29,7 @@ testthat::test_that("db execute", {
         ),
         "10 values for 11 columns"
     )
-    dbExecute(
+    db_execute(
         db,
         "INSERT INTO mtcars
                   (mpg, cyl, disp, hp, drat, wt, qsec, vs, am, gear, carb)
@@ -44,17 +44,17 @@ testthat::test_that("db execute", {
 
 testthat::test_that("db get query", {
     db <- db_connect(":memory:")
-    dbWriteTable(db, "mtcars", mtcars, row.names = TRUE)
+    db_write_table(db, "mtcars", mtcars, row.names = TRUE)
     testthat::expect_error(
-        dbGetQuery(db, "SELECT id FROM mtcars"),
+        db_get_query(db, "SELECT id FROM mtcars"),
         "no such column: id"
     )
     testthat::expect_identical(
-        dbGetQuery(db, "SELECT * FROM peaks"),
+        db_get_query(db, "SELECT * FROM peaks"),
         data.frame()
     )
     testthat::expect_identical(
-        dbGetQuery(db, "SELECT * FROM mtcars", row.names = TRUE),
+        db_get_query(db, "SELECT * FROM mtcars", row.names = TRUE),
         mtcars
     )
     RSQLite::dbDisconnect(db)
@@ -62,13 +62,13 @@ testthat::test_that("db get query", {
 
 testthat::test_that("db read table", {
     db <- db_connect(":memory:")
-    dbWriteTable(db, "mtcars", mtcars, row.names = TRUE)
+    db_write_table(db, "mtcars", mtcars, row.names = TRUE)
     testthat::expect_identical(
-        dbReadTable(db, "peaks"),
+        db_read_table(db, "peaks"),
         data.frame()
     )
     testthat::expect_identical(
-        dbReadTable(db, "mtcars", row.names = TRUE),
+        db_read_table(db, "mtcars", row.names = TRUE),
         mtcars
     )
     RSQLite::dbDisconnect(db)
@@ -118,7 +118,7 @@ testthat::test_that("record ms file", {
             profstep = 0
         )
     )
-    ms_file <- decompress(dbGetQuery(
+    ms_file <- decompress(db_get_query(
         db,
         "SELECT ms_file FROM sample LIMIT 1"
     )[1, 1])
@@ -213,7 +213,7 @@ testthat::test_that("record xsa", {
     db_record_samples(db, "small")
     db_record_xsa(db, xsa, "small")
     testthat::expect_identical(
-        decompress(dbGetQuery(
+        decompress(db_get_query(
             db,
             "SELECT xsa FROM sample LIMIT 1"
         )[1, 1]),
@@ -415,15 +415,15 @@ testthat::test_that("db record ann", {
     db <- db_connect(":memory:")
     db_record_ann(db, ann, spectras, spectra_infos)
     testthat::expect_identical(
-        dbReadTable(db, "ann"),
+        db_read_table(db, "ann"),
         ann
     )
     testthat::expect_equal(
-        dbReadTable(db, "spectra_infos"),
+        db_read_table(db, "spectra_infos"),
         spectra_infos
     )
     testthat::expect_identical(
-        dbReadTable(db, "spectras"),
+        db_read_table(db, "spectras"),
         spectras
     )
     RSQLite::dbDisconnect(db)
@@ -478,7 +478,7 @@ testthat::test_that("record params", {
         perfwhm = .6,
         cor_eic_th = .75,
         pval = .05,
-        graphMethod = "hcs"
+        graph_method = "hcs"
     )
     filter_params <- FilterParam(cwt_params, ann_params)
 
@@ -493,27 +493,27 @@ testthat::test_that("record params", {
         ann_params
     )
     testthat::expect_identical(
-        dbReadTable(db, "filter_params"),
+        db_read_table(db, "filter_params"),
         params_to_dataframe(filter_params)
     )
     testthat::expect_equal(
-        dbReadTable(db, "cwt_params"),
+        db_read_table(db, "cwt_params"),
         params_to_dataframe(cwt_params)
     )
     testthat::expect_equal(
-        dbReadTable(db, "obw_params"),
+        db_read_table(db, "obw_params"),
         params_to_dataframe(obw_params)
     )
     testthat::expect_identical(
-        dbReadTable(db, "pd_params"),
+        db_read_table(db, "pd_params"),
         params_to_dataframe(pd_params)
     )
     testthat::expect_equal(
-        dbReadTable(db, "camera_params"),
+        db_read_table(db, "camera_params"),
         params_to_dataframe(camera_params)
     )
     testthat::expect_identical(
-        dbReadTable(db, "ann_params"),
+        db_read_table(db, "ann_params"),
         params_to_dataframe(ann_params)
     )
     RSQLite::dbDisconnect(db)
@@ -567,7 +567,7 @@ testthat::test_that("get annotations", {
         check.names = FALSE
     )
     db <- db_connect(":memory:")
-    dbWriteTable(db, "ann", ann)
+    db_write_table(db, "ann", ann)
 
     # 1st test : get all annotations
     testthat::expect_identical(
@@ -648,7 +648,7 @@ testthat::test_that("get spectra infos", {
                 308.494, 197.444, 197.444, 306.904)
     )
     db <- db_connect(":memory:")
-    dbWriteTable(db, "spectra_infos", spectra_infos)
+    db_write_table(db, "spectra_infos", spectra_infos)
     testthat::expect_equal(
         db_get_spectra_infos(db, c(1, 2)),
         spectra_infos[spectra_infos$spectra_id %in% 1:2, ]
@@ -755,7 +755,7 @@ testthat::test_that("get spectras", {
                      "M+3", "M", "M+1", "M+2", "M+3", NA, NA, NA, NA, NA, NA)
     )
     db <- db_connect(":memory:")
-    dbWriteTable(db, "spectras", spectras)
+    db_write_table(db, "spectras", spectras)
     testthat::expect_identical(
         db_get_spectras(db, c(1, 2)),
         spectras[spectras$spectra_id %in% c(1, 2), ]
@@ -816,7 +816,7 @@ testthat::test_that("get params", {
         perfwhm = .6,
         cor_eic_th = .75,
         pval = .05,
-        graphMethod = "hcs"
+        graph_method = "hcs"
     )
     filter_params <- FilterParam(cwt_params, ann_params)
     db <- db_connect(":memory:")
@@ -918,13 +918,13 @@ testthat::test_that("resolve conflict", {
         check.names = FALSE
     )
     db <- db_connect(":memory:")
-    dbWriteTable(db, "ann", ann)
+    db_write_table(db, "ann", ann)
     db_resolve_conflict(db, 3, "LPC 11a:0")
     ann <- data.frame(ann[-which(
         ann$group_id == 3 & ann$name != "LPC 11a:0"), ],
         row.names = NULL, check.names = FALSE)
     testthat::expect_identical(
-        dbReadTable(db, "ann"),
+        db_read_table(db, "ann"),
         ann
     )
     RSQLite::dbDisconnect(db)
@@ -1053,11 +1053,11 @@ testthat::test_that("db record EICs", {
     )
     db <- db_connect(tmp_file)
     # light the database
-    dbExecute(db, "DELETE FROM ann WHERE group_id != 4;")
-    dbExecute(db, "DELETE FROM eic;")
+    db_execute(db, "DELETE FROM ann WHERE group_id != 4;")
+    db_execute(db, "DELETE FROM eic;")
     db_record_eics(db)
     testthat::expect_equal(
-        dbGetQuery(db, "SELECT * FROM EIC"),
+        db_get_query(db, "SELECT * FROM EIC"),
         eics
     )
     RSQLite::dbDisconnect(db)
@@ -1175,7 +1175,7 @@ testthat::test_that("db get eic", {
     )
 
     db <- db_connect(":memory:")
-    dbWriteTable(db, "eic", eic)
+    db_write_table(db, "eic", eic)
     testthat::expect_identical(
         db_get_eic(db, 3),
         eic[0, -1]

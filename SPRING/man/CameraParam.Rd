@@ -11,7 +11,7 @@ CameraParam(
   perfwhm = 0.6,
   cor_eic_th = 0.75,
   pval = 0.05,
-  graphMethod = "hcs"
+  graph_method = "hcs"
 )
 }
 \arguments{
@@ -27,7 +27,7 @@ CameraParam(
 
 \item{pval}{`numeric(1)` significant correlation threshold}
 
-\item{graphMethod}{`character(1)` method selection for grouping peaks after
+\item{graph_method}{`character(1)` method selection for grouping peaks after
 correlation analysis into pseudospectra, could be "hcs" or "lpc"}
 }
 \value{
@@ -62,7 +62,7 @@ camera_params <- CameraParam(
    perfwhm = .6,
    cor_eic_th = .75,
    pval = .05,
-   graphMethod = "hcs"
+   graph_method = "hcs"
 )
 }
 }

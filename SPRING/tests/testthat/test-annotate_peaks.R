@@ -14,7 +14,7 @@ testthat::test_that("annotate peaks", {
         perfwhm = .6,
         cor_eic_th = .75,
         pval = .05,
-        graphMethod = "hcs"
+        graph_method = "hcs"
     )
     ann <- data.frame(
         group_id = c(1, 2, 3, 3, 3, 3, 3, 3, 4, 4, 5, 6, 7, 8),
@@ -366,7 +366,7 @@ testthat::test_that("annotate peaks", {
             sigma = camera_params@sigma,
             perfwhm = camera_params@perfwhm,
             cor_eic_th = camera_params@cor_eic_th,
-            graphMethod = camera_params@graphMethod,
+            graphMethod = camera_params@graph_method,
             pval = camera_params@pval,
             calcCiS = camera_params@calcCiS,
             calcIso = camera_params@calcIso,
@@ -395,7 +395,7 @@ testthat::test_that("annotate peaks", {
         sigma = camera_params@sigma,
         perfwhm = camera_params@perfwhm,
         cor_eic_th = camera_params@cor_eic_th,
-        graphMethod = camera_params@graphMethod,
+        graphMethod = camera_params@graph_method,
         pval = camera_params@pval,
         calcCiS = camera_params@calcCiS,
         calcIso = camera_params@calcIso,
@@ -461,27 +461,27 @@ testthat::test_that("annotate peaks", {
     )
 
     # 4th test : with a restriction on compound class
-    ann_Cer <- data.frame(ann[-c(4, 6, 7), ], row.names = NULL,
+    ann_cer <- data.frame(ann[-c(4, 6, 7), ], row.names = NULL,
                             check.names = FALSE)
-    ann_Cer[-which(ann_Cer$class == "Cer"),
+    ann_cer[-which(ann_cer$class == "Cer"),
               c("formula", "class", "name", "major_adduct", "adduct",
                 "ion_formula", "rtdiff")] <- NA
-    ann_Cer[-which(ann_Cer$class == "Cer"), c("best_score", "best_npeak")] <- 0
-    ann_Cer[-which(ann_Cer$class == "Cer"), "best_deviation_mz"] <- NA
-    spectra_infos_Cer <- spectra_infos
-    spectra_infos_Cer[
-        !spectra_infos_Cer$spectra_id %in% na.omit(unlist(
+    ann_cer[-which(ann_cer$class == "Cer"), c("best_score", "best_npeak")] <- 0
+    ann_cer[-which(ann_cer$class == "Cer"), "best_deviation_mz"] <- NA
+    spectra_infos_cer <- spectra_infos
+    spectra_infos_cer[
+        !spectra_infos_cer$spectra_id %in% na.omit(unlist(
             ann[which(ann$class == "Cer"), 15:ncol(ann)])),
         c("score", "npeak", "sum_int")] <- 0
-    spectra_infos_Cer[
-        !spectra_infos_Cer$spectra_id %in% na.omit(unlist(
+    spectra_infos_cer[
+        !spectra_infos_cer$spectra_id %in% na.omit(unlist(
             ann[which(ann$class == "Cer"), 15:ncol(ann)])),
         "deviation_mz"] <- NaN
-    spectras_Cer <- data.frame(spectras[
+    spectras_cer <- data.frame(spectras[
         !is.na(spectras$mz) | spectras$spectra_id %in% na.omit(unlist(
             ann[which(ann$class == "Cer"), 15:ncol(ann)])), ], row.names = NULL)
-    spectras_Cer[
-        !spectras_Cer$spectra_id %in% na.omit(unlist(
+    spectras_cer[
+        !spectras_cer$spectra_id %in% na.omit(unlist(
             ann[which(ann$class == "Cer"), 15:ncol(ann)])),
         c("mz_theo", "abd_theo", "iso_theo")] <- NA
 
@@ -490,15 +490,15 @@ testthat::test_that("annotate peaks", {
     xsa <- annotate_pcgroups(xsa, ann_params_no_hits)
     testthat::expect_equal(
         xsa@ann,
-        ann_Cer
+        ann_cer
     )
     testthat::expect_equal(
         xsa@spectra_infos,
-        spectra_infos_Cer
+        spectra_infos_cer
     )
     testthat::expect_equal(
         xsa@spectras,
-        spectras_Cer
+        spectras_cer
     )
 
     # 5th test: normal

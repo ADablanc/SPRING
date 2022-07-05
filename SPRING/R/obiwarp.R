@@ -33,7 +33,7 @@ obiwarp <- function(sqlite_path,
     }
     rtcor <- lapply(xsets, function(xset) xset@rt[[1]])
     mzranges <- lapply(xsets, function(xset) xset@mzrange)
-    peakmat <- do.call(rbind, lapply(seq(xsets), function(i)
+    peakmat <- do.call(rbind, lapply(seq(xsets), function(i) {
         if (nrow(xsets[[i]]@peaks) == 1) {
             as.matrix(t(c(xsets[[i]]@peaks[, -23], sample = i)))
         } else if (nrow(xsets[[i]]@peaks) > 1) {
@@ -41,7 +41,7 @@ obiwarp <- function(sqlite_path,
         } else {
             xsets[[i]]@peaks
         }
-    ))
+    }))
     xset <- do.call(c, xsets)
     xset@rt <- list(raw = rtcor, corrected = rtcor)
 
@@ -244,8 +244,9 @@ obiwarp <- function(sqlite_path,
     # -> issue #122
     # The point is we're using the un-rounded adjusted rt for the rt, BUT
     # use the rounded values for the adjustment of the peak rts.
-    rtdevsmo <- lapply(seq(rtcor), function(i)
-        round(rtcor[[i]] - rtimecor[[i]], 2))
+    rtdevsmo <- lapply(seq(rtcor), function(i) {
+        round(rtcor[[i]] - rtimecor[[i]], 2)
+    })
 
     for (i in seq(length(sample_names))) {
         if (length(rtcor[[i]]) == 0) {

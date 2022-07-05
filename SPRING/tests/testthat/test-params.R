@@ -182,7 +182,7 @@ testthat::test_that("camera_param", {
     perfwhm <- .6
     cor_eic_th <- .75
     pval <- .05
-    graphMethod <- "hcs"
+    graph_method <- "hcs"
 
     testthat::expect_error(
         CameraParam(ann_params = "a"),
@@ -340,7 +340,7 @@ testthat::test_that("camera_param", {
             perfwhm = perfwhm,
             cor_eic_th = cor_eic_th,
             pval = pval,
-            graphMethod = 1
+            graph_method = 1
         ),
         "got class \"numeric\", should be or extend class \"character\""
     )
@@ -352,9 +352,9 @@ testthat::test_that("camera_param", {
             perfwhm = perfwhm,
             cor_eic_th = cor_eic_th,
             pval = pval,
-            graphMethod = "a"
+            graph_method = "a"
         ),
-        "graphMethod must be \"lpc\" or \"hcs\""
+        "graph_method must be \"lpc\" or \"hcs\""
     )
 
     # test in positive
@@ -365,7 +365,7 @@ testthat::test_that("camera_param", {
         perfwhm = perfwhm,
         cor_eic_th = cor_eic_th,
         pval = pval,
-        graphMethod = graphMethod
+        graph_method = graph_method
     )
     testthat::expect_equal(obj@cores, cores)
     testthat::expect_equal(obj@polarity, polarity)
@@ -373,7 +373,7 @@ testthat::test_that("camera_param", {
     testthat::expect_equal(obj@perfwhm, perfwhm)
     testthat::expect_equal(obj@cor_eic_th, cor_eic_th)
     testthat::expect_equal(obj@pval, pval)
-    testthat::expect_equal(obj@graphMethod, graphMethod)
+    testthat::expect_equal(obj@graph_method, graph_method)
     testthat::expect_equal(obj@calcIso, TRUE)
     testthat::expect_equal(obj@calcCiS, TRUE)
     testthat::expect_equal(obj@calcCaS, TRUE)
@@ -402,7 +402,7 @@ testthat::test_that("camera_param", {
         perfwhm = perfwhm,
         cor_eic_th = cor_eic_th,
         pval = pval,
-        graphMethod = graphMethod
+        graph_method = graph_method
     )
     testthat::expect_equal(obj_neg@cores, cores)
     testthat::expect_equal(obj_neg@polarity, "negative")
@@ -410,7 +410,7 @@ testthat::test_that("camera_param", {
     testthat::expect_equal(obj_neg@perfwhm, perfwhm)
     testthat::expect_equal(obj_neg@cor_eic_th, cor_eic_th)
     testthat::expect_equal(obj_neg@pval, pval)
-    testthat::expect_equal(obj_neg@graphMethod, graphMethod)
+    testthat::expect_equal(obj_neg@graph_method, graph_method)
     testthat::expect_equal(obj_neg@calcIso, TRUE)
     testthat::expect_equal(obj_neg@calcCiS, TRUE)
     testthat::expect_equal(obj_neg@calcCaS, TRUE)
@@ -438,7 +438,7 @@ testthat::test_that("camera_param", {
             intval = "into",
             cor_eic_th = cor_eic_th,
             pval = pval,
-            graphMethod = graphMethod,
+            graph_method = graph_method,
             calcIso = 1,
             calcCiS = 1,
             calcCaS = 1,
@@ -675,7 +675,7 @@ testthat::test_that("check_ms_process_args", {
         perfwhm = .6,
         cor_eic_th = .75,
         pval = .05,
-        graphMethod = "hcs"
+        graph_method = "hcs"
     )
 
     testthat::expect_error(

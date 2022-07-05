@@ -1,5 +1,6 @@
 .renvignore
 .Rprofile
+.Rhistory
 R-Portable/library/*
 *.log
 *.Rproj

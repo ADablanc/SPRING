@@ -188,7 +188,7 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 5th test : click on the first line
+# 5th test : click on the valid bttn of the first line
 app$executeScript("$(\"#conflicts_table button\").get(0).click()")
 app$setInputs(
     conflicts_left_disabled = grepl(
@@ -218,8 +218,8 @@ app$snapshot(
         output = c(
             "conflicts_info", # "1/1"
             # "[M+H-H2O]+" "[M+H]+" "[M+Na]+"
-            "conflicts_ms",
-            # ["LPC 11:0","LPC 11a:0"] # dont know why but it doesnt update
+            "conflicts_ms", # dont know why but it doesnt update
+            # ["LPC 11:0","LPC 11a:0"]
             "conflicts_table"
         ),
         export = "conflict_id" # 1

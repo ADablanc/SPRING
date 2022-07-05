@@ -114,7 +114,7 @@ output$conflicts_table <- DT::renderDataTable({
                        "Adducts", "Best score (%)", "Best m/z dev (mDa)",
                        "Max iso")]
         ann <- cbind(
-            Valid = sapply(seq(nrow(ann)), function(bttn_val)
+            Valid = sapply(seq(nrow(ann)), function(bttn_val) {
                 as.character(
                     shiny::actionButton(
                         inputId = paste("conflicts_table_bttn-", bttn_val),
@@ -124,7 +124,7 @@ output$conflicts_table <- DT::renderDataTable({
                         value = as.character(ann[bttn_val, "Name"])
                     )
                 )
-            ),
+            }),
             ann
         )
         rownames(ann) <- as.character(ann$Name)
@@ -241,13 +241,13 @@ output$conflicts_ms <- plotly::renderPlotly({
         print("########## conflicts_ms")
         print(params)
         print(i)
-        plot_empty_MS()
+        plot_empty_ms()
     }, error = function(e) {
         print("########## conflicts_ms")
         print(params)
         print(e)
         sweet_alert_error(e$message)
-        plot_empty_MS()
+        plot_empty_ms()
     })
 })
 

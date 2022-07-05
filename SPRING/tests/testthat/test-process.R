@@ -69,7 +69,7 @@ testthat::test_that("workflow", {
         perfwhm = .6,
         cor_eic_th = .75,
         pval = .05,
-        graphMethod = "hcs"
+        graph_method = "hcs"
     )
 
     # 1st test: test with an empty file (should stop all the process)
@@ -106,20 +106,20 @@ testthat::test_that("workflow", {
     db <- db_connect(sqlite_path)
     db_test <- db_connect(sqlite_path_test)
     testthat::expect_equal(
-        dbReadTable(db, "ann"),
-        dbReadTable(db_test, "ann")
+        db_read_table(db, "ann"),
+        db_read_table(db_test, "ann")
     )
     testthat::expect_equal(
-        dbReadTable(db, "spectra_infos"),
-        dbReadTable(db_test, "spectra_infos")
+        db_read_table(db, "spectra_infos"),
+        db_read_table(db_test, "spectra_infos")
     )
     testthat::expect_equal(
-        dbReadTable(db, "spectras"),
-        dbReadTable(db_test, "spectras")
+        db_read_table(db, "spectras"),
+        db_read_table(db_test, "spectras")
     )
     testthat::expect_equal(
-        dbReadTable(db, "eic"),
-        dbReadTable(db_test, "eic")
+        db_read_table(db, "eic"),
+        db_read_table(db_test, "eic")
     )
     RSQLite::dbDisconnect(db)
 
@@ -136,20 +136,20 @@ testthat::test_that("workflow", {
     ))
     db <- db_connect(sqlite_path)
     testthat::expect_equal(
-        dbReadTable(db, "ann"),
-        dbReadTable(db_test, "ann")
+        db_read_table(db, "ann"),
+        db_read_table(db_test, "ann")
     )
     testthat::expect_equal(
-        dbReadTable(db, "spectra_infos"),
-        dbReadTable(db_test, "spectra_infos")
+        db_read_table(db, "spectra_infos"),
+        db_read_table(db_test, "spectra_infos")
     )
     testthat::expect_equal(
-        dbReadTable(db, "spectras"),
-        dbReadTable(db_test, "spectras")
+        db_read_table(db, "spectras"),
+        db_read_table(db_test, "spectras")
     )
     testthat::expect_equal(
-        dbReadTable(db, "eic"),
-        dbReadTable(db_test, "eic")
+        db_read_table(db, "eic"),
+        db_read_table(db_test, "eic")
     )
     RSQLite::dbDisconnect(db)
     RSQLite::dbDisconnect(db_test)

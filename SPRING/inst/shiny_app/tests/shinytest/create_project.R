@@ -116,11 +116,13 @@ app$snapshot(
 # 7th test : normal
 app$setInputs(project_create_name = "test")
 app$setInputs(project_create_valid = "click")
+app$waitForValue("sqlite_path", iotype = "export", ignore = list(NULL))
+Sys.sleep(1) # very ugly to do this... it seems to not update very fast
+                   # the inputs... for now i have no other choice
 app$executeScript(paste0("Shiny.setInputValue(\"project_modal_visible\", $(\"#",
                          "project_modal\").length !=  0)"))
 app$executeScript(paste0("Shiny.setInputValue(\"project_create_modal_visible\"",
                         ", $(\"#project_create_modal\").length !=  0)"))
-app$waitForValue("project_name", iotype = "output", ignore = list(""))
 app$snapshot(
     items = list(
         input = c(

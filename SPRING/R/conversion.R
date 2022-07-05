@@ -57,7 +57,7 @@ convert_file <- function(raw_file, converter, filter_params) {
         filter_params@rt_range[1], filter_params@rt_range[2]#,
         # filter_params@mz_range[1], filter_params@mz_range[2]
     )
-    msconvert_blabla <- suppressWarnings(
+    suppressWarnings(
         system(query, intern = TRUE, wait = TRUE)
     )
 

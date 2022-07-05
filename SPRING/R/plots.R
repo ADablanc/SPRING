@@ -4,10 +4,10 @@
 #' Construct an empty MS
 #'
 #' @param title `character(1)` title of the plot
-#' @param yTitle `character(1)` title of the Y axis
+#' @param y_title `character(1)` title of the Y axis
 #'
 #' @return `plotly` object
-plot_empty_MS <- function(title = "Mass Spectra", yTitle = "Intensity") {
+plot_empty_ms <- function(title = "Mass Spectra", y_title = "Intensity") {
     p <- plotly::plot_ly(
         type = "scatter",
         mode = "markers"
@@ -51,7 +51,7 @@ plot_empty_MS <- function(title = "Mass Spectra", yTitle = "Intensity") {
             y = 1,
             xanchor = "left",
             yanchor = "bottom",
-            text = yTitle,
+            text = y_title,
             showarrow = FALSE,
             font = list(
                 family = "\"Open Sans\",verdana,arial,sans-serif",
@@ -117,7 +117,7 @@ plot_empty_MS <- function(title = "Mass Spectra", yTitle = "Intensity") {
 #'
 #' @return `plotly`
 plot_composite_ms <- function(spectras) {
-    p <- plot_empty_MS(title = "Hybrid mass spectra")
+    p <- plot_empty_ms(title = "Hybrid mass spectra")
 
     mz_range <- c(Inf, 0)
     for (i in seq(length(spectras))) {
@@ -332,7 +332,7 @@ plot_annotation_ms <- function(db, name) {
 
     ann <- db_get_annotations(db, names = name)
     if (nrow(ann) == 0) {
-        return(plot_empty_MS(title = "Hybrid mass spectra"))
+        return(plot_empty_ms(title = "Hybrid mass spectra"))
     }
     nsamples <- db_get_nsamples(db)
     spectra_ids <- na.omit(unlist(
@@ -342,14 +342,14 @@ plot_annotation_ms <- function(db, name) {
 
     # for each line (adduct) select the most intense spectra
     ann_int <- get_int_ann(ann, spectra_infos, nsamples)
-    spectras <- lapply(seq(nrow(ann)), function(i)
+    spectras <- lapply(seq(nrow(ann)), function(i) {
         db_get_spectras(
             db,
             ann[i, which.max(
                 ann_int[i, (ncol(ann_int) - nsamples + 1):ncol(ann_int)]
             ) + ncol(ann) - nsamples]
         )
-    )
+    })
     names(spectras) <- ann$adduct
     plot_composite_ms(spectras)
 }
@@ -622,13 +622,13 @@ plot_eic <- function(db, sample_name, name) {
     if (length(adduct_names) > 1) {
         # compound was detected with more than one adduct !
             # plot other EICs
-        ions <- do.call(rbind, lapply(adduct_names, function(adduct_name)
+        ions <- do.call(rbind, lapply(adduct_names, function(adduct_name) {
             get_ions(
                 chem_db[1, "formula"],
                 adducts[adducts$name == adduct_name, ],
                 params$ann$instrument
             )[[1]]
-        ))
+        }))
     } else {
         ions <- chem_db
     }
@@ -646,7 +646,7 @@ plot_eic <- function(db, sample_name, name) {
         }
         max_int <- max(max_int, eic$int)
         # search if the ion was integrated
-        peaks <- dbGetQuery(db, sprintf(
+        peaks <- db_get_query(db, sprintf(
             "SELECT rtmin, rtmax
             FROM spectras
             WHERE mzmin >= %s AND mzmax <= %s AND
@@ -666,16 +666,16 @@ plot_eic <- function(db, sample_name, name) {
             rt_range[2]
         ))
         if (nrow(peaks) > 0) {
-            idx <- lapply(seq(nrow(peaks)), function(j)
+            idx <- lapply(seq(nrow(peaks)), function(j) {
                 which(eic$rt >= peaks[j, "rtmin"] &
                           eic$rt <= peaks[j, "rtmax"])
-            )
-            idx2 <- do.call(c, lapply(idx, function(id)
+            })
+            idx2 <- do.call(c, lapply(idx, function(id) {
                 c(if (id[1] != 1) id[1] - 1 else NULL,
                       id,
                       if (id[length(id)] != nrow(eic)) id[length(id)] + 1
                       else NULL)
-            ))
+            }))
             integrated <- eic
             integrated[-idx2, "int"] <- NA
             eic[do.call(c, idx), "int"] <- NA
@@ -984,13 +984,13 @@ plot_mzdev <- function(db, sample_name, name) {
     if (length(adduct_names) > 1) {
         # compound was detected with more than one adduct !
         # plot other EICs
-        ions <- do.call(rbind, lapply(adduct_names, function(adduct_name)
+        ions <- do.call(rbind, lapply(adduct_names, function(adduct_name) {
             get_ions(
                 chem_db[1, "formula"],
                 adducts[adducts$name == adduct_name, ],
                 params$ann$instrument
             )[[1]]
-        ))
+        }))
     } else {
         ions <- chem_db
     }
@@ -1104,13 +1104,13 @@ plot_eic_mzdev <- function(db, sample_name, name) {
     adduct_names <- db_get_annotations(db, names = name)$adduct
     if (length(adduct_names) > 1) {
         # compound was detected with more than one adduct !
-        ions <- do.call(rbind, lapply(adduct_names, function(adduct_name)
+        ions <- do.call(rbind, lapply(adduct_names, function(adduct_name) {
             get_ions(
                 chem_db[1, "formula"],
                 adducts[adducts$name == adduct_name, ],
                 params$ann$instrument
             )[[1]]
-        ))
+        }))
     } else {
         ions <- chem_db
     }
@@ -1130,7 +1130,7 @@ plot_eic_mzdev <- function(db, sample_name, name) {
         mz_dev <- get_mzdev(ms_file, mz_range, rt_range)
         max_int <- max(max_int, eic$int)
         # search if the ion was integrated
-        peaks <- dbGetQuery(db, sprintf(
+        peaks <- db_get_query(db, sprintf(
             "SELECT rtmin, rtmax
             FROM spectras
             WHERE mzmin >= %s AND mzmax <= %s AND
@@ -1150,16 +1150,16 @@ plot_eic_mzdev <- function(db, sample_name, name) {
             rt_range[2]
         ))
         if (nrow(peaks) > 0) {
-            idx <- lapply(seq(nrow(peaks)), function(j)
+            idx <- lapply(seq(nrow(peaks)), function(j) {
                 which(eic$rt >= peaks[j, "rtmin"] &
                           eic$rt <= peaks[j, "rtmax"])
-            )
-            idx2 <- do.call(c, lapply(idx, function(id)
+            })
+            idx2 <- do.call(c, lapply(idx, function(id) {
                 c(if (id[1] != 1) id[1] - 1 else NULL,
                   id,
                   if (id[length(id)] != nrow(eic)) id[length(id)] + 1
                   else NULL)
-            ))
+            }))
             integrated <- eic
             integrated[-idx2, "int"] <- NA
             eic[do.call(c, idx), "int"] <- NA
@@ -1446,9 +1446,9 @@ plot_ms_map <- function(db, annotation_filter = "all", int_threshold = 0,
                  1, median, na.rm = TRUE)
     rts <- mz_ann[, "rT (min)"]
     if (type == "Kendrick plot") {
-        KM <- get_kendrick_mass(mzs)
-        x <- KM$x
-        y <- KM$y
+        km <- get_kendrick_mass(mzs)
+        x <- km$x
+        y <- km$y
     } else {
         x <- rts
         y <- mzs
@@ -1464,9 +1464,10 @@ plot_ms_map <- function(db, annotation_filter = "all", int_threshold = 0,
         color = ints,
         hoverinfo = "text",
         text = paste0(
-            apply(mz_ann, 1, function(x)
+            apply(mz_ann, 1, function(x) {
                 if (is.na(x["Name"])) ""
-                else paste0(x["Name"], "<br />", x["Adduct"], "<br />")),
+                else paste0(x["Name"], "<br />", x["Adduct"], "<br />")
+            }),
             sprintf(
                 "m/z: %s<br />rT: %smin<br />Intensity: %s",
                 round(mzs, 5),

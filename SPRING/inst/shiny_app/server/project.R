@@ -128,7 +128,7 @@ observeEvent(input$project_load, {
         shiny::updateSliderInput(
             getDefaultReactiveDomain(),
             inputId = "ms_map_int_threshold",
-            max = dbGetQuery(
+            max = db_get_query(
                 db(),
                 "SELECT ROUND(MAX(basepeak_int))
                 FROM spectra_infos"

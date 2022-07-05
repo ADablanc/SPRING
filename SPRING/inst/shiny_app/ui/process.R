@@ -596,7 +596,7 @@ shinydashboard::tabItem(
                                   )
                               ),
                               shiny::selectInput(
-                                  inputId = "process_graphMethod",
+                                  inputId = "process_graph_method",
                                   label = "Grouping method",
                                   choices = c("hcs", "lpc")
                               )

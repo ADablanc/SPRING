@@ -85,13 +85,13 @@ load_ion_db <- function(database,
 
     ions <- do.call(
         rbind,
-        lapply(split(chem_db, chem_db$adduct), function(x)
+        lapply(split(chem_db, chem_db$adduct), function(x) {
             do.call(rbind, get_ions(
                 unique(x$formula),
                 adducts[adducts$name == x[1, "adduct"], ],
                 instrument
             ))
-        )
+        })
     )
     ions <- cbind(
         ion_id = as.numeric(as.factor(paste(ions$formula, ions$adduct))),
@@ -176,7 +176,7 @@ get_ions <- function(forms,
             charge = adduct$charge
         )
     ))
-    lapply(seq(isotopic_profiles), function(i)
+    lapply(seq(isotopic_profiles), function(i) {
         data.frame(
             formula = forms[i],
             adduct = adduct$name,
@@ -187,7 +187,7 @@ get_ions <- function(forms,
             iso = c("M",
                     paste0("M+", seq(nrow(isotopic_profiles[[i]]))[-1] - 1))
         )
-    )
+    })
 }
 
 #' @title Compare spectras
@@ -329,8 +329,9 @@ get_mzdev <- function(ms_file, mz_range, rt_range) {
     }
     rawmat <- xcms::rawMat(ms_file, mzrange = mz_range, rtrange = rt_range)
     if (any(names(attributes(ms_file)) == "scantime_corrected")) {
-        scans <- sapply(rawmat[, "time"], function(x)
-            which.min(abs(ms_file@scantime - x)))
+        scans <- sapply(rawmat[, "time"], function(x) {
+            which.min(abs(ms_file@scantime - x))
+        })
         data.frame(
             rt = ms_file@scantime_corrected[scans],
             mz = rawmat[, "mz"]

@@ -18,7 +18,7 @@
     \item intval `character` "into", "maxo" or "intb"
     \item cor_eic_th `numeric` correlation threshold
     \item pval `numeric` significant correlation threshold
-    \item graphMethod `character` method selection for grouping peaks after
+    \item graph_method `character` method selection for grouping peaks after
 correlation analysis into pseudospectra, could be "hcs" or "lpc"
     \item calcIso `logical` use isotopic relationship for peak grouping
     \item calcCiS `logical` use correlation inside samples for peak grouping

@@ -1,5 +1,5 @@
 testthat::test_that("plot empty MS", {
-    p <- plot_empty_MS()
+    p <- plot_empty_ms()
     p2 <- readRDS(system.file(
         "testdata",
         "plots.RDS",

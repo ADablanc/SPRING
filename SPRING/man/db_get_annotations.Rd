@@ -4,7 +4,7 @@
 \alias{db_get_annotations}
 \title{Get Annotations}
 \usage{
-db_get_annotations(db, names = NULL, group_ids = NULL)
+db_get_annotations(db, names = NULL, group_ids = NULL, row = NULL)
 }
 \arguments{
 \item{db}{`SQLiteConnection`}

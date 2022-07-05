@@ -154,14 +154,14 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
         }
 
         pcgroup <- peak_groups[xsa@pspectra[[i]], , drop = FALSE]
-        idx <- lapply(seq(nrow(pcgroup)), function(i)
+        idx <- lapply(seq(nrow(pcgroup)), function(i) {
             which(
                 chem_db$mz >= pcgroup[i, "mzmed"] - ann_params@da_tol &
                     chem_db$mz <= pcgroup[i, "mzmed"] + ann_params@da_tol &
                     chem_db$rt >= pcgroup[i, "rtmed"] - ann_params@rt_tol &
                     chem_db$rt <= pcgroup[i, "rtmed"] + ann_params@rt_tol
             )
-        )
+        })
         if (any(lengths(idx) > 0)) {
             pc_group_basepeak <- pcgroup[which(
                 lengths(idx) > 0)[1], , drop = FALSE]
@@ -170,8 +170,9 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
                 10
         } else {
             pc_group_basepeak <- pcgroup[which.max(
-                apply(pcgroup[, 11:ncol(pcgroup)], 1, function(x)
-                    max(peaks[x, "int"], na.rm = TRUE))), ]
+                apply(pcgroup[, 11:ncol(pcgroup)], 1, function(x) {
+                    max(peaks[x, "int"], na.rm = TRUE)
+                })), ]
             chem_db_match <- chem_db[0, ]
             da_tol_iso <- ann_params@da_tol
         }
@@ -197,13 +198,13 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
                                       cluster[cluster$iso == "M", "group_id"])
             if (nrow(chem_db_match) > 0 && length(hypo_adducts) > 0) {
                 l_spectras2 <- do.call(c, lapply(hypo_adducts,
-                                                     function(hypo_adduct)
+                                                     function(hypo_adduct) {
                     get_ions(
                         unique(chem_db_match$formula),
                         adducts[xsa@annoID[hypo_adduct, "ruleID"], ],
                         ann_params@instrument
                     )
-                ))
+                }))
 
             } else if (nrow(chem_db_match) > 0) {
                 # in here we will certainly search in non target later
@@ -218,9 +219,9 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
                     )))))
             }
             tmp_ann <- cbind(
-                do.call(rbind, lapply(l_spectras2, function(x)
+                do.call(rbind, lapply(l_spectras2, function(x) {
                     x[1, c("formula", "adduct", "ion_formula")]
-                )),
+                })),
                 tmp_ann
             )
 
@@ -407,9 +408,9 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
 #'     }
 #' }
 split_conflicts <- function(ann) {
-    splitted_ann <- lapply(split(ann, ann$group_id), function(x)
+    splitted_ann <- lapply(split(ann, ann$group_id), function(x) {
         if (length(unique(x$name)) == 1) x else split(x, x$name)
-    )
+    })
     names(splitted_ann) <- NULL
     is_conflict <- sapply(splitted_ann, class) == "list"
     list(
@@ -542,8 +543,7 @@ summarise_ann <- function(ann, spectra_infos, nsamples) {
                     nSamples = sum(
                         sapply(
                             x[, (ncol(x) - nsamples + 1):ncol(x), drop = FALSE],
-                            function(y)
-                                any(!is.na(y))
+                            function(y) any(!is.na(y))
                         )
                     ),
                     `Best score (%)` = max(x[, "Best score (%)"]),
@@ -552,10 +552,10 @@ summarise_ann <- function(ann, spectra_infos, nsamples) {
                     if (is.na(x[1, "Name"])) do.call(
                         cbind,
                         lapply(x[, (ncol(x) - nsamples + 1):ncol(x)],
-                               function(y)
+                               function(y) {
                                    if (all(is.na(y))) NA
-                                   else max(y, na.rm = TRUE)))
-                    else x[
+                                   else max(y, na.rm = TRUE)
+                    })) else x[
                         x$Adduct == x[, "Major adduct"],
                         (ncol(x) - nsamples + 1):ncol(x),
                           drop = FALSE],

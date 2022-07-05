@@ -38,9 +38,9 @@ testthat::test_that("obiwarp", {
     )
     sample_names <- tools::file_path_sans_ext(basename(filepaths))
     db <- db_connect(sqlite_path)
-    ms_files <- lapply(sample_names, function(sample_name)
+    ms_files <- lapply(sample_names, function(sample_name) {
         db_read_ms_file(db, sample_name)
-    )
+    })
     RSQLite::dbDisconnect(db)
     xsets <- lapply(1:2, function(i) {
         object <- methods::new("xcmsSet")
@@ -180,10 +180,10 @@ testthat::test_that("obiwarp", {
         obw_params
     )
     expect_equal(
-        lapply(1:2, function(i)
+        lapply(1:2, function(i) {
             xsets[[i]]@peaks[, "rt"] -
                 xset@peaks[which(xset@peaks[, "sample"] == i), "rt"]
-        ),
+        }),
         list(
             numeric(0),
             c(rep(0, 11), -.01)
@@ -200,10 +200,10 @@ testthat::test_that("obiwarp", {
         obw_params
     )
     expect_equal(
-        lapply(1:2, function(i)
+        lapply(1:2, function(i) {
             xsets[[i]]@peaks[, "rt"] -
                 xset@peaks[which(xset@peaks[, "sample"] == i), "rt"]
-        ),
+        }),
         list(
             rep(0, 13),
             setNames(0, "rt")
@@ -219,10 +219,10 @@ testthat::test_that("obiwarp", {
         obw_params
     )
     expect_equal(
-        lapply(1:2, function(i)
+        lapply(1:2, function(i) {
             xsets[[i]]@peaks[, "rt"] -
                 xset@peaks[which(xset@peaks[, "sample"] == i), "rt"]
-        ),
+        }),
         list(
             rep(0, 13),
             rep(0, 12)

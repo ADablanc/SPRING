@@ -88,6 +88,11 @@ app$snapshot(
 
 # 3rd test : test with Kendrick plot
 app$setInputs(ms_map_type = "Kendrick plot")
+ms_map_eic <- app$waitForValue(
+    "ms_map_eic",
+    iotype = "output",
+    ignore = list(NULL)
+)
 app$snapshot(
     items = list(
         output = "ms_map_plot" # should contain all points but with Kendrick
@@ -101,7 +106,7 @@ app$executeScript("Shiny.setInputValue(\"ms_map_eic_id\", 5)")
 ms_map_eic <- app$waitForValue(
     "ms_map_eic",
     iotype = "output",
-    ignore = list(NULL)
+    ignore = list(ms_map_eic)
 )
 app$snapshot(
     items = list(
@@ -136,7 +141,8 @@ app$snapshot(
 
 # 7th test : only no annotated on Kendrick plot
 app$setInputs(ms_map_type = "Kendrick plot")
-app$setInputs(ms_map_annotation_filter = "no annotated")
+app$setInputs(ms_map_annotation_filter = "no annotated",
+              wait_ = FALSE, values_ = FALSE)
 app$snapshot(
     items = list(
         output = "ms_map_plot" # should contain only no annotated points
@@ -156,7 +162,8 @@ app$snapshot(
 
 # 9th test : only annotated on Kendrick plot
 app$setInputs(ms_map_type = "Kendrick plot")
-app$setInputs(ms_map_annotation_filter = "annotated")
+app$setInputs(ms_map_annotation_filter = "annotated",
+                  wait_ = FALSE, values_ = FALSE)
 app$snapshot(
     items = list(
         output = "ms_map_plot" # should contain only annotated points
@@ -167,7 +174,8 @@ app$snapshot(
 # 10th test : intensity threshold on MS map
 app$setInputs(ms_map_type = "MS map")
 app$setInputs(ms_map_annotation_filter = "all")
-app$setInputs(ms_map_int_threshold = 6000000)
+app$setInputs(ms_map_int_threshold = 6000000,
+              wait_ = FALSE, values_ = FALSE)
 app$snapshot(
     items = list(
         output = "ms_map_plot" # should contain points above 6000000
@@ -179,7 +187,8 @@ app$snapshot(
 
 # 11th test : intensity threshold on Kendrick plot
 app$setInputs(ms_map_type = "Kendrick plot")
-app$setInputs(ms_map_annotation_filter = "all")
+app$setInputs(ms_map_annotation_filter = "all",
+              wait_ = FALSE, values_ = FALSE)
 app$setInputs(ms_map_int_threshold = 6000000)
 app$snapshot(
     items = list(
@@ -207,7 +216,8 @@ app$snapshot(
 # 13th test : no annotated points + intensity threshold on Kendrick plot
 app$setInputs(ms_map_type = "Kendrick plot")
 app$setInputs(ms_map_annotation_filter = "no annotated")
-app$setInputs(ms_map_int_threshold = 6000000)
+app$setInputs(ms_map_int_threshold = 6000000,
+              wait_ = FALSE, values_ = FALSE)
 app$snapshot(
     items = list(
         output = "ms_map_plot" # should contain points not annotated and
@@ -235,7 +245,8 @@ app$snapshot(
 # 15th test : no annotated points + intensity threshold on Kendrick plot
 app$setInputs(ms_map_type = "Kendrick plot")
 app$setInputs(ms_map_annotation_filter = "annotated")
-app$setInputs(ms_map_int_threshold = 6000000)
+app$setInputs(ms_map_int_threshold = 6000000,
+              wait_ = FALSE, values_ = FALSE)
 app$snapshot(
     items = list(
         output = "ms_map_plot" # should contain points annotated and

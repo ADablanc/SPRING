@@ -160,7 +160,7 @@ shiny::updateNumericInput(
 #' @param input$process_perfwhm `numeric(1)` percentage of the FWHM to use when
 #'  grouping peaks
 #' @param input$process_cor_eic_th `numeric(1)` correlation threshold for EICs
-#' @param input$process_graphMethod `character(1)` method to use for grouping
+#' @param input$process_graph_method `character(1)` method to use for grouping
 #' peaks
 #' @param input$process_sigma `numeric(1)` multiplier of the standard deviation
 #' @param input$process_pval `numeric(1)` significant correlation threshold
@@ -212,7 +212,7 @@ shiny::observeEvent(input$process_launch, {
             `Compound classes` = input$process_cpd_classes,
             `Percentage of the FWHM` = input$process_perfwhm,
             `EIC correlation threshold` = input$process_cor_eic_th,
-            `Grouping method` = input$process_graphMethod,
+            `Grouping method` = input$process_graph_method,
             Sigma = input$process_sigma,
             `p-value` = input$process_pval
         )
@@ -223,7 +223,7 @@ shiny::observeEvent(input$process_launch, {
              "gap_init", "gap_extend", "factor_diag", "factor_gap",
              "local_alignment", "init_penalty", "bw", "mzwid", "mda_tol",
              "rt_tol", "abd_tol", "database", "instrument", "cpd_classes",
-             "perfwhm", "cor_eic_th", "graphMethod", "sigma", "pval"),
+             "perfwhm", "cor_eic_th", "graph_method", "sigma", "pval"),
              sep = "_")
 
         # check which are missing
@@ -249,10 +249,11 @@ shiny::observeEvent(input$process_launch, {
                 function(x) x[[1]] < x[[2]]), each = 2)
         msgs <- unlist(lapply(
             split(names(params[idx]), ceiling(seq(length(idx)) / 2)),
-                function(x) c(
-                    paste(x[1], "cannot be over than", x[2]),
-                    paste(x[2], "cannot be under than", x[1]))
-            ))
+                function(x) {
+                    c(
+                        paste(x[1], "cannot be over than", x[2]),
+                        paste(x[2], "cannot be under than", x[1]))
+                }))
         check_inputs(inputs[idx], conditions, msgs)
 
         cwt_params <- xcms::CentWaveParam(
@@ -307,7 +308,7 @@ shiny::observeEvent(input$process_launch, {
             perfwhm = params[["Percentage of the FWHM"]],
             cor_eic_th = params[["EIC correlation threshold"]],
             pval = params[["p-value"]],
-            graphMethod = params[["Grouping method"]]
+            graph_method = params[["Grouping method"]]
         )
 
         shinyWidgets::progressSweetAlert(
@@ -352,7 +353,7 @@ shiny::observeEvent(input$process_launch, {
             shiny::updateSliderInput(
                 session,
                 inputId = "ms_map_int_threshold",
-                max = dbGetQuery(
+                max = db_get_query(
                     db(),
                     "SELECT ROUND(MAX(basepeak_int))
                 FROM spectra_infos"

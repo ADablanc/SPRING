@@ -139,11 +139,11 @@ ms_process <- function(raw_files,
             cl <- parallel::makeCluster(min(cores, length(raw_files)))
             parallel::clusterExport(
                 cl,
-                list("sqlite_path", "db_connect", "dbExecute", "dbWriteTable",
-                     "dbGetQuery", "import_ms_file", "convert_file",
-                     "check_ms_file", "db_record_ms_file", "compress",
-                     "filter_ms_file", "filter_params", "db_read_ms_file",
-                     "decompress", "find_chrompeaks"),
+                list("sqlite_path", "db_connect", "db_execute",
+                     "db_write_table", "db_get_query", "import_ms_file",
+                     "convert_file", "check_ms_file", "db_record_ms_file",
+                     "compress", "filter_ms_file", "filter_params",
+                     "db_read_ms_file", "decompress", "find_chrompeaks"),
                 envir = pryr::where("sqlite_path")
             )
             doSNOW::registerDoSNOW(cl)
@@ -270,7 +270,7 @@ ms_process <- function(raw_files,
             sigma = camera_params@sigma,
             perfwhm = camera_params@perfwhm,
             cor_eic_th = camera_params@cor_eic_th,
-            graphMethod = camera_params@graphMethod,
+            graphMethod = camera_params@graph_method,
             pval = camera_params@pval,
             calcCiS = camera_params@calcCiS,
             calcIso = camera_params@calcIso,
