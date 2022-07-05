@@ -60,7 +60,9 @@ summary_table_options <- list(
 #' even if the thousand separator is " " and not ","
 #'
 #' @param db `reactive value` pointer to the sqlite connection
-#' @param conflicts `reactive value` group IDs where a conflict was detected
+#' @param input$summary_by `character(1)` should be `referent` to report only
+#'  the intensity of the referent ion or `all` to sum all the intensity for the
+#'   compound
 #'
 #' @return `DataTable` with columns :
 #' \itemize{
@@ -82,18 +84,19 @@ summary_table_options <- list(
 #' }
 output$summary_table <- DT::renderDataTable({
     params <- list(
-        db = db()
+        db = db(),
+        by = input$summary_by
     )
     ann <- tryCatch({
     # to invalidate the summary table
-        ann <- db_get_annotations(db())
+        ann <- db_get_annotations(params$db)
         if (nrow(ann) == 0) {
             custom_stop("invalid", "no annotations in database")
         }
-        nsamples <- db_get_nsamples(db())
-        spectra_infos <- db_get_spectra_infos(db())
+        nsamples <- db_get_nsamples(params$db)
+        spectra_infos <- db_get_spectra_infos(params$db)
 
-        ann <- summarise_ann(ann, spectra_infos, nsamples)$resume
+        ann <- summarise_ann(ann, spectra_infos, nsamples, params$by)$resume
         ann[, (ncol(ann) - nsamples + 1):ncol(ann)][
             ann[, (ncol(ann) - nsamples + 1):ncol(ann)] == 0] <- NA
         ann
@@ -148,7 +151,8 @@ output$summary_export <- shiny::downloadHandler(
     content = function(excel_path) {
         export_annotations(
             sqlite_path(),
-            excel_path
+            excel_path,
+            input$summary_by
         )
         excel_path
     }

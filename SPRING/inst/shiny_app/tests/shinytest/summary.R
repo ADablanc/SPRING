@@ -83,6 +83,15 @@ app$snapshot(
     screenshot = TRUE
 )
 
+# 3rd test : see if we can change the intensities reported
+app$setInputs(summary_by = "all")
+app$snapshot(
+    items = list(
+        output = "summary_table"
+    ),
+    screenshot = TRUE
+)
+
 # see if we can upload the xlsx file
 # app$snapshotDownload("summary_export")
 

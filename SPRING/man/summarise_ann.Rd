@@ -4,7 +4,7 @@
 \alias{summarise_ann}
 \title{Summarise annotations}
 \usage{
-summarise_ann(ann, spectra_infos, nsamples)
+summarise_ann(ann, spectra_infos, nsamples, by = "referent")
 }
 \arguments{
 \item{ann}{`DataFrame` each line correspond to a compound found
@@ -50,6 +50,9 @@ annotated, with the columns :
 
 \item{nsamples}{`integer` the number of samples processed in total, it is use
 as an offset on the DataFrame}
+
+\item{by}{`character(1)` should be `referent` to report only the intensity of
+the referent ion or `all` to sum all the intensity for the compound}
 }
 \value{
 list of two items :

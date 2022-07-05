@@ -828,6 +828,7 @@ testthat::test_that("summarise ann df", {
                 308.494, 197.444, 197.444, 306.904)
     )
 
+    # 1st test : no annotations !!!
     testthat::expect_equal(
         summarise_ann(ann[0, ], spectras[0, ], nsamples = 2),
         list(
@@ -843,6 +844,7 @@ testthat::test_that("summarise ann df", {
         )
     )
 
+    # 2nd test : one annotation
     testthat::expect_equal(
         summarise_ann(
             ann[which(ann$name == "LPC 11:0"), ],
@@ -887,6 +889,53 @@ testthat::test_that("summarise ann df", {
         )
     )
 
+    # 3rd test : one annotation but will all intensities summed
+    testthat::expect_equal(
+        summarise_ann(
+            ann[which(ann$name == "LPC 11:0"), ],
+            spectra_infos,
+            nsamples = 2,
+            by = "all"
+        ),
+        list(
+            resume = data.frame(
+                `Group ID` = factor(3, levels = 3),
+                Class = factor("LPC", levels = "LPC"),
+                Name = "LPC 11:0",
+                `rT (min)` = 4.78,
+                `Diff rT (sec)` = 9,
+                Adducts = "[M+H-H2O]+ [M+H]+ [M+Na]+",
+                nSamples = 2,
+                `Best score (%)` = 95,
+                `Best m/z dev (mDa)` = 0,
+                `Max iso` = 2,
+                `220221CCM_global_POS_01_ssleu_filtered` = 6399285.043,
+                `220221CCM_global_POS_02_ssleu_filtered` = 6611433.661,
+                check.names = FALSE
+            ),
+            details = data.frame(
+                `Group ID` = factor(c(3, 3, 3), levels = 3),
+                Class = factor(c("LPC", "LPC", "LPC"), levels = "LPC"),
+                Name = c("LPC 11:0", "LPC 11:0", "LPC 11:0"),
+                `rT (min)` = c(4.78, 4.78, 4.78),
+                `Diff rT (sec)` = c(9, 9, 9),
+                Adduct = c("[M+H-H2O]+", "[M+H]+", "[M+Na]+"),
+                nSamples = c(2, 2, 2),
+                `Best score (%)` = c(80, 95, 80),
+                `Best m/z dev (mDa)` = c(0, 0, 0),
+                `Max iso` = c(1, 2, 1),
+                `220221CCM_global_POS_01_ssleu_filtered` = c(NA,
+                                                             6139220.0505469,
+                                                             260064.992761365),
+                `220221CCM_global_POS_02_ssleu_filtered` = c(88824.635233072,
+                                                             6234084.85605467,
+                                                             288524.169413714),
+                check.names = FALSE
+            )
+        )
+    )
+
+    # 4th test : with all possible annotations
     testthat::expect_equal(
         summarise_ann(ann, spectra_infos, nsamples = 2),
         list(
@@ -920,6 +969,100 @@ testthat::test_that("summarise ann df", {
                                                              6234084.85605467,
                                                              6234084.85605467,
                                                              5689144.27927454,
+                                                             NA, NA,
+                                                             444013.097852865,
+                                                             323001.699462891),
+                check.names = FALSE
+            ),
+            details = data.frame(
+                `Group ID` = factor(c(1, 2, 3, 3, 3, 3, 3, 3, 4, 4, 5, 6, 7, 8),
+                                    levels = 1:8),
+                Class = factor(c(NA, NA, "LPC", "LPC", "LPC", "LPC", "LPC",
+                                 "LPC", "Cer", "Cer", NA, NA, NA, NA),
+                               levels = c("Cer", "LPC")),
+                Name = c(NA, NA, "LPC 11:0", "LPC 11a:0", "LPC 11:0",
+                         "LPC 11a:0", "LPC 11:0", "LPC 11a:0",
+                         "Cer (d18:1/C12:0)", "Cer (d18:1/C12:0)", NA, NA, NA,
+                         NA),
+                `rT (min)` = c(4.65, 4.32, 4.78, 4.78, 4.78, 4.78, 4.78, 4.78,
+                               3.3, 3.3, 4.97, 5.14, 3.29, 5.12),
+                `Diff rT (sec)` = c(NA, NA, 9, 4, 9, 4, 9, 4, 2, 2, NA, NA, NA,
+                                    NA),
+                Adduct = c(NA, NA, "[M+H-H2O]+", "[M+H-H2O]+", "[M+H]+",
+                           "[M+H]+", "[M+Na]+", "[M+Na]+", "[M+H-H2O]+",
+                           "[M+Na]+", NA, NA, NA, NA),
+                nSamples = c(2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0),
+                `Best score (%)` = c(0, 0, 80, 80, 95, 95, 80, 80, 71, 71, 0, 0,
+                                     0, 0),
+                `Best m/z dev (mDa)` = c(NA, NA, 0, 0, 0, 0, 0, 0, 0, 0, NA,
+                                         NA, NA, NA),
+                `Max iso` = c(0, 0, 1, 1, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0),
+                `220221CCM_global_POS_01_ssleu_filtered` = c(21634957.3317308,
+                                                             7556081.77126924,
+                                                             NA, NA,
+                                                             6139220.0505469,
+                                                             6139220.0505469,
+                                                             260064.992761365,
+                                                             260064.992761365,
+                                                             4945601.93026269,
+                                                             1287181.56877954,
+                                                             2235868.3566111,
+                                                             753309.518850004,
+                                                             401071.227087501,
+                                                             NA),
+                `220221CCM_global_POS_02_ssleu_filtered` = c(19992518.2568646,
+                                                             7375409.9176154,
+                                                             88824.635233072,
+                                                             88824.635233072,
+                                                             6234084.85605467,
+                                                             6234084.85605467,
+                                                             288524.169413714,
+                                                             288524.169413714,
+                                                             5689144.27927454,
+                                                             1458245.19191226,
+                                                             NA, NA,
+                                                             444013.097852865,
+                                                             323001.699462891),
+                check.names = FALSE
+            )
+        )
+    )
+
+    # 5th test : with all possible annotations but with all the ions intensities
+        # summed
+    testthat::expect_equal(
+        summarise_ann(ann, spectra_infos, nsamples = 2, by = "all"),
+        list(
+            resume = data.frame(
+                `Group ID` = factor(c(1:3, 3, 4:8), levels = 1:8),
+                Class = factor(c(NA, NA, "LPC", "LPC", "Cer", NA, NA, NA, NA),
+                               levels = c("Cer", "LPC")),
+                Name = c(NA, NA, "LPC 11:0", "LPC 11a:0", "Cer (d18:1/C12:0)",
+                         NA, NA, NA, NA),
+                `rT (min)` = c(4.65, 4.32, 4.78, 4.78, 3.3, 4.97, 5.14, 3.29,
+                               5.12),
+                `Diff rT (sec)` = c(NA, NA, 9, 4, 2, NA, NA, NA, NA),
+                Adducts = c(NA, NA, "[M+H-H2O]+ [M+H]+ [M+Na]+",
+                            "[M+H-H2O]+ [M+H]+ [M+Na]+", "[M+H-H2O]+ [M+Na]+",
+                            NA, NA, NA, NA),
+                nSamples = c(2, 2, 2, 2, 2, 1, 1, 2, 1),
+                `Best score (%)` = c(0, 0, 95, 95, 71, 0, 0, 0, 0),
+                `Best m/z dev (mDa)` = c(NA, NA, 0, 0, 0, NA, NA, NA, NA),
+                `Max iso` = c(0, 0, 2, 2, 1, 0, 0, 0, 0),
+                `220221CCM_global_POS_01_ssleu_filtered` = c(21634957.3317,
+                                                             7556081.7713,
+                                                             6399285.0433,
+                                                             6399285.0433,
+                                                             6232783.4990,
+                                                             2235868.3566,
+                                                             753309.5189,
+                                                             401071.2271,
+                                                             NA),
+                `220221CCM_global_POS_02_ssleu_filtered` = c(19992518.2569,
+                                                             7375409.9176,
+                                                             6611433.6607,
+                                                             6611433.6607,
+                                                             7147389.4712,
                                                              NA, NA,
                                                              444013.097852865,
                                                              323001.699462891),

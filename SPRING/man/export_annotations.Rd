@@ -4,12 +4,15 @@
 \alias{export_annotations}
 \title{Export annotations}
 \usage{
-export_annotations(sqlite_path, excel_path)
+export_annotations(sqlite_path, excel_path, by = "referent")
 }
 \arguments{
 \item{sqlite_path}{`character(1)` sqlite path to the annotation results}
 
 \item{excel_path}{`character(1)` path to the excel file to create}
+
+\item{by}{`character(1)` should be `referent` to report only the intensity of
+the referent ion or `all` to sum all the intensity for the compound}
 }
 \description{
 Export all annotations in a excel file

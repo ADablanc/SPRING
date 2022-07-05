@@ -471,6 +471,8 @@ split_conflicts <- function(ann) {
 #' }
 #' @param nsamples `integer` the number of samples processed in total, it is use
 #'  as an offset on the DataFrame
+#' @param by `character(1)` should be `referent` to report only the intensity of
+#' the referent ion or `all` to sum all the intensity for the compound
 #'
 #' @return list of two items :
 #' \itemize{
@@ -513,7 +515,7 @@ split_conflicts <- function(ann) {
 #'         intensity the basepeak
 #'     }
 #' }
-summarise_ann <- function(ann, spectra_infos, nsamples) {
+summarise_ann <- function(ann, spectra_infos, nsamples, by = "referent") {
     int_ann <- get_int_ann(ann, spectra_infos, nsamples)
     if (nrow(int_ann) == 0) {
         return(list(
@@ -550,16 +552,23 @@ summarise_ann <- function(ann, spectra_infos, nsamples) {
                     `Best score (%)` = max(x[, "Best score (%)"]),
                     `Best m/z dev (mDa)` = min(x[, "Best m/z dev (mDa)"]),
                     `Max iso` = max(x[, "Max iso"]),
-                    if (is.na(x[1, "Name"])) do.call(
+                    if (is.na(x[1, "Name"]) & by == "referent") do.call(
                         cbind,
                         lapply(x[, (ncol(x) - nsamples + 1):ncol(x)],
                                function(y) {
                                    if (all(is.na(y))) NA
                                    else max(y, na.rm = TRUE)
-                    })) else x[
+                    })) else if (!is.na(x[1, "Name"]) & by == "referent") x[
                         x$Adduct == x[, "Referent adduct"],
                         (ncol(x) - nsamples + 1):ncol(x),
-                          drop = FALSE],
+                          drop = FALSE
+                    ] else do.call(
+                        cbind,
+                        lapply(x[, (ncol(x) - nsamples + 1):ncol(x)],
+                               function(y) {
+                                   if (all(is.na(y))) NA
+                                   else sum(y, na.rm = TRUE)
+                    })),
                     check.names = FALSE
                 )
             }), make.row.names = FALSE)

@@ -219,5 +219,26 @@ testthat::test_that("export annotations", {
         openxlsx::read.xlsx(excel_file, 2, sep.names = " "),
         summarised_ann$details
     )
+
+    # 6th test : same but with all ions intensities summed
+    ann <- db_get_annotations(db)
+    spectra_infos <- db_get_spectra_infos(db)
+    summarised_ann <- summarise_ann(ann, spectra_infos, 2, by = "all")
+    summarised_ann$resume[, "Group ID"] <- as.character(
+        summarised_ann$resume[, "Group ID"])
+    summarised_ann$resume$Class <- as.character(summarised_ann$resume$Class)
+
+    export_annotations(sqlite_file, excel_file, by = "all")
+    testthat::expect_equal(
+        openxlsx::read.xlsx(excel_file, 1, sep.names = " "),
+        summarised_ann$resume
+    )
+    summarised_ann$details[, "Group ID"] <- as.character(
+        summarised_ann$details[, "Group ID"])
+    summarised_ann$details$Class <- as.character(summarised_ann$details$Class)
+    testthat::expect_equal(
+        openxlsx::read.xlsx(excel_file, 2, sep.names = " "),
+        summarised_ann$details
+    )
     RSQLite::dbDisconnect(db)
 })

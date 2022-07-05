@@ -347,9 +347,11 @@ ms_process <- function(raw_files,
 #'
 #' @param sqlite_path `character(1)` sqlite path to the annotation results
 #' @param excel_path `character(1)` path to the excel file to create
+#' @param by `character(1)` should be `referent` to report only the intensity of
+#'  the referent ion or `all` to sum all the intensity for the compound
 #'
 #' @export
-export_annotations <- function(sqlite_path, excel_path) {
+export_annotations <- function(sqlite_path, excel_path, by = "referent") {
     if (class(sqlite_path) != "character") {
         stop("sqlite file arg must be a filepath to a database file")
     } else if (!file.exists(sqlite_path)) {
@@ -370,7 +372,7 @@ export_annotations <- function(sqlite_path, excel_path) {
         ann[, (ncol(ann) - nsamples + 1):ncol(ann)]))
     spectra_infos <- db_get_spectra_infos(db, spectra_ids)
 
-    summarised_ann <- summarise_ann(ann, spectra_infos, nsamples)
+    summarised_ann <- summarise_ann(ann, spectra_infos, nsamples, by)
     wb <- openxlsx::createWorkbook()
     openxlsx::addWorksheet(wb, "Summary")
     openxlsx::addWorksheet(wb, "Details")

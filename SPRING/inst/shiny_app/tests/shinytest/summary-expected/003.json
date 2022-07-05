@@ -1,0 +1,352 @@
+{
+  "output": {
+    "summary_table": {
+      "x": {
+        "filter": "top",
+        "vertical": false,
+        "filterHTML": "<tr>\n  <td data-type=\"factor\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"width: 100%; display: none;\">\n      <select multiple=\"multiple\" style=\"width: 100%;\" data-options=\"[&quot;1&quot;,&quot;2&quot;,&quot;3&quot;,&quot;4&quot;,&quot;5&quot;,&quot;6&quot;,&quot;7&quot;,&quot;8&quot;]\"><\/select>\n    <\/div>\n  <\/td>\n  <td data-type=\"factor\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"width: 100%; display: none;\">\n      <select multiple=\"multiple\" style=\"width: 100%;\" data-options=\"[&quot;Cer&quot;,&quot;LPC&quot;]\"><\/select>\n    <\/div>\n  <\/td>\n  <td data-type=\"character\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"3.29\" data-max=\"5.14\" data-scale=\"2\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"2\" data-max=\"9\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"character\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"integer\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"1\" data-max=\"2\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"0\" data-max=\"95\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"disabled\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"0\" data-max=\"2\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"401071.227087501\" data-max=\"21634957.3317308\" data-scale=\"10\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"323001.699462891\" data-max=\"19992518.2568646\" data-scale=\"10\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n<\/tr>",
+        "extensions": [
+          "Scroller",
+          "Buttons",
+          "FixedColumns"
+        ],
+        "data": [
+          [
+            "1",
+            "2",
+            "3",
+            "3",
+            "4",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8"
+          ],
+          [
+            null,
+            null,
+            "LPC",
+            "LPC",
+            "Cer",
+            "Cer",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            "LPC 11:0",
+            "LPC 11a:0",
+            "Cer (d18:1/C12:0)",
+            "Cer (d18:1/C12:0)-B",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            4.65,
+            4.32,
+            4.78,
+            4.78,
+            3.3,
+            3.3,
+            4.97,
+            5.14,
+            3.29,
+            5.12
+          ],
+          [
+            null,
+            null,
+            9,
+            4,
+            2,
+            2,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            "[M+H-H2O]+ [M+H]+ [M+Na]+",
+            "[M+H-H2O]+ [M+H]+ [M+Na]+",
+            "[M+H-H2O]+ [M+Na]+",
+            "[M+H-H2O]+",
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            1,
+            1,
+            2,
+            1
+          ],
+          [
+            0,
+            0,
+            95,
+            95,
+            71,
+            71,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            null,
+            null,
+            0,
+            0,
+            0,
+            0,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            0,
+            0,
+            2,
+            2,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            21634957.3317308,
+            7556081.77126924,
+            6399285.04330827,
+            6399285.04330827,
+            6232783.49904223,
+            4945601.93026269,
+            2235868.3566111,
+            753309.518850004,
+            401071.227087501,
+            null
+          ],
+          [
+            19992518.2568646,
+            7375409.9176154,
+            6611433.66070146,
+            6611433.66070146,
+            7147389.4711868,
+            5689144.27927454,
+            null,
+            null,
+            444013.097852865,
+            323001.699462891
+          ]
+        ],
+        "container": "<table class=\"display\">\n  <thead>\n    <tr>\n      <th>Group ID<\/th>\n      <th>Class<\/th>\n      <th>Name<\/th>\n      <th>rT (min)<\/th>\n      <th>Diff rT (sec)<\/th>\n      <th>Adducts<\/th>\n      <th>nSamples<\/th>\n      <th>Best score (%)<\/th>\n      <th>Best m/z dev (mDa)<\/th>\n      <th>Max iso<\/th>\n      <th>220221CCM_global_POS_01_ssleu_filtered<\/th>\n      <th>220221CCM_global_POS_02_ssleu_filtered<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>",
+        "options": {
+          "dom": "Bfrtip",
+          "paging": true,
+          "scroller": true,
+          "scrollY": "55vh",
+          "scrollX": true,
+          "scrollCollapse": true,
+          "buttons": [
+            {
+              "extend": "colvis",
+              "text": "Hide columns",
+              "columns": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+              ]
+            },
+            {
+              "extend": "collection",
+              "text": "Export to excel",
+              "action": "\n                    function(e, dt, node, config) {\n                        $(\"#summary_export\")[0].click();\n                    }\n                "
+            }
+          ],
+          "fixedColumns": 1,
+          "columnDefs": [
+            {
+              "targets": 10,
+              "render": "function(data, type, row, meta) {\n    return type !== 'display' ? data : DTWidget.formatCurrency(data, \"\", 0, 3, \" \", \".\", true);\n  }"
+            },
+            {
+              "targets": 11,
+              "render": "function(data, type, row, meta) {\n    return type !== 'display' ? data : DTWidget.formatCurrency(data, \"\", 0, 3, \" \", \".\", true);\n  }"
+            },
+            {
+              "className": "dt-head-center dt-center",
+              "targets": "_all",
+              "width": 80
+            }
+          ],
+          "language": {
+            "emptyTable": "no lipids found"
+          },
+          "initComplete": "\n            function(settings, json) {\n                settings.oInstance.api().columns.adjust();\n            }\n        ",
+          "order": [
+
+          ],
+          "autoWidth": false,
+          "orderClasses": false,
+          "orderCellsTop": true
+        },
+        "selection": {
+          "mode": "none",
+          "selected": null,
+          "target": "row",
+          "selectable": null
+        }
+      },
+      "evals": [
+        "options.buttons.1.action",
+        "options.columnDefs.0.render",
+        "options.columnDefs.1.render",
+        "options.initComplete"
+      ],
+      "jsHooks": [
+
+      ],
+      "deps": [
+        {
+          "name": "jquery",
+          "version": "3.6.0",
+          "src": {
+            "href": "jquery-3.6.0"
+          },
+          "meta": null,
+          "script": "jquery-3.6.0.min.js",
+          "stylesheet": null,
+          "head": null,
+          "attachment": null,
+          "all_files": true
+        },
+        {
+          "name": "dt-core",
+          "version": "1.11.3",
+          "src": {
+            "href": "dt-core-1.11.3"
+          },
+          "meta": null,
+          "script": "js/jquery.dataTables.min.js",
+          "stylesheet": [
+            "css/jquery.dataTables.min.css",
+            "css/jquery.dataTables.extra.css"
+          ],
+          "head": null,
+          "attachment": null,
+          "package": null,
+          "all_files": false
+        },
+        {
+          "name": "dt-ext-scroller",
+          "version": "1.11.3",
+          "src": {
+            "href": "dt-ext-scroller-1.11.3"
+          },
+          "meta": null,
+          "script": "js/dataTables.scroller.min.js",
+          "stylesheet": "css/scroller.dataTables.min.css",
+          "head": null,
+          "attachment": null,
+          "package": null,
+          "all_files": false
+        },
+        {
+          "name": "dt-ext-buttons",
+          "version": "1.11.3",
+          "src": {
+            "href": "dt-ext-buttons-1.11.3"
+          },
+          "meta": null,
+          "script": [
+            "js/dataTables.buttons.min.js",
+            "js/buttons.html5.min.js",
+            "js/buttons.colVis.min.js",
+            "js/buttons.print.min.js"
+          ],
+          "stylesheet": "css/buttons.dataTables.min.css",
+          "head": null,
+          "attachment": null,
+          "package": null,
+          "all_files": false
+        },
+        {
+          "name": "dt-ext-fixedcolumns",
+          "version": "1.11.3",
+          "src": {
+            "href": "dt-ext-fixedcolumns-1.11.3"
+          },
+          "meta": null,
+          "script": "js/dataTables.fixedColumns.min.js",
+          "stylesheet": "css/fixedColumns.dataTables.min.css",
+          "head": null,
+          "attachment": null,
+          "package": null,
+          "all_files": false
+        },
+        {
+          "name": "nouislider",
+          "version": "7.0.10",
+          "src": {
+            "href": "nouislider-7.0.10"
+          },
+          "meta": null,
+          "script": "jquery.nouislider.min.js",
+          "stylesheet": "jquery.nouislider.min.css",
+          "head": null,
+          "attachment": null,
+          "package": null,
+          "all_files": true
+        },
+        {
+          "name": "selectize",
+          "version": "0.12.0",
+          "src": {
+            "href": "selectize-0.12.0"
+          },
+          "meta": null,
+          "script": "selectize.min.js",
+          "stylesheet": "selectize.bootstrap3.css",
+          "head": null,
+          "attachment": null,
+          "package": null,
+          "all_files": true
+        },
+        {
+          "name": "crosstalk",
+          "version": "1.2.0",
+          "src": {
+            "href": "crosstalk-1.2.0"
+          },
+          "meta": null,
+          "script": "js/crosstalk.min.js",
+          "stylesheet": "css/crosstalk.min.css",
+          "head": null,
+          "attachment": null,
+          "all_files": true
+        }
+      ]
+    }
+  }
+}
