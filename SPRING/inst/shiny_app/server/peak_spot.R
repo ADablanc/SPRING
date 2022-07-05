@@ -5,8 +5,8 @@
 #' Each basepeak are plotted with their annotations
 #' Hover a trace will show all popup for all basepeak with the same group ID (
 #' same compound flagged by CAMERA)
-#' A click on a trace will update the peak_spot_eic output by returning the EIC ID
-#'  to the server
+#' A click on a trace will update the peak_spot_eic output by returning the EIC
+#'  ID to the server
 #'
 #' @param db `reactive value` pointer to the sqlite connection
 #'

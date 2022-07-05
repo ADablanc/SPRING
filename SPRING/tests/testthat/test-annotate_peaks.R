@@ -837,8 +837,9 @@ testthat::test_that("summarise ann df", {
                        "Best m/z dev (mDa)", "Max iso"))), check.names = FALSE),
             details = data.frame(matrix(, nrow = 0, ncol = 11, dimnames = list(
                 c(), c("Group ID", "Class", "Name", "rT (min)", "Diff rT (sec)",
-                       "Referent adduct", "Adduct", "nSamples", "Best score (%)",
-                       "Best m/z dev (mDa)", "Max iso"))), check.names = FALSE)
+                       "Referent adduct", "Adduct", "nSamples",
+                       "Best score (%)", "Best m/z dev (mDa)", "Max iso"))),
+                check.names = FALSE)
         )
     )
 

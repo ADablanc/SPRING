@@ -355,7 +355,6 @@ testthat::test_that("plot EIC", {
     testthat::expect_true(all(
         unlist(p[[1]]$layoutAttrs) == unlist(p2$plot_eic[[5]][[1]]$layoutAttrs)
     ))
-
     testthat::expect_true(all(
         unlist(p[[1]]$config) == unlist(p2$plot_eic[[5]][[1]]$config)
     ))
@@ -410,7 +409,6 @@ testthat::test_that("plot DB EIC", {
         unlist(p[[1]]$layoutAttrs) ==
             unlist(p2$plot_db_eic[[1]][[1]]$layoutAttrs)
     ))
-
     testthat::expect_true(all(
         unlist(p[[1]]$config) == unlist(p2$plot_db_eic[[1]][[1]]$config)
     ))
@@ -428,7 +426,6 @@ testthat::test_that("plot DB EIC", {
         unlist(p[[1]]$layoutAttrs) ==
             unlist(p2$plot_db_eic[[2]][[1]]$layoutAttrs)
     ))
-
     testthat::expect_true(all(
         unlist(p[[1]]$config) == unlist(p2$plot_db_eic[[2]][[1]]$config)
     ))

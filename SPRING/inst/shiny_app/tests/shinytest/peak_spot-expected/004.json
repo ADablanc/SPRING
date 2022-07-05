@@ -10,14 +10,14 @@
             "r": 10
           },
           "title": {
-            "text": "<b>EIC<\/b>",
+            "text": "<b>LPC 11:0<br />[M+H]+<\/b>",
             "y": 0.95,
-            "x": 0.5,
+            "x": 0.95,
             "font": {
               "family": "\"Open Sans\",verdana,arial,sans-serif",
               "size": 18
             },
-            "xanchor": "center",
+            "xanchor": "right",
             "yanchor": "bottom"
           },
           "spikedistance": -1,
@@ -938,12 +938,12 @@
           "title": {
             "text": "<b>Kendrick plot<\/b>",
             "y": 0.95,
-            "x": 0.5,
+            "x": 0.95,
             "font": {
               "family": "\"Open Sans\",verdana,arial,sans-serif",
               "size": 18
             },
-            "xanchor": "center",
+            "xanchor": "right",
             "yanchor": "bottom"
           },
           "xaxis": {

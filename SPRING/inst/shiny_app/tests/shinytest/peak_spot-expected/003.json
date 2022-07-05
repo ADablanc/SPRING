@@ -12,12 +12,12 @@
           "title": {
             "text": "<b>Kendrick plot<\/b>",
             "y": 0.95,
-            "x": 0.5,
+            "x": 0.95,
             "font": {
               "family": "\"Open Sans\",verdana,arial,sans-serif",
               "size": 18
             },
-            "xanchor": "center",
+            "xanchor": "right",
             "yanchor": "bottom"
           },
           "xaxis": {

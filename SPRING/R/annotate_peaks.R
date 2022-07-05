@@ -99,8 +99,8 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
     l_spectras <- split(l_spectras, l_spectras$ion_id)
     colnames(chem_db)[colnames(chem_db) == "adduct"] <- "referent_adduct"
     chem_db <- unique(chem_db[chem_db$abd == 100,
-                    c("class", "name", "formula", "referent_adduct", "ion_formula",
-                      "mz", "rt", "ion_id")])
+                    c("class", "name", "formula", "referent_adduct",
+                      "ion_formula", "mz", "rt", "ion_id")])
 
     xset <- xsa@xcmsSet
     samples <- rownames(xset@phenoData)
@@ -292,7 +292,8 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
                 }
             }
             tmp_ann <- merge(
-                chem_db_match[, c("class", "name", "referent_adduct", "formula")],
+                chem_db_match[, c("class", "name", "referent_adduct",
+                                  "formula")],
                 tmp_ann,
                 by = "formula",
                 all = TRUE,

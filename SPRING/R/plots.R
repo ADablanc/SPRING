@@ -17,12 +17,12 @@ plot_empty_ms <- function(title = "Mass Spectra", y_title = "Intensity") {
         title = list(
             text = sprintf("<b>%s</b>", title),
             y = .95,
-            x = .5,
+            x = .95,
             font = list(
                 family = '"Open Sans",verdana,arial,sans-serif',
                 size = 18
             ),
-            xanchor = "center",
+            xanchor = "right",
             yanchor = "bottom"
         ),
         margin = list(t = 50),
@@ -470,12 +470,12 @@ plot_empty_chromato <- function(title = "Total Ion Chromatogram(s)") {
         title = list(
             text = sprintf("<b>%s</b>", title),
             y = .95,
-            x = .5,
+            x = .95,
             font = list(
                 family = "\"Open Sans\",verdana,arial,sans-serif",
                 size = 18
             ),
-            xanchor = "center",
+            xanchor = "right",
             yanchor = "bottom"
             ),
         margin = list(t = 50),
@@ -785,10 +785,16 @@ plot_db_eic <- function(db, eic_id) {
         stop("eic_id must contain only ONE ID")
     }
 
-    p <- plot_empty_chromato("EIC")
-
-    # get eic data
+        # get eic data
     ann <- db_get_annotations(db, row = eic_id)
+    p <- plot_empty_chromato(
+        if (is.na(ann[1, "name"])) "" else paste(
+            ann[1, "name"],
+            ann[1, "adduct"],
+            sep = "<br />"
+        )
+    )
+
     data <- db_get_eic(db, eic_id)
     nsamples <- db_get_nsamples(db)
 
@@ -857,12 +863,12 @@ plot_empty_mzdev <- function(title = "m/z deviation") {
         title = list(
             text = sprintf("<b>%s</b>", title),
             y = .95,
-            x = .5,
+            x = .95,
             font = list(
                 family = "\"Open Sans\",verdana,arial,sans-serif",
                 size = 18
             ),
-            xanchor = "center",
+            xanchor = "right",
             yanchor = "bottom"
         ),
         margin = list(t = 50),
@@ -1282,8 +1288,9 @@ plot_eic_mzdev <- function(db, sample_name, name) {
 #' @param yaxis_title `character(1)` title of the y axis
 #'
 #' @return `plotly` object
-plot_empty_peak_spot <- function(title = "MS map", xaxis_title = "Retention time",
-                              yaxis_title = "m/z") {
+plot_empty_peak_spot <- function(title = "MS map",
+                                 xaxis_title = "Retention time",
+                                 yaxis_title = "m/z") {
     p <- plotly::plot_ly(
         type = "scatter",
         mode = "markers"
@@ -1293,12 +1300,12 @@ plot_empty_peak_spot <- function(title = "MS map", xaxis_title = "Retention time
         title = list(
             text = sprintf("<b>%s</b>", title),
             y = .95,
-            x = .5,
+            x = .95,
             font = list(
                 family = "\"Open Sans\",verdana,arial,sans-serif",
                 size = 18
             ),
-            xanchor = "center",
+            xanchor = "right",
             yanchor = "bottom"
         ),
         margin = list(t = 50),
