@@ -22,7 +22,7 @@ annotate_pcgroups(xsa, ann_params, pb_fct = NULL)
         \item group_id `integer` group ID
         \item class `character` cpd class
         \item name `character` name
-        \item major_adduct `character` majoritary adduct for the compound
+        \item referent_adduct `character` referent adduct for the compound
         \item formula `character` chemical formula
         \item adduct `character` adduct form
         \item ion_formula `character` ion chemical formula

@@ -12,6 +12,9 @@ db_get_annotations(db, names = NULL, group_ids = NULL, row = NULL)
 \item{names}{`character vector` the compound names, not mandatory}
 
 \item{group_ids}{`numeric vector` the group IDs, not mandatory}
+
+\item{row}{`numeric` the rowID to extract for the annotation table in the DB,
+not mandatory}
 }
 \value{
 `DataFrame` each line correspond to a compound found
@@ -20,7 +23,7 @@ with the columns:
         \item group_id `integer` group ID
         \item class `character` cpd class
         \item name `character` name
-        \item major_adduct `character` majoritary adduct for the compound
+        \item referent_adduct `character` referent adduct for the compound
         \item formula `character` chemical formula
         \item adduct `character` adduct form
         \item ion_formula `character` ion chemical formula

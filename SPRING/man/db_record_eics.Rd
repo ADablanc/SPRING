@@ -8,6 +8,8 @@ db_record_eics(db, pb_fct = NULL)
 }
 \arguments{
 \item{db}{`SQLiteConnection`}
+
+\item{pb_fct}{`function` used to update the progress bar}
 }
 \description{
 Record EICs for each basepeak for each group ID for each sample

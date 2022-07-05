@@ -127,7 +127,7 @@ observeEvent(input$project_load, {
         conflict_id(if (length(conflicts) > 0) 1 else 0)
         shiny::updateSliderInput(
             getDefaultReactiveDomain(),
-            inputId = "ms_map_int_threshold",
+            inputId = "peak_spot_int_threshold",
             max = db_get_query(
                 db(),
                 "SELECT ROUND(MAX(basepeak_int))

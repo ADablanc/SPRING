@@ -386,7 +386,7 @@ plot_empty_heatmap <- function() {
 #'
 #' @description
 #' Plot a heamap with in x compounds, in y samples and in z the intensity of the
-#' basepeak with the majoritary adduct
+#' basepeak with the referent adduct
 #'
 #' @param db `SQLiteConnection`
 #' @param names `character vector` vector of compound names
@@ -1282,7 +1282,7 @@ plot_eic_mzdev <- function(db, sample_name, name) {
 #' @param yaxis_title `character(1)` title of the y axis
 #'
 #' @return `plotly` object
-plot_empty_ms_map <- function(title = "MS map", xaxis_title = "Retention time",
+plot_empty_peak_spot <- function(title = "MS map", xaxis_title = "Retention time",
                               yaxis_title = "m/z") {
     p <- plotly::plot_ly(
         type = "scatter",
@@ -1375,9 +1375,9 @@ plot_empty_ms_map <- function(title = "MS map", xaxis_title = "Retention time",
 #' @export
 #' @examples
 #' \dontrun{
-#' plot_ms_map(db)
+#' plot_peak_spot(db)
 #' }
-plot_ms_map <- function(db, annotation_filter = "all", int_threshold = 0,
+plot_peak_spot <- function(db, annotation_filter = "all", int_threshold = 0,
                         type = "MS map") {
     if (class(db) != "SQLiteConnection") {
         stop("db must be a connection to the sqlite database")
@@ -1399,7 +1399,7 @@ plot_ms_map <- function(db, annotation_filter = "all", int_threshold = 0,
         xaxis <- "Kendrick mass"
         yaxis <- "Kendrick mass defect"
     }
-    p <- plot_empty_ms_map(
+    p <- plot_empty_peak_spot(
         title = type,
         xaxis_title = xaxis,
         yaxis_title = yaxis

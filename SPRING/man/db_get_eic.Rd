@@ -15,6 +15,10 @@ for the annotation table in the database}
 \value{
 `DataFrame` with a variable number of columns
  (one sample = one column):
+\itemize{
+    \item rt `numeric` retention time (in sec)
+    \item ... `numeric` intensity of the sample
+}
 }
 \description{
 Get all the EIC for all the files in the database for ONE basepeak mass

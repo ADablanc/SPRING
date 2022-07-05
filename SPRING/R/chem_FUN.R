@@ -10,7 +10,7 @@
 #' @return `DataFrame` with columns:
 #' \itemize{
 #'    \item class `character` compound class
-#'    \item adduct `character` majoritary adduct
+#'    \item adduct `character` referent adduct
 #'    \item name `character` compound name
 #'    \item formula `character` chemical formula
 #'    \item rt `numeric` retention time
@@ -59,7 +59,7 @@ load_chem_db <- function(database, polarity = NULL, cpd_classes = NULL,
 #' @return DataFrame with
 #' \itemize{
 #'      \item formula chemical formula
-#'      \item adduct majoritary adduct used for the compound
+#'      \item adduct referent adduct used for the compound
 #'      \item class class of the compound
 #'      \item name of the compound
 #'      \item rt retention time of the compound

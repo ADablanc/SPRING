@@ -31,7 +31,7 @@
 #'         \item group_id `integer` group ID
 #'         \item class `character` cpd class
 #'         \item name `character` name
-#'         \item major_adduct `character` majoritary adduct for the compound
+#'         \item referent_adduct `character` referent adduct for the compound
 #'         \item formula `character` chemical formula
 #'         \item adduct `character` adduct form
 #'         \item ion_formula `character` ion chemical formula
@@ -97,9 +97,9 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
     l_spectras <- unique(chem_db[, c("ion_id", "formula", "adduct",
                                      "ion_formula", "mz", "abd", "iso")])
     l_spectras <- split(l_spectras, l_spectras$ion_id)
-    colnames(chem_db)[colnames(chem_db) == "adduct"] <- "major_adduct"
+    colnames(chem_db)[colnames(chem_db) == "adduct"] <- "referent_adduct"
     chem_db <- unique(chem_db[chem_db$abd == 100,
-                    c("class", "name", "formula", "major_adduct", "ion_formula",
+                    c("class", "name", "formula", "referent_adduct", "ion_formula",
                       "mz", "rt", "ion_id")])
 
     xset <- xsa@xcmsSet
@@ -134,7 +134,7 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
     )))
     ann <- data.frame(
         matrix(, nrow = 0, ncol = 15 + length(samples), dimnames = list(
-            c(), c("group_id", "class", "name", "major_adduct", "formula",
+            c(), c("group_id", "class", "name", "referent_adduct", "formula",
                    "adduct", "ion_formula", "rtdiff", "rt", "rtmin", "rtmax",
                    "nsamples", "best_score", "best_deviation_mz", "best_npeak",
                    samples))
@@ -292,7 +292,7 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
                 }
             }
             tmp_ann <- merge(
-                chem_db_match[, c("class", "name", "major_adduct", "formula")],
+                chem_db_match[, c("class", "name", "referent_adduct", "formula")],
                 tmp_ann,
                 by = "formula",
                 all = TRUE,
@@ -330,7 +330,7 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
 #'     \item group_id `integer` group ID
 #'     \item class `character` cpd class
 #'     \item name `character` name
-#'     \item major_adduct `character` majoritary adduct for the compound
+#'     \item referent_adduct `character` referent adduct for the compound
 #'     \item formula `character` chemical formula
 #'     \item adduct `character` adduct form
 #'     \item ion_formula `character` ion chemical formula
@@ -359,7 +359,7 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
 #'         \item group_id `integer` group ID
 #'         \item class `character` cpd class
 #'         \item name `character` name
-#'         \item major_adduct `character` majoritary adduct for the compound
+#'         \item referent_adduct `character` referent adduct for the compound
 #'         \item formula `character` chemical formula
 #'         \item adduct `character` adduct form
 #'         \item ion_formula `character` ion chemical formula
@@ -386,7 +386,7 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
 #'         \item group_id `integer` group ID
 #'         \item class `character` cpd class
 #'         \item name `character` name
-#'         \item major_adduct `character` majoritary adduct for the compound
+#'         \item referent_adduct `character` referent adduct for the compound
 #'         \item formula `character` chemical formula
 #'         \item adduct `character` adduct form
 #'         \item ion_formula `character` ion chemical formula
@@ -427,7 +427,7 @@ split_conflicts <- function(ann) {
 #' @description
 #' Summarise the annotations `DataFrame` by compound instead by ion
 #' it will return in the column samples the intensity of the basepeak with the
-#' majoritary adduct
+#' referent adduct
 #'
 #' @param ann `DataFrame` each line correspond to a compound found
 #' with the columns:
@@ -435,7 +435,7 @@ split_conflicts <- function(ann) {
 #'     \item group_id `integer` group ID
 #'     \item class `character` cpd class
 #'     \item name `character` name
-#'     \item major_adduct `character` majoritary adduct for the compound
+#'     \item referent_adduct `character` referent adduct for the compound
 #'     \item formula `character` chemical formula
 #'     \item adduct `character` adduct form
 #'     \item ion_formula `character` ion chemical formula
@@ -556,14 +556,14 @@ summarise_ann <- function(ann, spectra_infos, nsamples) {
                                    if (all(is.na(y))) NA
                                    else max(y, na.rm = TRUE)
                     })) else x[
-                        x$Adduct == x[, "Major adduct"],
+                        x$Adduct == x[, "Referent adduct"],
                         (ncol(x) - nsamples + 1):ncol(x),
                           drop = FALSE],
                     check.names = FALSE
                 )
             }), make.row.names = FALSE)
         ),
-        details = int_ann[, -which(colnames(int_ann) == "Major adduct")]
+        details = int_ann[, -which(colnames(int_ann) == "Referent adduct")]
     )
 }
 
@@ -579,7 +579,7 @@ summarise_ann <- function(ann, spectra_infos, nsamples) {
 #'     \item group_id `integer` group ID
 #'     \item class `character` cpd class
 #'     \item name `character` name
-#'     \item major_adduct `character` majoritary adduct for the compound
+#'     \item referent_adduct `character` referent adduct for the compound
 #'     \item formula `character` chemical formula
 #'     \item adduct `character` adduct form
 #'     \item ion_formula `character` ion chemical formula
@@ -641,7 +641,7 @@ get_int_ann <- function(ann, spectra_infos, nsamples, val = "int") {
         return(data.frame(matrix(, nrow = 0, ncol = 11,
             dimnames = list(c(),
                 c("Group ID", "Class", "Name", "rT (min)", "Diff rT (sec)",
-                  "Major adduct", "Adduct", "nSamples", "Best score (%)",
+                  "Referent adduct", "Adduct", "nSamples", "Best score (%)",
                   "Best m/z dev (mDa)", "Max iso")
             )
         ), check.names = FALSE))
@@ -653,7 +653,7 @@ get_int_ann <- function(ann, spectra_infos, nsamples, val = "int") {
         Name = ann$name,
         `rT (min)` = round(ann$rt / 60, 2),
         `Diff rT (sec)` = round(ann$rtdiff),
-        `Major adduct` = ann$major_adduct,
+        `Referent adduct` = ann$referent_adduct,
         Adduct = ann$adduct,
         nSamples = ann$nsamples,
         `Best score (%)` = round(ann$best_score),

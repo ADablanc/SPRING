@@ -438,7 +438,7 @@ db_record_params <- function(db,
 #'         \item group_id `integer` group ID
 #'         \item class `character` cpd class
 #'         \item name `character` name
-#'         \item major_adduct `character` majoritary adduct for the compound
+#'         \item referent_adduct `character` referent adduct for the compound
 #'         \item formula `character` chemical formula
 #'         \item adduct `character` adduct form
 #'         \item ion_formula `character` ion chemical formula
@@ -834,9 +834,9 @@ db_record_eics <- function(db, pb_fct = NULL) {
 #'
 #' @return `DataFrame` with a variable number of columns
 #'  (one sample = one column):
-#' @itemize{
-#'     @item rt `numeric` retention time (in sec)
-#'     @item ... `numeric` intensity of the sample
+#' \itemize{
+#'     \item rt `numeric` retention time (in sec)
+#'     \item ... `numeric` intensity of the sample
 #' }
 db_get_eic <- function(db, eic_id) {
     db_get_query(db, sprintf(

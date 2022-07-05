@@ -13,7 +13,7 @@ with the columns:
     \item group_id `integer` group ID
     \item class `character` cpd class
     \item name `character` name
-    \item major_adduct `character` majoritary adduct for the compound
+    \item referent_adduct `character` referent adduct for the compound
     \item formula `character` chemical formula
     \item adduct `character` adduct form
     \item ion_formula `character` ion chemical formula
@@ -97,5 +97,5 @@ list of two items :
 \description{
 Summarise the annotations `DataFrame` by compound instead by ion
 it will return in the column samples the intensity of the basepeak with the
-majoritary adduct
+referent adduct
 }

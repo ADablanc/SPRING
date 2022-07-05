@@ -27,7 +27,7 @@ load_ion_db(
 DataFrame with
 \itemize{
      \item formula chemical formula
-     \item adduct majoritary adduct used for the compound
+     \item adduct referent adduct used for the compound
      \item class class of the compound
      \item name of the compound
      \item rt retention time of the compound

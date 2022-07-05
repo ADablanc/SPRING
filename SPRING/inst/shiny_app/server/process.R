@@ -352,7 +352,7 @@ shiny::observeEvent(input$process_launch, {
             else conflict_id(0)
             shiny::updateSliderInput(
                 session,
-                inputId = "ms_map_int_threshold",
+                inputId = "peak_spot_int_threshold",
                 max = db_get_query(
                     db(),
                     "SELECT ROUND(MAX(basepeak_int))
@@ -364,7 +364,7 @@ shiny::observeEvent(input$process_launch, {
             conflict_id(0)
             shiny::updateSliderInput(
                 session,
-                inputId = "ms_map_int_threshold",
+                inputId = "peak_spot_int_threshold",
                 max = 0
             )
         }

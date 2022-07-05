@@ -16,7 +16,7 @@ plot_heatmap(db, names)
 }
 \description{
 Plot a heamap with in x compounds, in y samples and in z the intensity of the
-basepeak with the majoritary adduct
+basepeak with the referent adduct
 }
 \examples{
 \dontrun{

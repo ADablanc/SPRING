@@ -26,7 +26,7 @@ testthat::test_that("annotate peaks", {
         name = c(NA, NA, "LPC 11:0", "LPC 11a:0", "LPC 11:0", "LPC 11a:0",
                  "LPC 11:0", "LPC 11a:0", "Cer (d18:1/C12:0)",
                  "Cer (d18:1/C12:0)", NA, NA, NA, NA),
-        major_adduct = c(NA, NA, "[M+H]+", "[M+H]+", "[M+H]+", "[M+H]+",
+        referent_adduct = c(NA, NA, "[M+H]+", "[M+H]+", "[M+H]+", "[M+H]+",
                          "[M+H]+", "[M+H]+", "[M+H-H2O]+", "[M+H-H2O]+", NA, NA,
                          NA, NA),
         adduct = c(NA, NA, "[M+H-H2O]+", "[M+H-H2O]+", "[M+H]+", "[M+H]+",
@@ -416,7 +416,7 @@ testthat::test_that("annotate peaks", {
     # 2nd test: too restrictive on m/z tolerance
     empty_ann <- data.frame(ann[-c(4, 6, 7), ], row.names = NULL,
                             check.names = FALSE)
-    empty_ann[, c("class", "name", "major_adduct")] <- as.character(NA)
+    empty_ann[, c("class", "name", "referent_adduct")] <- as.character(NA)
     empty_ann$rtdiff <- as.numeric(NA)
     empty_ann[, c("formula", "adduct", "ion_formula")] <- NA
     empty_ann[, c("best_score", "best_npeak")] <- 0
@@ -464,7 +464,7 @@ testthat::test_that("annotate peaks", {
     ann_cer <- data.frame(ann[-c(4, 6, 7), ], row.names = NULL,
                             check.names = FALSE)
     ann_cer[-which(ann_cer$class == "Cer"),
-              c("formula", "class", "name", "major_adduct", "adduct",
+              c("formula", "class", "name", "referent_adduct", "adduct",
                 "ion_formula", "rtdiff")] <- NA
     ann_cer[-which(ann_cer$class == "Cer"), c("best_score", "best_npeak")] <- 0
     ann_cer[-which(ann_cer$class == "Cer"), "best_deviation_mz"] <- NA
@@ -528,7 +528,7 @@ testthat::test_that("split conflicts", {
         name = c(NA, NA, "LPC 11:0", "LPC 11a:0", "LPC 11:0", "LPC 11a:0",
                  "LPC 11:0", "LPC 11a:0", "Cer (d18:1/C12:0)",
                  "Cer (d18:1/C12:0)", NA, NA, NA, NA),
-        major_adduct = c(NA, NA, "[M+H]+", "[M+H]+", "[M+H]+", "[M+H]+",
+        referent_adduct = c(NA, NA, "[M+H]+", "[M+H]+", "[M+H]+", "[M+H]+",
                          "[M+H]+", "[M+H]+", "[M+H-H2O]+", "[M+H-H2O]+", NA, NA,
                          NA, NA),
         adduct = c(NA, NA, "[M+H-H2O]+", "[M+H-H2O]+", "[M+H]+", "[M+H]+",
@@ -614,7 +614,7 @@ testthat::test_that("get int in annotation df", {
         data.frame(matrix(, nrow = 0, ncol = 11,
             dimnames = list(c(),
                           c("Group ID", "Class", "Name", "rT (min)",
-                            "Diff rT (sec)", "Major adduct", "Adduct",
+                            "Diff rT (sec)", "Referent adduct", "Adduct",
                             "nSamples", "Best score (%)", "Best m/z dev (mDa)",
                             "Max iso")
             )
@@ -627,7 +627,7 @@ testthat::test_that("get int in annotation df", {
                 class = "LPC",
                 name = "LPC 11:0",
                 formula = "C19H40N1O7P1",
-                major_adduct = "[M+H]+",
+                referent_adduct = "[M+H]+",
                 adduct = "[M+H-H2O]+",
                 ion_formula = "C19H39N1O6P1",
                 rtdiff = 9.52199999999993,
@@ -662,7 +662,7 @@ testthat::test_that("get int in annotation df", {
             Name = "LPC 11:0",
             `rT (min)` = 4.77,
             `Diff rT (sec)` = 10,
-            `Major adduct` = "[M+H]+",
+            `Referent adduct` = "[M+H]+",
             Adduct = "[M+H-H2O]+",
             nSamples = 1,
             `Best score (%)` = 80,
@@ -681,7 +681,7 @@ testthat::test_that("get int in annotation df", {
                 class = "LPC",
                 name = "LPC 11:0",
                 formula = "C19H40N1O7P1",
-                major_adduct = "[M+H]+",
+                referent_adduct = "[M+H]+",
                 adduct = "[M+H-H2O]+",
                 ion_formula = "C19H39N1O6P1",
                 rtdiff = 9.52199999999993,
@@ -717,7 +717,7 @@ testthat::test_that("get int in annotation df", {
             Name = "LPC 11:0",
             `rT (min)` = 4.77,
             `Diff rT (sec)` = 10,
-            `Major adduct` = "[M+H]+",
+            `Referent adduct` = "[M+H]+",
             Adduct = "[M+H-H2O]+",
             nSamples = 1,
             `Best score (%)` = 80,
@@ -741,7 +741,7 @@ testthat::test_that("summarise ann df", {
         name = c(NA, NA, "LPC 11:0", "LPC 11a:0", "LPC 11:0", "LPC 11a:0",
                  "LPC 11:0", "LPC 11a:0", "Cer (d18:1/C12:0)",
                  "Cer (d18:1/C12:0)", NA, NA, NA, NA),
-        major_adduct = c(NA, NA, "[M+H]+", "[M+H]+", "[M+H]+", "[M+H]+",
+        referent_adduct = c(NA, NA, "[M+H]+", "[M+H]+", "[M+H]+", "[M+H]+",
                          "[M+H]+", "[M+H]+", "[M+H-H2O]+", "[M+H-H2O]+", NA, NA,
                          NA, NA),
         adduct = c(NA, NA, "[M+H-H2O]+", "[M+H-H2O]+", "[M+H]+", "[M+H]+",
@@ -837,7 +837,7 @@ testthat::test_that("summarise ann df", {
                        "Best m/z dev (mDa)", "Max iso"))), check.names = FALSE),
             details = data.frame(matrix(, nrow = 0, ncol = 11, dimnames = list(
                 c(), c("Group ID", "Class", "Name", "rT (min)", "Diff rT (sec)",
-                       "Major adduct", "Adduct", "nSamples", "Best score (%)",
+                       "Referent adduct", "Adduct", "nSamples", "Best score (%)",
                        "Best m/z dev (mDa)", "Max iso"))), check.names = FALSE)
         )
     )

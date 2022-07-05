@@ -19,7 +19,7 @@ load_chem_db(database, polarity = NULL, cpd_classes = NULL, cpd_names = NULL)
 `DataFrame` with columns:
 \itemize{
    \item class `character` compound class
-   \item adduct `character` majoritary adduct
+   \item adduct `character` referent adduct
    \item name `character` compound name
    \item formula `character` chemical formula
    \item rt `numeric` retention time
