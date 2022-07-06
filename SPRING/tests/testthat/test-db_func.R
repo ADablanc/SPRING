@@ -1186,3 +1186,65 @@ testthat::test_that("db get eic", {
     )
     RSQLite::dbDisconnect(db)
 })
+
+testthat::test_that("db get eic id", {
+    ann <- data.frame(
+        group_id = c(1, 2, 3, 3, 3, 3, 3, 3, 4, 4, 5, 6, 7, 8),
+        formula = c(NA, NA, "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
+                    "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
+                    "C30H59N1O3", "C30H59N1O3", NA, NA, NA, NA),
+        class = c(NA, NA, "LPC", "LPC", "LPC", "LPC", "LPC", "LPC", "Cer",
+                  "Cer", NA, NA, NA, NA),
+        name = c(NA, NA, "LPC 11:0", "LPC 11a:0", "LPC 11:0", "LPC 11a:0",
+                 "LPC 11:0", "LPC 11a:0", "Cer (d18:1/C12:0)",
+                 "Cer (d18:1/C12:0)", NA, NA, NA, NA),
+        referent_adduct = c(NA, NA, "[M+H]+", "[M+H]+", "[M+H]+", "[M+H]+",
+                            "[M+H]+", "[M+H]+", "[M+H-H2O]+", "[M+H-H2O]+", NA,
+                            NA, NA, NA),
+        adduct = c(NA, NA, "[M+H-H2O]+", "[M+H-H2O]+", "[M+H]+", "[M+H]+",
+                   "[M+Na]+", "[M+Na]+", "[M+H-H2O]+", "[M+Na]+", NA, NA, NA,
+                   NA),
+        ion_formula = c(NA, NA, "C19H39N1O6P1", "C19H39N1O6P1", "C19H41N1O7P1",
+                        "C19H41N1O7P1", "C19H40N1O7P1Na1", "C19H40N1O7P1Na1",
+                        "C30H58N1O2", "C30H59N1O3Na1", NA, NA, NA, NA),
+        rtdiff = c(NA, NA, 8.99149999999997, 4.19150000000002, 8.99149999999997,
+                   4.19150000000002, 8.99149999999997, 4.19150000000002,
+                   2.37300000000002, 2.37300000000002, NA, NA, NA, NA),
+        rt = c(279.141, 259.046, 286.8085, 286.8085, 286.8085, 286.8085,
+               286.8085, 286.8085, 197.973, 197.973, 297.915, 308.494, 197.444,
+               306.904),
+        rtmin = c(291.037, 264.598, 287.864, 287.864, 293.152, 293.152, 292.095,
+                  292.095, 199.559, 208.548, 303.202, 310.081, 201.145,
+                  309.549),
+        rtmax = c(279.407, 259.31, 286.81, 286.81, 286.81, 286.81, 286.81,
+                  286.81, 197.973, 197.973, 297.915, 308.494, 197.444, 306.904),
+        nsamples = c(2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0),
+        best_score = c(0, 0, 79.8211975097656, 79.8211975097656,
+                       95.0912628173828, 95.0912628173828, 79.6432037353516,
+                       79.6432037353516, 71.3979721069336, 71.1946487426758, 0,
+                       0, 0, 0),
+        best_deviation_mz = c(Inf, Inf, .0003662109375, .0003662109375,
+                              .00048828125, .00048828125, .00018310546875,
+                              .00018310546875, .0010986328125, .001312255859375,
+                              Inf, Inf, Inf, Inf),
+        best_npeak = c(0, 0, 1, 1, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0),
+        `220221CCM_global_POS_01_ssleu_filtered` = c(1, 3, NA, NA, 6, 6, 8, 8,
+                                                     10, 12, 14, 15, 16, NA),
+        `220221CCM_global_POS_02_ssleu_filtered` = c(2, 4, 5, 5, 7, 7, 9, 9, 11,
+                                                     13, NA, NA, 17, 18),
+        check.names = FALSE
+    )
+    db <- db_connect(":memory:")
+    db_write_table(db, "ann", ann)
+    testthat::expect_identical(
+        db_get_eic_id(db, "LPC 11:0"),
+        which(ann$name == "LPC 11:0" & ann$adduct == ann[which(
+            ann$name == "LPC 11:0"), "referent_adduct"][1])
+    )
+    testthat::expect_identical(
+        db_get_eic_id(db, "Cer (d18:1/C12:0)"),
+        which(ann$name == "Cer (d18:1/C12:0)" & ann$adduct == ann[which(
+            ann$name == "Cer (d18:1/C12:0)"), "referent_adduct"][1])
+    )
+    RSQLite::dbDisconnect(db)
+})

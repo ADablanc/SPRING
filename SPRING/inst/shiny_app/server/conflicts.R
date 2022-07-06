@@ -226,7 +226,6 @@ output$conflicts_ms <- plotly::renderPlotly({
         db = db(),
         conflict_name_selected = input$conflict_name_selected
     )
-    print(params)
     tryCatch({
         if (length(params$conflict_name_selected) == 0) {
             custom_stop("invalid", "no row selected")
@@ -248,6 +247,52 @@ output$conflicts_ms <- plotly::renderPlotly({
         print(e)
         sweet_alert_error(e$message)
         plot_empty_ms()
+    })
+})
+
+#' @title Plot EIC
+#'
+#' @description
+#' EIC of all the basepeaks for all files when a user clicked on a conflict
+#'  line (only the referent ion will be shown)
+#' The line dashed correspond to the area not integrated & the line colored the
+#' retention time range where integrated by XCMS.
+#' It contains a special behavior when the mouse hover a trace : it will display
+#'  all the hovertext of all traces in a unique textbox allowing the user to
+#'   differentiate all the y coordinates of the traces in one shot
+#' If available it will use the retention time corrected in the slot
+#' `scantime_corrected` added by the function `obiwarp`
+#'
+#' @param db `reactive value` pointer to the sqlite connection
+#' @param input$peak_spot_eic_id `numeric` EIC ID of the trace clicked in the
+#'  peak_spot_plot output
+#'
+#' @return `plotly`
+output$conflicts_eic <- plotly::renderPlotly({
+    params <- list(
+        db = db(),
+        conflict_name_selected = input$conflict_name_selected
+    )
+    tryCatch({
+        if (length(params$conflict_name_selected) == 0) {
+            custom_stop("invalid", "no row selected")
+        } else if (params$conflict_name_selected == "") {
+            custom_stop("invalid", "no rows in the table")
+        }
+        # retrieve the EIC ID of the referent ion for this compound
+        params$eic_id <- db_get_eic_id(params$db, params$conflict_name_selected)
+        plot_db_eic(params$db, params$eic_id)
+    }, invalid = function(i) {
+        print("########## conflict_eic")
+        print(params)
+        print(i)
+        plot_empty_chromato("EIC")
+    }, error = function(e) {
+        print("########## conflict_eic")
+        print(params)
+        print(e)
+        sweet_alert_error(e$message)
+        plot_empty_chromato("EIC")
     })
 })
 

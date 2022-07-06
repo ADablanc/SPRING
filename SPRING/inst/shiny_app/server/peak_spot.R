@@ -1,4 +1,4 @@
-#' @title Plot MS map
+#' @title Plot peak spot viewer
 #'
 #' @description
 #' Plot a MS map or a Kendrick plot
@@ -44,7 +44,7 @@ output$peak_spot_plot <- plotly::renderPlotly({
     })
 })
 
-#' @title Plot MS map
+#' @title Plot EIC
 #'
 #' @description
 #' EIC of all the basepeaks for all files when a user clicked on a trace on the

@@ -844,3 +844,20 @@ db_get_eic <- function(db, eic_id) {
         eic_id
     ))[, -1]
 }
+
+#' @title Get EIC ID
+#'
+#' @description
+#' Get the EIC ID from the database for a compound according its referent adduct
+#'
+#' @param db `SQLiteConnection`
+#' @param cpd_name `character(1)` name of the compound
+#'
+#' @return `numeric(1)` the EIC ID
+db_get_eic_id <- function(db, cpd_name) {
+    db_get_query(db, sprintf(
+        "SELECT ROWID as eic_id FROM ann WHERE name == \"%s\" AND adduct == (
+            SELECT referent_adduct FROM ann WHERE name == \"%s\" LIMIT 1);",
+        cpd_name, cpd_name
+    ))[1, "eic_id"]
+}

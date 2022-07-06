@@ -7,18 +7,10 @@ app$snapshotInit("conflicts")
 
 # init
 app$executeScript("$(\"a[href=\\\"#shiny-tab-conflicts\\\"]\").click()")
-conflicts_table <- app$waitForValue(
-    "conflicts_table",
-    iotype = "output",
-    ignore = list(NULL)
-)
-conflicts_ms <- app$waitForValue(
-    "conflicts_ms",
-    iotype = "output",
-    ignore = list(NULL)
-)
 
 # 1st test : check that we cant update conflict_id by clicking on the left arrow
+ms <- app$waitForValue("conflicts_ms", iotype = "output", ignore = list(NULL))
+eic <- app$waitForValue("conflicts_eic", iotype = "output", ignore = list(NULL))
 app$setInputs(
     conflicts_left_disabled = grepl(
         "disabled",
@@ -37,7 +29,6 @@ app$setInputs(
     wait_ = FALSE,
     values_ = FALSE
 )
-ms <- app$waitForValue("conflicts_ms", iotype = "output", ignore = list(NULL))
 app$waitForValue(
     "conflicts_right_disabled",
     iotype = "input",
@@ -50,6 +41,7 @@ app$snapshot(
             "conflicts_right_disabled" # TRUE
         ),
         output = c(
+            "conflicts_eic", # empty
             "conflicts_info", # ""
             "conflicts_ms", # empty
             "conflicts_table" # empty
@@ -116,6 +108,7 @@ app$snapshot(
             "conflicts_right_disabled" # FALSE
         ),
         output = c(
+            "conflicts_eic", # LPC 11:0 [M+H]+
             "conflicts_info", # "1/2"
             # "[M+H-H2O]+" "[M+H]+" "[M+Na]+"
             "conflicts_ms",
@@ -148,6 +141,7 @@ app$setInputs(
     values_ = FALSE
 )
 ms <- app$waitForValue("conflicts_ms", iotype = "output", ignore = list(ms))
+eic <- app$waitForValue("conflicts_eic", iotype = "output", ignore = list(eic))
 app$snapshot(
     items = list(
         input = c(
@@ -155,6 +149,7 @@ app$snapshot(
             "conflicts_right_disabled" # TRUE
         ),
         output = c(
+            "conflicts_eic", # Cer (d18:1/C12:0)<br />[M+H-H2O]+
             "conflicts_info", # "2/2"
             # "[M+H-H2O]+" "[M+Na]+"
             "conflicts_ms",
@@ -170,6 +165,7 @@ app$snapshot(
 app$executeScript(paste0("$($(\"#conflicts_table\").data(\"datatable\").row(1)",
                          ".node()).click()"))
 app$waitForValue("conflicts_ms", iotype = "output", ignore = list(ms))
+app$waitForValue("conflicts_eic", iotype = "output", ignore = list(eic))
 app$snapshot(
     items = list(
         input = c(
@@ -177,6 +173,7 @@ app$snapshot(
             "conflicts_right_disabled" # TRUE
         ),
         output = c(
+            "conflicts_eic", # Cer (d18:1/C12:0)-B<br />[M+H-H2O]+
             "conflicts_info", # "2/2"
             # "[M+H-H2O]+"
             "conflicts_ms",
@@ -216,6 +213,8 @@ app$snapshot(
             "conflicts_right_disabled" # TRUE
         ),
         output = c(
+            "conflicts_eic", # LPC 11:0 [M+H]+  # dont know why but it doesnt
+            # update
             "conflicts_info", # "1/1"
             # "[M+H-H2O]+" "[M+H]+" "[M+Na]+"
             "conflicts_ms", # dont know why but it doesnt update
@@ -254,6 +253,7 @@ app$snapshot(
             "conflicts_right_disabled" # TRUE
         ),
         output = c(
+            "conflicts_eic", # empty
             "conflicts_info", # ""
             # empty
             "conflicts_table",

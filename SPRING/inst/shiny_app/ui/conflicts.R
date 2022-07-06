@@ -23,6 +23,12 @@ shinydashboard::tabItem(
 
     shinydashboard::box(
         title = "Meanned mass spectrum",
+        width = 6,
         plotly::plotlyOutput("conflicts_ms")
+    ),
+    shinydashboard::box(
+        title = "EIC",
+        width = 6,
+        plotly::plotlyOutput("conflicts_eic")
     )
 )

@@ -4,6 +4,256 @@
     "conflicts_right_disabled": true
   },
   "output": {
+    "conflicts_eic": {
+      "x": {
+        "layout": {
+          "margin": {
+            "b": 40,
+            "l": 60,
+            "t": 50,
+            "r": 10
+          },
+          "title": {
+            "text": "<b>EIC<\/b>",
+            "y": 0.95,
+            "x": 0.95,
+            "font": {
+              "family": "\"Open Sans\",verdana,arial,sans-serif",
+              "size": 18
+            },
+            "xanchor": "right",
+            "yanchor": "bottom"
+          },
+          "spikedistance": -1,
+          "hovermode": "x unified",
+          "xaxis": {
+            "domain": [
+              0,
+              1
+            ],
+            "automargin": true,
+            "title": "Retention time",
+            "titlefont": {
+              "family": "\"Open Sans\",verdana,arial,sans-serif",
+              "size": 18
+            },
+            "showspikes": true,
+            "spikemode": "across",
+            "spikedash": "dash",
+            "spikecolor": "#000000",
+            "spikethickness": 1,
+            "ticksuffix": " min",
+            "showticksuffix": "all",
+            "hoverformat": ".2f"
+          },
+          "yaxis": {
+            "domain": [
+              0,
+              1
+            ],
+            "automargin": true,
+            "exponentformat": "e",
+            "title": "",
+            "hoverformat": ".2e"
+          },
+          "hoverlabel": {
+            "namelength": -1
+          },
+          "selectdirection": "h",
+          "annotations": [
+            {
+              "xref": "paper",
+              "yref": "paper",
+              "x": 0,
+              "y": 1,
+              "xanchor": "left",
+              "yanchor": "bottom",
+              "text": "Intensity",
+              "showarrow": false,
+              "font": {
+                "family": "\"Open Sans\",verdana,arial,sans-serif",
+                "size": 18
+              }
+            }
+          ],
+          "showlegend": false
+        },
+        "source": "A",
+        "config": {
+          "modeBarButtonsToAdd": [
+            "hoverclosest",
+            "hovercompare"
+          ],
+          "showSendToCloud": false,
+          "responsive": true,
+          "displaylogo": false,
+          "scrollZoom": false,
+          "edits": {
+            "annotationTail": true
+          },
+          "modeBarButtons": [
+            [
+              {
+                "name": "toImage",
+                "title": "Download plot as a png",
+                "icon": "Plotly.Icons.camera",
+                "click": "function(gd) {Plotly.downloadImage(gd, {format:'png', width:1200, height:400, filename:'Chromatogram'})}"
+              }
+            ],
+            [
+              "zoom2d",
+              "autoScale2d"
+            ],
+            [
+              {
+                "name": "resetView",
+                "title": "Reset legend",
+                "icon": "Plotly.Icons.undo",
+                "click": "function(gd) {Plotly.restyle(gd, 'visible', true);}"
+              }
+            ]
+          ]
+        },
+        "data": [
+          {
+            "mode": "markers",
+            "type": "scatter",
+            "marker": {
+              "color": "rgba(31,119,180,1)",
+              "line": {
+                "color": "rgba(31,119,180,1)"
+              }
+            },
+            "error_y": {
+              "color": "rgba(31,119,180,1)"
+            },
+            "error_x": {
+              "color": "rgba(31,119,180,1)"
+            },
+            "line": {
+              "color": "rgba(31,119,180,1)"
+            },
+            "xaxis": "x",
+            "yaxis": "y",
+            "frame": null
+          }
+        ],
+        "highlight": {
+          "on": "plotly_click",
+          "persistent": false,
+          "dynamic": false,
+          "selectize": false,
+          "opacityDim": 0.2,
+          "selected": {
+            "opacity": 1
+          },
+          "debounce": 0
+        },
+        "shinyEvents": [
+          "plotly_hover",
+          "plotly_click",
+          "plotly_selected",
+          "plotly_relayout",
+          "plotly_brushed",
+          "plotly_brushing",
+          "plotly_clickannotation",
+          "plotly_doubleclick",
+          "plotly_deselect",
+          "plotly_afterplot",
+          "plotly_sunburstclick"
+        ],
+        "base_url": "https://plot.ly"
+      },
+      "evals": [
+        "config.modeBarButtons.0.0.icon",
+        "config.modeBarButtons.0.0.click",
+        "config.modeBarButtons.2.0.icon",
+        "config.modeBarButtons.2.0.click"
+      ],
+      "jsHooks": [
+
+      ],
+      "deps": [
+        {
+          "name": "setprototypeof",
+          "version": "0.1",
+          "src": {
+            "href": "setprototypeof-0.1"
+          },
+          "meta": null,
+          "script": "setprototypeof.js",
+          "stylesheet": null,
+          "head": null,
+          "attachment": null,
+          "all_files": false
+        },
+        {
+          "name": "typedarray",
+          "version": "0.1",
+          "src": {
+            "href": "typedarray-0.1"
+          },
+          "meta": null,
+          "script": "typedarray.min.js",
+          "stylesheet": null,
+          "head": null,
+          "attachment": null,
+          "all_files": false
+        },
+        {
+          "name": "jquery",
+          "version": "3.5.1",
+          "src": {
+            "href": "jquery-3.5.1"
+          },
+          "meta": null,
+          "script": "jquery.min.js",
+          "stylesheet": null,
+          "head": null,
+          "attachment": null,
+          "all_files": true
+        },
+        {
+          "name": "crosstalk",
+          "version": "1.2.0",
+          "src": {
+            "href": "crosstalk-1.2.0"
+          },
+          "meta": null,
+          "script": "js/crosstalk.min.js",
+          "stylesheet": "css/crosstalk.min.css",
+          "head": null,
+          "attachment": null,
+          "all_files": true
+        },
+        {
+          "name": "plotly-htmlwidgets-css",
+          "version": "2.5.1",
+          "src": {
+            "href": "plotly-htmlwidgets-css-2.5.1"
+          },
+          "meta": null,
+          "script": null,
+          "stylesheet": "plotly-htmlwidgets.css",
+          "head": null,
+          "attachment": null,
+          "all_files": false
+        },
+        {
+          "name": "plotly-main",
+          "version": "2.5.1",
+          "src": {
+            "href": "plotly-main-2.5.1"
+          },
+          "meta": null,
+          "script": "plotly-latest.min.js",
+          "stylesheet": null,
+          "head": null,
+          "attachment": null,
+          "all_files": false
+        }
+      ]
+    },
     "conflicts_info": "",
     "conflicts_ms": {
       "x": {
