@@ -29,6 +29,7 @@
 #'     it contains the columns :
 #'     \itemize{
 #'         \item group_id `integer` group ID
+#'         \item eic_id `ìnteger` EIC ID
 #'         \item class `character` cpd class
 #'         \item name `character` name
 #'         \item referent_adduct `character` referent adduct for the compound
@@ -99,7 +100,8 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
     l_spectras <- split(l_spectras, l_spectras$ion_id)
     colnames(chem_db)[colnames(chem_db) == "adduct"] <- "referent_adduct"
     chem_db <- unique(chem_db[chem_db$abd == 100,
-                    c("class", "name", "formula", "referent_adduct",
+                    c("class", "name",
+                      "formula", "referent_adduct",
                       "ion_formula", "mz", "rt", "ion_id")])
 
     xset <- xsa@xcmsSet
@@ -133,11 +135,11 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
                "basepeak_int", "sum_int", "sample", "rt")
     )))
     ann <- data.frame(
-        matrix(, nrow = 0, ncol = 15 + length(samples), dimnames = list(
-            c(), c("group_id", "class", "name", "referent_adduct", "formula",
-                   "adduct", "ion_formula", "rtdiff", "rt", "rtmin", "rtmax",
-                   "nsamples", "best_score", "best_deviation_mz", "best_npeak",
-                   samples))
+        matrix(, nrow = 0, ncol = 16 + length(samples), dimnames = list(
+            c(), c("group_id", "eic_id", "class", "name", "referent_adduct",
+                   "formula", "adduct", "ion_formula", "rtdiff", "rt", "rtmin",
+                   "rtmax", "nsamples", "best_score", "best_deviation_mz",
+                   "best_npeak", samples))
         ),
         check.names = FALSE
     )
@@ -302,7 +304,11 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
             if (nrow(chem_db_match) > 0) {
                 tmp_ann$rtdiff <- abs(chem_db_match$rt - tmp_ann$rt)
             }
-            tmp_ann <- cbind(group_id = i, tmp_ann)
+            tmp_ann <- cbind(
+                group_id = i,
+                eic_id = cluster[1, "cluster_id"],
+                tmp_ann
+            )
             ann <- rbind(ann, tmp_ann)
         }
     }
@@ -329,6 +335,7 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
 #' with the columns:
 #' \itemize{
 #'     \item group_id `integer` group ID
+#'     \item eic_id `integer` EIC ID
 #'     \item class `character` cpd class
 #'     \item name `character` name
 #'     \item referent_adduct `character` referent adduct for the compound
@@ -358,6 +365,7 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
 #'     with the columns:
 #'     \itemize{
 #'         \item group_id `integer` group ID
+#'         \item eic_id `integer` EIC ID
 #'         \item class `character` cpd class
 #'         \item name `character` name
 #'         \item referent_adduct `character` referent adduct for the compound
@@ -385,6 +393,7 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
 #'     columns :
 #'     \itemize{
 #'         \item group_id `integer` group ID
+#'         \item eic_id `integer` EIC ID
 #'         \item class `character` cpd class
 #'         \item name `character` name
 #'         \item referent_adduct `character` referent adduct for the compound
@@ -434,6 +443,7 @@ split_conflicts <- function(ann) {
 #' with the columns:
 #' \itemize{
 #'     \item group_id `integer` group ID
+#'     \item eic_id `integer` EIC ID
 #'     \item class `character` cpd class
 #'     \item name `character` name
 #'     \item referent_adduct `character` referent adduct for the compound
@@ -573,7 +583,8 @@ summarise_ann <- function(ann, spectra_infos, nsamples, by = "referent") {
                 )
             }), make.row.names = FALSE)
         ),
-        details = int_ann[, -which(colnames(int_ann) == "Referent adduct")]
+        details = int_ann[, -which(colnames(int_ann) %in% c("EIC ID",
+                                                            "Referent adduct"))]
     )
 }
 
@@ -587,6 +598,7 @@ summarise_ann <- function(ann, spectra_infos, nsamples, by = "referent") {
 #' with the columns:
 #' \itemize{
 #'     \item group_id `integer` group ID
+#'     \item eic_id `integer` eic ID
 #'     \item class `character` cpd class
 #'     \item name `character` name
 #'     \item referent_adduct `character` referent adduct for the compound
@@ -630,6 +642,7 @@ summarise_ann <- function(ann, spectra_infos, nsamples, by = "referent") {
 #' @return `DataFrame` each line represent an ion with the columns
 #' \itemize{
 #'     \item Group ID `numeric` group ID
+#'     \item EIC ID `numeric` EIC ID
 #'     \item Class `character` cpd class
 #'     \item Name `character` name of the compound
 #'     \item rt (min) `numeric` meanned rT
@@ -648,17 +661,18 @@ summarise_ann <- function(ann, spectra_infos, nsamples, by = "referent") {
 #' }
 get_int_ann <- function(ann, spectra_infos, nsamples, val = "int") {
     if (nrow(ann) == 0) {
-        return(data.frame(matrix(, nrow = 0, ncol = 11,
+        return(data.frame(matrix(, nrow = 0, ncol = 12,
             dimnames = list(c(),
-                c("Group ID", "Class", "Name", "rT (min)", "Diff rT (sec)",
-                  "Referent adduct", "Adduct", "nSamples", "Best score (%)",
-                  "Best m/z dev (mDa)", "Max iso")
+                c("Group ID", "EIC ID", "Class", "Name", "rT (min)",
+                  "Diff rT (sec)", "Referent adduct", "Adduct", "nSamples",
+                  "Best score (%)", "Best m/z dev (mDa)", "Max iso")
             )
         ), check.names = FALSE))
     }
     # extract intensity of basepeaks
     data.frame(
         `Group ID` = as.factor(ann$group_id),
+        `EIC ID` = ann$eic_id,
         Class = as.factor(ann$class),
         Name = ann$name,
         `rT (min)` = round(ann$rt / 60, 2),

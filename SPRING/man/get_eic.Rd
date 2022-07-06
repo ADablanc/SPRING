@@ -4,20 +4,22 @@
 \alias{get_eic}
 \title{Get EIC}
 \usage{
-get_eic(ms_file, mz_range, rt_range)
+get_eic(ms_file, mz_range, rt_range, NA_values = FALSE)
 }
 \arguments{
 \item{ms_file}{xcmsRaw object}
 
-\item{mz_range}{numeric(2) containing the m/z range to look for}
+\item{mz_range}{`numeric(2)` containing the m/z range to look for}
 
-\item{rt_range}{numeric(2) containing the rt range in sec to look for}
+\item{rt_range}{`numeric(2)` containing the rt range in sec to look for}
+
+\item{NA_values}{`logical(1)` should return NA values instead of 0 ?}
 }
 \value{
 dataframe with the columns:
 \itemize{
     \item rt retention time in seconds
-    \item int intensity measured
+    \item int intensity measure
 }
 }
 \description{
@@ -26,5 +28,5 @@ It override the rawEIC function from XCMS in order to return rt instead of
 scans & to use the slot `scantime_corrected` obtain from the custom function
 `obiwarp`
 If the m/z range or rT range is outside from the one from the file it will
-return a dataframe with intensities at 0
+return a dataframe with NA intensities or 0
 }

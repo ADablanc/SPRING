@@ -11,6 +11,7 @@ get_int_ann(ann, spectra_infos, nsamples, val = "int")
 with the columns:
 \itemize{
     \item group_id `integer` group ID
+    \item eic_id `integer` eic ID
     \item class `character` cpd class
     \item name `character` name
     \item referent_adduct `character` referent adduct for the compound
@@ -58,6 +59,7 @@ desired}
 `DataFrame` each line represent an ion with the columns
 \itemize{
     \item Group ID `numeric` group ID
+    \item EIC ID `numeric` EIC ID
     \item Class `character` cpd class
     \item Name `character` name of the compound
     \item rt (min) `numeric` meanned rT

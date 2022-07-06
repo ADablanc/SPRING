@@ -385,19 +385,19 @@ testthat::test_that("plot DB EIC", {
     # 2nd test : with no EIC ID
     testthat::expect_error(
         plot_db_eic(db, NULL),
-        "eic_id must be a numeric"
+        "row_id must be a numeric"
     )
 
     # 3rd test : with a character as EIC ID
     testthat::expect_error(
         plot_db_eic(db, "a"),
-        "eic_id must be a numeric"
+        "row_id must be a numeric"
     )
 
     # 4th test : with more than one EIC ID
     testthat::expect_error(
         plot_db_eic(db, c(1, 2)),
-        "eic_id must contain only ONE ID"
+        "row_id must contain only ONE ID"
     )
 
     # 5th test : normal test
@@ -748,7 +748,7 @@ testthat::test_that("plot EIC m/z dev", {
     ))
 })
 
-testthat::test_that("plot MS map", {
+testthat::test_that("plot Peak spot", {
     db_empty <- db_connect(":memory:")
     db <- db_connect(system.file(
         "testdata",
@@ -787,11 +787,11 @@ testthat::test_that("plot MS map", {
     # 3rd test : error on type of plot
     testthat::expect_error(
         plot_peak_spot(db, type = "type error"),
-        "type must be \"MS map\" or \"Kendrick plot\""
+        "type must be \"Peak spot\" or \"Kendrick plot\""
     )
 
-    # 4th test : MS map
-    p <- plot_peak_spot(db, type = "MS map")
+    # 4th test : Peak spot
+    p <- plot_peak_spot(db, type = "Peak spot")
     testthat::expect_true(all(
         unlist(p[[1]]$attrs) == unlist(p2$plot_peak_spot[[2]][[1]]$attrs)
     ))
@@ -837,8 +837,12 @@ testthat::test_that("plot MS map", {
             \"all\""
     )
 
-    # 8th test : no annotated on MS map
-    p <- plot_peak_spot(db, type = "MS map", annotation_filter = "no annotated")
+    # 8th test : no annotated on Peak spot
+    p <- plot_peak_spot(
+        db,
+        type = "Peak spot",
+        annotation_filter = "no annotated"
+    )
     testthat::expect_true(all(
         unlist(p[[1]]$attrs) == unlist(p2$plot_peak_spot[[4]][[1]]$attrs)
     ))
@@ -874,8 +878,8 @@ testthat::test_that("plot MS map", {
     ))
 
 
-    # 10th test : annotated on MS map
-    p <- plot_peak_spot(db, type = "MS map", annotation_filter = "annotated")
+    # 10th test : annotated on Peak spot
+    p <- plot_peak_spot(db, type = "Peak spot", annotation_filter = "annotated")
     testthat::expect_true(all(
         unlist(p[[1]]$attrs) == unlist(p2$plot_peak_spot[[6]][[1]]$attrs)
     ))
@@ -917,7 +921,7 @@ testthat::test_that("plot MS map", {
     )
 
     # 13th test : test with a too high threshold (no possible points)
-    p <- plot_peak_spot(db, type = "MS map", int_threshold = 10**12)
+    p <- plot_peak_spot(db, type = "Peak spot", int_threshold = 10**12)
     testthat::expect_true(all(
         unlist(p[[1]]$attrs) == unlist(p2$plot_peak_spot[[1]][[1]]$attrs)
     ))
@@ -932,8 +936,8 @@ testthat::test_that("plot MS map", {
         unlist(p[[8]]) == unlist(p2$plot_peak_spot[[1]][[8]])
     ))
 
-    # 14th test : threshold at 6M on MS map
-    p <- plot_peak_spot(db, type = "MS map", int_threshold = 6000000)
+    # 14th test : threshold at 6M on Peak spot
+    p <- plot_peak_spot(db, type = "Peak spot", int_threshold = 6000000)
     testthat::expect_true(all(
         unlist(p[[1]]$attrs) == unlist(p2$plot_peak_spot[[8]][[1]]$attrs)
     ))
@@ -964,10 +968,10 @@ testthat::test_that("plot MS map", {
         unlist(p[[8]]) == unlist(p2$plot_peak_spot[[9]][[8]])
     ))
 
-    # 16th test : no annotated & threshold at 6M on MS map
+    # 16th test : no annotated & threshold at 6M on Peak spot
     p <- plot_peak_spot(
         db,
-        type = "MS map",
+        type = "Peak spot",
         annotation_filter = "no annotated",
         int_threshold = 6000000
     )
@@ -1006,10 +1010,10 @@ testthat::test_that("plot MS map", {
         unlist(p[[8]]) == unlist(p2$plot_peak_spot[[11]][[8]])
     ))
 
-    # 18th test : annotated & threshold at 6M on MS map
+    # 18th test : annotated & threshold at 6M on Peak spot
     p <- plot_peak_spot(
         db,
-        type = "MS map",
+        type = "Peak spot",
         annotation_filter = "annotated",
         int_threshold = 6000000
     )

@@ -11,6 +11,7 @@ split_conflicts(ann)
 with the columns:
 \itemize{
     \item group_id `integer` group ID
+    \item eic_id `integer` EIC ID
     \item class `character` cpd class
     \item name `character` name
     \item referent_adduct `character` referent adduct for the compound
@@ -41,6 +42,7 @@ with the columns:
     with the columns:
     \itemize{
         \item group_id `integer` group ID
+        \item eic_id `integer` EIC ID
         \item class `character` cpd class
         \item name `character` name
         \item referent_adduct `character` referent adduct for the compound
@@ -68,6 +70,7 @@ with the columns:
     columns :
     \itemize{
         \item group_id `integer` group ID
+        \item eic_id `integer` EIC ID
         \item class `character` cpd class
         \item name `character` name
         \item referent_adduct `character` referent adduct for the compound

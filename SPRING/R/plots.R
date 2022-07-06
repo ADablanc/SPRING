@@ -766,27 +766,26 @@ plot_eic <- function(db, sample_name, name) {
 #' `scantime_corrected` added by the function `obiwarp`
 #'
 #' @param db `SQLiteConnection`
-#' @param eic_id `numeric(1)` eic ID in database, it corresponds to the row ID
-#' for the annotation table in the database
+#' @param row_id `numeric(1)` ROWID of the annotation line in the database
 #'
 #' @return `plotly`
 #'
 #' @export
 #' @examples
 #' \dontrun{
-#' plot_db_eic(db, eic_id = 1)
+#' plot_db_eic(db, row_id = 1)
 #' }
-plot_db_eic <- function(db, eic_id) {
+plot_db_eic <- function(db, row_id) {
     if (class(db) != "SQLiteConnection") {
         stop("db must be a connection to the sqlite database")
-    } else if (class(eic_id) != "numeric" && class(eic_id) != "integer") {
-        stop("eic_id must be a numeric")
-    } else if (length(eic_id) != 1) {
-        stop("eic_id must contain only ONE ID")
+    } else if (class(row_id) != "numeric" && class(row_id) != "integer") {
+        stop("row_id must be a numeric")
+    } else if (length(row_id) != 1) {
+        stop("row_id must contain only ONE ID")
     }
 
         # get eic data
-    ann <- db_get_annotations(db, row = eic_id)
+    ann <- db_get_annotations(db, row = row_id)
     p <- plot_empty_chromato(
         if (is.na(ann[1, "name"])) "" else paste(
             ann[1, "name"],
@@ -795,11 +794,12 @@ plot_db_eic <- function(db, eic_id) {
         )
     )
 
-    data <- db_get_eic(db, eic_id)
+    data <- db_get_eic(db, ann[1, "eic_id"])
     nsamples <- db_get_nsamples(db)
 
     for (i in 2:ncol(data)) {
         eic <- data[, c(1, i)]
+        eic[, 2] <- replace(eic[, 2], is.na(eic[, 2]), 0)
 
         # search the born rT where the peak was integrated
         spec_id <- ann[1, ncol(ann) - nsamples + i - 1]
@@ -1278,17 +1278,17 @@ plot_eic_mzdev <- function(db, sample_name, name) {
     )
 }
 
-#' @title Plot empty MS map
+#' @title Plot empty Peak spot
 #'
 #' @description
-#' Plot an empty MS map with custom axis
+#' Plot an empty Peak spot with custom axis
 #'
 #' @param title `character(1)` title of the plot
 #' @param xaxis_title `character(1)` title of the x axis
 #' @param yaxis_title `character(1)` title of the y axis
 #'
 #' @return `plotly` object
-plot_empty_peak_spot <- function(title = "MS map",
+plot_empty_peak_spot <- function(title = "Peak spot viewer",
                                  xaxis_title = "Retention time",
                                  yaxis_title = "m/z") {
     p <- plotly::plot_ly(
@@ -1361,21 +1361,22 @@ plot_empty_peak_spot <- function(title = "MS map",
     )
 }
 
-#' @title Plot MS map
+#' @title Plot Peak spot viewer
 #'
 #' @description
-#' Plot a MS map or Kendrick plot
+#' Plot a peak spot or Kendrick plot
 #' Each basepeak are plotted with their annotations
 #' Hover a trace will show all popup for all basepeak with the same group ID (
 #' same compound flagged by CAMERA)
-#' Possibility to trace the "MS map" (m/z fct(rT)) or a Kendrick plot
-#' Each trace will contain the EIC ID in their `customdata` slot
+#' Possibility to trace the "Peak spot" (m/z fct(rT)) or a Kendrick plot
+#' Each trace will contain the ROWID of the annotation line in the DB in their
+#'  `customdata` slot
 #'
 #' @param db `SQLiteConnection`
 #' @param annotation_filter `character(1)` annotation to filter (can be
 #' "no annotated", "annotated" or "all")
 #' @param int_threshold `numeric(1)` intensity threshold
-#' @param type `character(1)` "MS map" or "Kendrick plot"
+#' @param type `character(1)` "Peak spot" or "Kendrick plot"
 #'
 #' @return `plotly`
 #'
@@ -1385,7 +1386,7 @@ plot_empty_peak_spot <- function(title = "MS map",
 #' plot_peak_spot(db)
 #' }
 plot_peak_spot <- function(db, annotation_filter = "all", int_threshold = 0,
-                        type = "MS map") {
+                        type = "Peak spot") {
     if (class(db) != "SQLiteConnection") {
         stop("db must be a connection to the sqlite database")
     } else if (!is.numeric(int_threshold)) {
@@ -1395,11 +1396,11 @@ plot_peak_spot <- function(db, annotation_filter = "all", int_threshold = 0,
     } else if (!annotation_filter %in% c("no annotated", "annotated", "all")) {
         stop("annotation_filter must be \"no annotated\", \"annotated\" or
             \"all\"")
-    } else if (!type %in% c("MS map", "Kendrick plot")) {
-        stop("type must be \"MS map\" or \"Kendrick plot\"")
+    } else if (!type %in% c("Peak spot", "Kendrick plot")) {
+        stop("type must be \"Peak spot\" or \"Kendrick plot\"")
     }
 
-    if (type == "MS map") {
+    if (type == "Peak spot") {
         xaxis <- "Retention time"
         yaxis <- "m/z"
     } else {
@@ -1428,7 +1429,7 @@ plot_peak_spot <- function(db, annotation_filter = "all", int_threshold = 0,
     if (nrow(int_ann) == 0) {
         return(p)
     }
-    eic_ids <- seq(nrow(mz_ann))
+    row_ids <- seq(nrow(mz_ann))
 
     # get the lines which respect the filters
     if (annotation_filter == "no annotated") {
@@ -1448,7 +1449,7 @@ plot_peak_spot <- function(db, annotation_filter = "all", int_threshold = 0,
     # get data points
     mz_ann <- mz_ann[idx, , drop = FALSE]
     ints <- ints[idx]
-    eic_ids <- eic_ids[idx]
+    row_ids <- row_ids[idx]
     mzs <- apply(mz_ann[, (ncol(mz_ann) - nsamples + 1):ncol(mz_ann)],
                  1, median, na.rm = TRUE)
     rts <- mz_ann[, "rT (min)"]
@@ -1466,7 +1467,7 @@ plot_peak_spot <- function(db, annotation_filter = "all", int_threshold = 0,
         p,
         x = x,
         y = y,
-        customdata = eic_ids,
+        customdata = row_ids,
         name = mz_ann[, "Group ID"],
         color = ints,
         hoverinfo = "text",

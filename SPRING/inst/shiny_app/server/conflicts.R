@@ -280,8 +280,8 @@ output$conflicts_eic <- plotly::renderPlotly({
             custom_stop("invalid", "no rows in the table")
         }
         # retrieve the EIC ID of the referent ion for this compound
-        params$eic_id <- db_get_eic_id(params$db, params$conflict_name_selected)
-        plot_db_eic(params$db, params$eic_id)
+        params$row_id <- db_get_row_id(params$db, params$conflict_name_selected)
+        plot_db_eic(params$db, params$row_id)
     }, invalid = function(i) {
         print("########## conflict_eic")
         print(params)

@@ -1,7 +1,7 @@
 #' @title Plot peak spot viewer
 #'
 #' @description
-#' Plot a MS map or a Kendrick plot
+#' Plot a Peak spot viewer or a Kendrick plot
 #' Each basepeak are plotted with their annotations
 #' Hover a trace will show all popup for all basepeak with the same group ID (
 #' same compound flagged by CAMERA)

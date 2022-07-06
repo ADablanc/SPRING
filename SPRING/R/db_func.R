@@ -334,6 +334,7 @@ db_record_xsa <- function(db, xsa, sample_name) {
 #' with the columns:
 #' \itemize{
 #'     \item group_id `integer` group ID
+#'     \item eic_id `integer` EIC ID
 #'     \item class `character` cpd class
 #'     \item name `character` name
 #'     \item formula `character` chemical formula
@@ -436,6 +437,7 @@ db_record_params <- function(db,
 #' with the columns:
 #' \itemize{
 #'         \item group_id `integer` group ID
+#'         \item eic_id `integer` EIC ID
 #'         \item class `character` cpd class
 #'         \item name `character` name
 #'         \item referent_adduct `character` referent adduct for the compound
@@ -732,7 +734,7 @@ db_resolve_conflict <- function(db, group_id, name) {
 #' @title Record EICs
 #'
 #' @description
-#' Record EICs for each basepeak for each group ID for each sample
+#' Record EICs for each basepeak for each EIC ID for each sample
 #' It will be faster than reloading each raw file from database & retrace the
 #' corresponding EIC
 #'
@@ -752,17 +754,21 @@ db_record_eics <- function(db, pb_fct = NULL) {
         nsamples,
         val = "mz"
     )
+    sample_names <- colnames(mz_ann)[(ncol(mz_ann) - nsamples + 1):ncol(mz_ann)]
+    mz_ann <- mz_ann[!duplicated(mz_ann[, "EIC ID"]),
+                     c("EIC ID", "rT (min)", sample_names),
+                     drop = FALSE]
     mzs <- apply(mz_ann[, (ncol(mz_ann) - nsamples + 1):ncol(mz_ann)],
                  1, median, na.rm = TRUE)
     da_tol <- convert_ppm_da(params$cwt$ppm, mzs)
     rt_tol <- max(params$cwt$peakwidth_max, params$ann$rt_tol)
     data <- data.frame(
+        eic_id = mz_ann[, "EIC ID"],
         mzmin = mzs - da_tol,
         mzmax = mzs + da_tol,
         rtmin = mz_ann[, "rT (min)"] * 60 - rt_tol,
         rtmax = mz_ann[, "rT (min)"] * 60 + rt_tol
     )
-    sample_names <- colnames(mz_ann)[(ncol(mz_ann) - nsamples + 1):ncol(mz_ann)]
 
     # record eic first in a temporary database
     tmp_db <- db_connect(tempfile(fileext = ".sqlite"))
@@ -780,12 +786,13 @@ db_record_eics <- function(db, pb_fct = NULL) {
                 tmp_db,
                 "eic",
                 cbind(
-                    eic_id = j,
+                    eic_id = data[j, "eic_id"],
                     sample = sample_names[i],
                     get_eic(
                         ms_file,
                         mz_range = data[j, c("mzmin", "mzmax")],
-                        rt_range = data[j, c("rtmin", "rtmax")]
+                        rt_range = data[j, c("rtmin", "rtmax")],
+                        NA_values = TRUE
                     )
                 ),
                 append = TRUE
@@ -804,13 +811,13 @@ db_record_eics <- function(db, pb_fct = NULL) {
         }
         eics <- db_get_query(
             tmp_db,
-            sprintf("SELECT * FROM eic WHERE eic_id == %s", i)
+            sprintf("SELECT * FROM eic WHERE eic_id == %s", data[i, "eic_id"])
         )
         db_write_table(
             db,
             "eic",
             cbind.data.frame(
-                eic_id = i,
+                eic_id = data[i, "eic_id"],
                 rt = eics[eics$sample == sample_names[1], "rt"],
                 do.call(cbind, split(eics$int, eics$sample))
             ),
@@ -845,19 +852,18 @@ db_get_eic <- function(db, eic_id) {
     ))[, -1]
 }
 
-#' @title Get EIC ID
-#'
+#' @title Get row ID
 #' @description
-#' Get the EIC ID from the database for a compound according its referent adduct
+#' Get the row ID from the database for a compound according its referent adduct
 #'
 #' @param db `SQLiteConnection`
 #' @param cpd_name `character(1)` name of the compound
 #'
 #' @return `numeric(1)` the EIC ID
-db_get_eic_id <- function(db, cpd_name) {
+db_get_row_id <- function(db, cpd_name) {
     db_get_query(db, sprintf(
-        "SELECT ROWID as eic_id FROM ann WHERE name == \"%s\" AND adduct == (
+        "SELECT rowid FROM ann WHERE name == \"%s\" AND adduct == (
             SELECT referent_adduct FROM ann WHERE name == \"%s\" LIMIT 1);",
         cpd_name, cpd_name
-    ))[1, "eic_id"]
+    ))[1, "rowid"]
 }

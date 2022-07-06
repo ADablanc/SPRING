@@ -12,7 +12,7 @@ db_record_eics(db, pb_fct = NULL)
 \item{pb_fct}{`function` used to update the progress bar}
 }
 \description{
-Record EICs for each basepeak for each group ID for each sample
+Record EICs for each basepeak for each EIC ID for each sample
 It will be faster than reloading each raw file from database & retrace the
 corresponding EIC
 }

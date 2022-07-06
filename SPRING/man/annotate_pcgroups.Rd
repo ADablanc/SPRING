@@ -20,6 +20,7 @@ annotate_pcgroups(xsa, ann_params, pb_fct = NULL)
     it contains the columns :
     \itemize{
         \item group_id `integer` group ID
+        \item eic_id `ìnteger` EIC ID
         \item class `character` cpd class
         \item name `character` name
         \item referent_adduct `character` referent adduct for the compound

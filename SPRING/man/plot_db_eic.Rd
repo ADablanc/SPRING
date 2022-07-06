@@ -4,13 +4,12 @@
 \alias{plot_db_eic}
 \title{Plot DB EIC}
 \usage{
-plot_db_eic(db, eic_id)
+plot_db_eic(db, row_id)
 }
 \arguments{
 \item{db}{`SQLiteConnection`}
 
-\item{eic_id}{`numeric(1)` eic ID in database, it corresponds to the row ID
-for the annotation table in the database}
+\item{row_id}{`numeric(1)` ROWID of the annotation line in the database}
 }
 \value{
 `plotly`
@@ -27,6 +26,6 @@ If available it will use the retention time corrected in the slot
 }
 \examples{
 \dontrun{
-plot_db_eic(db, eic_id = 1)
+plot_db_eic(db, row_id = 1)
 }
 }

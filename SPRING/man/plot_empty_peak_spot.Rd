@@ -2,10 +2,10 @@
 % Please edit documentation in R/plots.R
 \name{plot_empty_peak_spot}
 \alias{plot_empty_peak_spot}
-\title{Plot empty MS map}
+\title{Plot empty Peak spot}
 \usage{
 plot_empty_peak_spot(
-  title = "MS map",
+  title = "Peak spot viewer",
   xaxis_title = "Retention time",
   yaxis_title = "m/z"
 )
@@ -21,5 +21,5 @@ plot_empty_peak_spot(
 `plotly` object
 }
 \description{
-Plot an empty MS map with custom axis
+Plot an empty Peak spot with custom axis
 }

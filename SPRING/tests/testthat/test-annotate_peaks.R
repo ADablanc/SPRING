@@ -18,6 +18,7 @@ testthat::test_that("annotate peaks", {
     )
     ann <- data.frame(
         group_id = c(1, 2, 3, 3, 3, 3, 3, 3, 4, 4, 5, 6, 7, 8),
+        eic_id = c(4, 5, 1, 1, 2, 2, 12, 12, 13, 14, 6, 7, 15, 11),
         formula = c(NA, NA, "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
                     "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
                     "C30H59N1O3", "C30H59N1O3", NA, NA, NA, NA),
@@ -520,6 +521,7 @@ testthat::test_that("annotate peaks", {
 testthat::test_that("split conflicts", {
     ann <- data.frame(
         group_id = c(1, 2, 3, 3, 3, 3, 3, 3, 4, 4, 5, 6, 7, 8),
+        eic_id = c(4, 5, 1, 1, 2, 2, 12, 12, 13, 14, 6, 7, 15, 11),
         formula = c(NA, NA, "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
                     "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
                     "C30H59N1O3", "C30H59N1O3", NA, NA, NA, NA),
@@ -611,9 +613,9 @@ testthat::test_that("get int in annotation df", {
             data.frame(),
             nsamples = 0
         ),
-        data.frame(matrix(, nrow = 0, ncol = 11,
+        data.frame(matrix(, nrow = 0, ncol = 12,
             dimnames = list(c(),
-                          c("Group ID", "Class", "Name", "rT (min)",
+                          c("Group ID", "EIC ID", "Class", "Name", "rT (min)",
                             "Diff rT (sec)", "Referent adduct", "Adduct",
                             "nSamples", "Best score (%)", "Best m/z dev (mDa)",
                             "Max iso")
@@ -624,6 +626,7 @@ testthat::test_that("get int in annotation df", {
         get_int_ann(
             data.frame(
                 group_id = 1,
+                eic_id = 1,
                 class = "LPC",
                 name = "LPC 11:0",
                 formula = "C19H40N1O7P1",
@@ -658,6 +661,7 @@ testthat::test_that("get int in annotation df", {
         ),
         data.frame(
             `Group ID` = factor(1, levels = 1),
+            `EIC ID` = 1,
             Class = factor("LPC", levels = "LPC"),
             Name = "LPC 11:0",
             `rT (min)` = 4.77,
@@ -678,6 +682,7 @@ testthat::test_that("get int in annotation df", {
         get_int_ann(
             data.frame(
                 group_id = 1,
+                eic_id = 1,
                 class = "LPC",
                 name = "LPC 11:0",
                 formula = "C19H40N1O7P1",
@@ -713,6 +718,7 @@ testthat::test_that("get int in annotation df", {
         ),
         data.frame(
             `Group ID` = factor(1, levels = 1),
+            `EIC ID` = 1,
             Class = factor("LPC", levels = "LPC"),
             Name = "LPC 11:0",
             `rT (min)` = 4.77,
@@ -733,6 +739,7 @@ testthat::test_that("get int in annotation df", {
 testthat::test_that("summarise ann df", {
     ann <- data.frame(
         group_id = c(1, 2, 3, 3, 3, 3, 3, 3, 4, 4, 5, 6, 7, 8),
+        eic_id = c(4, 5, 1, 1, 2, 2, 12, 12, 13, 14, 6, 7, 15, 11),
         formula = c(NA, NA, "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
                     "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
                     "C30H59N1O3", "C30H59N1O3", NA, NA, NA, NA),
@@ -836,9 +843,9 @@ testthat::test_that("summarise ann df", {
                 c(), c("Group ID", "Class", "Name", "rT (min)", "Diff rT (sec)",
                        "Adducts", "nSamples", "Best score (%)",
                        "Best m/z dev (mDa)", "Max iso"))), check.names = FALSE),
-            details = data.frame(matrix(, nrow = 0, ncol = 11, dimnames = list(
-                c(), c("Group ID", "Class", "Name", "rT (min)", "Diff rT (sec)",
-                       "Referent adduct", "Adduct", "nSamples",
+            details = data.frame(matrix(, nrow = 0, ncol = 12, dimnames = list(
+                c(), c("Group ID", "EIC ID", "Class", "Name", "rT (min)",
+                       "Diff rT (sec)", "Referent adduct", "Adduct", "nSamples",
                        "Best score (%)", "Best m/z dev (mDa)", "Max iso"))),
                 check.names = FALSE)
         )

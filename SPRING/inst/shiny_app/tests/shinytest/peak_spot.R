@@ -129,8 +129,8 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 6th test : only no annotated on MS map
-app$setInputs(peak_spot_type = "MS map")
+# 6th test : only no annotated on Peak spot
+app$setInputs(peak_spot_type = "Peak spot")
 app$setInputs(peak_spot_annotation_filter = "no annotated")
 app$snapshot(
     items = list(
@@ -150,8 +150,8 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 8th test : only annotated on MS map
-app$setInputs(peak_spot_type = "MS map")
+# 8th test : only annotated on Peak spot
+app$setInputs(peak_spot_type = "Peak spot")
 app$setInputs(peak_spot_annotation_filter = "annotated")
 app$snapshot(
     items = list(
@@ -171,8 +171,8 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 10th test : intensity threshold on MS map
-app$setInputs(peak_spot_type = "MS map")
+# 10th test : intensity threshold on Peak spot
+app$setInputs(peak_spot_type = "Peak spot")
 app$setInputs(peak_spot_annotation_filter = "all")
 app$setInputs(peak_spot_int_threshold = 6000000,
               wait_ = FALSE, values_ = FALSE)
@@ -199,8 +199,8 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 12th test : no annotated points + intensity threshold on MS map
-app$setInputs(peak_spot_type = "MS map")
+# 12th test : no annotated points + intensity threshold on Peak spot
+app$setInputs(peak_spot_type = "Peak spot")
 app$setInputs(peak_spot_annotation_filter = "no annotated")
 app$setInputs(peak_spot_int_threshold = 6000000)
 app$snapshot(
@@ -228,8 +228,8 @@ app$snapshot(
     screenshot = TRUE
 )
 
-# 14th test : no annotated points + intensity threshold on MS map
-app$setInputs(peak_spot_type = "MS map")
+# 14th test : no annotated points + intensity threshold on Peak spot
+app$setInputs(peak_spot_type = "Peak spot")
 app$setInputs(peak_spot_annotation_filter = "annotated")
 app$setInputs(peak_spot_int_threshold = 6000000)
 app$snapshot(

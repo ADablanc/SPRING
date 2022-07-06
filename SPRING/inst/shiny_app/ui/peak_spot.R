@@ -10,7 +10,7 @@ shinydashboard::tabItem(
                         tag = shinyWidgets::radioGroupButtons(
                             inputId = "peak_spot_type",
                             label = "Type",
-                            choices = c("MS map", "Kendrick plot"),
+                            choices = c("Peak spot", "Kendrick plot"),
                             checkIcon = list(
                                 yes = shiny::tags$i(
                                     class = "fa fa-check-square",
@@ -24,8 +24,8 @@ shinydashboard::tabItem(
                         ),
                         element = bsplus::bs_embed_tooltip(
                             tag = bsplus::shiny_iconlink(),
-                            title = "Which type of plot ? (MS map = m/z fct(rT))
-                            "
+                            title = "Which type of plot ?
+                                (Peak spot = m/z fct(rT))"
                         )
                     )
                 ),

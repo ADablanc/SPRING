@@ -260,20 +260,24 @@ compare_spectras <- function(q_spectra,
 #' scans & to use the slot `scantime_corrected` obtain from the custom function
 #' `obiwarp`
 #' If the m/z range or rT range is outside from the one from the file it will
-#' return a dataframe with intensities at 0
+#' return a dataframe with NA intensities or 0
 #'
 #' @param ms_file xcmsRaw object
-#' @param mz_range numeric(2) containing the m/z range to look for
-#' @param rt_range numeric(2) containing the rt range in sec to look for
+#' @param mz_range `numeric(2)` containing the m/z range to look for
+#' @param rt_range `numeric(2)` containing the rt range in sec to look for
+#' @param NA_values `logical(1)` should return NA values instead of 0 ?
 #'
 #' @return dataframe with the columns:
 #' \itemize{
 #'     \item rt retention time in seconds
-#'     \item int intensity measured
+#'     \item int intensity measure
 #' }
-get_eic <- function(ms_file, mz_range, rt_range) {
+get_eic <- function(ms_file, mz_range, rt_range, NA_values = FALSE) {
     if (is.null(ms_file)) {
-        return(data.frame(rt = 0, int = 0))
+        return(
+            if (NA_values) data.frame(rt = NA, int = NA)
+            else data.frame(rt = 0, int = 0)
+        )
     }
     if (
             mz_range[1] >= ms_file@mzrange[2] ||
@@ -281,18 +285,23 @@ get_eic <- function(ms_file, mz_range, rt_range) {
             rt_range[1] >= range(ms_file@scantime)[2] ||
             rt_range[2] <= ms_file@scantime[1]
         ) {
-        return(data.frame(rt = seq(rt_range[1], rt_range[2]), int = 0))
+        return(data.frame(
+            rt = seq(rt_range[1], rt_range[2]),
+            int = if (NA_values) NA else 0
+        ))
     }
     eic <- xcms::rawEIC(ms_file, mzrange = mz_range, rtrange = rt_range)
     if (any(names(attributes(ms_file)) == "scantime_corrected")) {
         data.frame(
             rt = ms_file@scantime_corrected[eic$scan],
-            int = eic$intensity
+            int = if (!NA_values) eic$intensity
+                  else replace(eic$intensity, eic$intensity == 0, NA)
         )
     } else {
         data.frame(
             rt = ms_file@scantime[eic$scan],
-            int = eic$intensity
+            int = if (!NA_values) eic$intensity
+                  else replace(eic$intensity, eic$intensity == 0, NA)
         )
     }
 }

@@ -2,13 +2,13 @@
 % Please edit documentation in R/plots.R
 \name{plot_peak_spot}
 \alias{plot_peak_spot}
-\title{Plot MS map}
+\title{Plot Peak spot viewer}
 \usage{
 plot_peak_spot(
   db,
   annotation_filter = "all",
   int_threshold = 0,
-  type = "MS map"
+  type = "Peak spot"
 )
 }
 \arguments{
@@ -19,18 +19,19 @@ plot_peak_spot(
 
 \item{int_threshold}{`numeric(1)` intensity threshold}
 
-\item{type}{`character(1)` "MS map" or "Kendrick plot"}
+\item{type}{`character(1)` "Peak spot" or "Kendrick plot"}
 }
 \value{
 `plotly`
 }
 \description{
-Plot a MS map or Kendrick plot
+Plot a peak spot or Kendrick plot
 Each basepeak are plotted with their annotations
 Hover a trace will show all popup for all basepeak with the same group ID (
 same compound flagged by CAMERA)
-Possibility to trace the "MS map" (m/z fct(rT)) or a Kendrick plot
-Each trace will contain the EIC ID in their `customdata` slot
+Possibility to trace the "Peak spot" (m/z fct(rT)) or a Kendrick plot
+Each trace will contain the ROWID of the annotation line in the DB in their
+ `customdata` slot
 }
 \examples{
 \dontrun{
