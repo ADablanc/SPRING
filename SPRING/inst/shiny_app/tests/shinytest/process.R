@@ -26,6 +26,7 @@ app$setInputs(project_create_valid = "click")
 app$setInputs(process_launch = "click")
 app$snapshot(
     items = list(
+        output = "process_tic", # should be empty
         export = "conflict_id" # 0
     ),
     screenshot = TRUE
@@ -77,7 +78,10 @@ app$waitForValue(
 )
 app$snapshot(
     items = list(
-        output = "process_dt_files_imported" # should contain all the files
+        output = c(
+            "process_dt_files_imported", # should contain all the files
+            "process_tic"
+        )
     ),
     screenshot = TRUE
 )

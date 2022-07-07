@@ -504,6 +504,10 @@ plot_empty_chromato <- function(title = "Total Ion Chromatogram(s)") {
         hoverlabel = list(
             namelength = -1
         ),
+        legend = list(
+            orientation = "h",
+            y = -.3
+        ),
         selectdirection = "h",
         annotations = list(
             list(
@@ -840,6 +844,67 @@ plot_db_eic <- function(db, row_id) {
                 width = 1,
                 dash = "dash"
             )
+        )
+    }
+    p
+}
+
+#' @title Plot TICs
+#'
+#' @description
+#' Plot TICs from raw files (not converted). It use in background the msaccess
+#' executable from ProteoWizard
+#'
+#' @param raw_files `character vector` filepaths to the raw files
+#' @param msaccess `character(1)` filepath to the msaccess executable file
+#' @param polarity `character(1)` should be "positive" or "negative" only
+#'
+#' @return `plotly`
+#'
+#' @export
+#' @examples
+#' \dontrun{
+#' plot_raw_tic(
+#'    c("SPRING/inst/testdata/220221CCM_global_POS_01_ssleu_filtered.mzML",
+#'      "SPRING/inst/testdata/220221CCM_global_POS_01_ssleu_filtered.mzML"),
+#'     "pwiz/msaccess.exe",
+#'     "positive"
+#' )
+#' }
+plot_raw_tic <- function(raw_files, msaccess, polarity = "positive") {
+    if (class(raw_files) != "character") {
+        stop("raw_files must be a vector of filepaths")
+    } else if (any(!file.exists(raw_files))) {
+        stop(sprintf("cannot find %s", paste(
+            raw_files[!file.exists(raw_files)],
+            collapse = ", ")
+        ))
+    } else if (class(msaccess) != "character") {
+        stop("msaccess must be a filepath to msaccess.exe")
+    } else if (length(msaccess) > 1) {
+        stop("msaccess must be a unique filepath")
+    } else if (!file.exists(msaccess)) {
+        stop("cannot find msaccess executable")
+    } else if (class(polarity) != "character") {
+        stop("polarity must be a character")
+    } else if (length(polarity) > 1) {
+        stop("only one polarity is authorized")
+    } else if (polarity != "positive" && polarity != "negative") {
+        stop("polarity must be \"positive\" or \"negative\"")
+    }
+
+    raw_files <- normalizePath(raw_files)
+    msaccess <- normalizePath(msaccess)
+
+    p <- plot_empty_chromato("")
+    data <- get_raw_tic(raw_files, msaccess, polarity)
+    for (i in seq(length(data))) {
+        p <- plotly::add_trace(
+            p,
+            mode = "lines",
+            x = round(data[[i]]$rt / 60, 3),
+            y = data[[i]]$int,
+            name = names(data)[i]
         )
     }
     p

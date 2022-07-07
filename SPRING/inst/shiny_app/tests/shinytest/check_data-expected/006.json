@@ -1025,6 +1025,10 @@
           "hoverlabel": {
             "namelength": -1
           },
+          "legend": {
+            "orientation": "h",
+            "y": -0.3
+          },
           "selectdirection": "h",
           "showlegend": true
         },

@@ -32,12 +32,12 @@ server <- function(input, output, session) {
     if (isTRUE(getOption("shiny.testmode"))) {
         pkgload::load_all("../..", compile = FALSE)
         assign(
-            "converter",
+            "pwiz",
             normalizePath(file.path(
                 system.file(package = "SPRING"),
-                "../../pwiz/msconvert.exe"
+                "../../pwiz"
             )),
-            envir = .workflow_lipido_env
+            envir = .SPRING_env
         )
         shiny::exportTestValues(
             sqlite_path = sqlite_path(),

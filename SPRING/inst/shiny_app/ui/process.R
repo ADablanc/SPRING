@@ -632,5 +632,10 @@ shinydashboard::tabItem(
             style = "unite",
             color = "primary"
         )
+    ),
+
+    shinydashboard::box(
+        width = 9,
+        plotly::plotlyOutput("process_tic", height = "85vh")
     )
 )

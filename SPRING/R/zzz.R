@@ -1,4 +1,4 @@
-.workflow_lipido_env <- new.env(parent = emptyenv())
+.SPRING_env <- new.env(parent = emptyenv())
 
 .onLoad <- function(libname, pkgname) {
     methods::getClass("xcmsSet", where = "xcms")

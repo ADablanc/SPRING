@@ -435,6 +435,109 @@ testthat::test_that("plot DB EIC", {
 
 })
 
+testthat::test_that("plot raw TIC", {
+    raw_files <- c(
+        system.file(
+            "testdata",
+            "220221CCM_global_POS_01_ssleu_filtered.mzML",
+            package = "SPRING"
+        ),
+        system.file(
+            "testdata",
+            "220221CCM_global_POS_02_ssleu_filtered.mzML",
+            package = "SPRING"
+        )
+    )
+    msaccess <- tools::file_path_as_absolute(
+        "~/GitHub/SPRING/pwiz/msaccess.exe")
+
+    # 1st test : without the filepaths of the raw files
+    testthat::expect_error(
+        plot_raw_tic(c(1, 2)),
+        "raw_files must be a vector of filepaths"
+    )
+
+    # 2nd test : raw files doesn't exists
+    testthat::expect_error(
+        plot_raw_tic("toto.mzML"),
+        "cannot find toto.mzML"
+    )
+
+    # 3rd test : msacccess is not a character
+    testthat::expect_error(
+        plot_raw_tic(raw_files, 1),
+        "msaccess must be a filepath to msaccess.exe"
+    )
+
+    # 4th test : more than one filepaths for msaccess
+    testthat::expect_error(
+        plot_raw_tic(raw_files, c("a", "b")),
+        "msaccess must be a unique filepath"
+    )
+
+    # 5th test : msaccess filepath is not found
+    testthat::expect_error(
+        plot_raw_tic(raw_files, "a"),
+        "cannot find msaccess executable"
+    )
+
+    # 6th test : polarity is not a character
+    testthat::expect_error(
+        plot_raw_tic(raw_files, msaccess, 1),
+        "polarity must be a character"
+    )
+
+    # 7th test : more than one polarity
+    testthat::expect_error(
+        plot_raw_tic(raw_files, msaccess, c("a", "b")),
+        "only one polarity is authorized"
+    )
+
+    # 8th test : polarity is not correct
+    testthat::expect_error(
+        plot_raw_tic(raw_files, msaccess, "toto"),
+        "polarity must be \"positive\" or \"negative\""
+    )
+
+    p2 <- readRDS(system.file(
+        "testdata",
+        "plots.RDS",
+        package = "SPRING"
+    ))
+
+    # 9th test : test with a negative polarity (should be empty)
+    p <- plot_raw_tic(raw_files, msaccess, "negative")
+    testthat::expect_true(all(na.omit(
+        unlist(p[[1]]$attrs) == unlist(p2$plot_raw_tic[[1]][[1]]$attrs)
+    )))
+    testthat::expect_true(all(
+        unlist(p[[1]]$layoutAttrs) ==
+            unlist(p2$plot_raw_tic[[1]][[1]]$layoutAttrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$config) == unlist(p2$plot_raw_tic[[1]][[1]]$config)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[8]]) == unlist(p2$plot_raw_tic[[1]][[8]])
+    ))
+
+    # 10th test : test with a positive polarity
+    p <- plot_raw_tic(raw_files, msaccess, "positive")
+    testthat::expect_true(all(na.omit(
+        unlist(p[[1]]$attrs) == unlist(p2$plot_raw_tic[[2]][[1]]$attrs)
+    )))
+    testthat::expect_true(all(
+        unlist(p[[1]]$layoutAttrs) ==
+            unlist(p2$plot_raw_tic[[2]][[1]]$layoutAttrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$config) == unlist(p2$plot_raw_tic[[2]][[1]]$config)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[8]]) == unlist(p2$plot_raw_tic[[2]][[8]])
+    ))
+})
+
 testthat::test_that("plot empty m/z dev", {
     p <- plot_empty_mzdev()
     p2 <- readRDS(system.file(

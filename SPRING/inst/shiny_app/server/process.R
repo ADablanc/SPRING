@@ -32,7 +32,7 @@ output$process_dt_files_imported <- DT::renderDataTable({
         bFilter = FALSE,
         ordering = FALSE,
         scroller = TRUE,
-        scrollY = "50vh",
+        scrollY = "45vh",
         scrollX = TRUE,
         scrollCollapse = TRUE
     )
@@ -84,6 +84,46 @@ shiny::updateNumericInput(
     max = parallel::detectCores(),
     step = 1
 )
+
+#' @title TIC of raw files
+#'
+#' @description
+#' Plot the TIC of the raw files selected by the user
+#'
+#' @param input$process_polarity `character(1)` polarity to use ("positive" or
+#' "negative")
+#' @param input$process_files `character` filepath to the files
+output$process_tic <- plotly::renderPlotly({
+    params <- list(
+        raw_files = shinyFiles::parseFilePaths(
+            volumes,
+            input$process_files
+        )$datapath,
+        polarity = input$process_polarity
+    )
+    tryCatch({
+        if (is.integer(input$process_files)) {
+            custom_stop("invalid", "No files selected")
+        } else if (any(is.na(params$raw_files)) |
+                   length(params$raw_files) == 0) {
+            custom_stop("invalid", "No files selected")
+        } else {
+            plot_raw_tic(
+                params$raw_files,
+                file.path(.SPRING_env$pwiz, "msaccess.exe"),
+                params$polarity
+            )
+        }
+    }, invalid = function(i) {
+        plot_empty_chromato("")
+    }, error = function(e) {
+        print("########## process_tic")
+        print(params)
+        print(e)
+        sweet_alert_error(e$message)
+        plot_empty_chromato("")
+    })
+})
 
 #' @title Launch process event
 #'
@@ -320,7 +360,7 @@ shiny::observeEvent(input$process_launch, {
         infos <- ms_process(
             params$Files,
             params$sqlite_path,
-            .workflow_lipido_env$converter,
+            file.path(.SPRING_env$pwiz, "msconvert.exe"),
             cwt_params,
             obw_params,
             pd_params,

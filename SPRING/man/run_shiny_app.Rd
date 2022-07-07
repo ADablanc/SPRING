@@ -4,13 +4,13 @@
 \alias{run_shiny_app}
 \title{Run Shiny app}
 \usage{
-run_shiny_app(log_file_path = NULL, converter = "pwiz/msconvert.exe")
+run_shiny_app(pwiz_dir = "pwiz", log_file_path = NULL)
 }
 \arguments{
 \item{log_file_path}{`character(1)` path to the file were to write the stderr
 & stdout}
 
-\item{converter}{`character(1)` path to msconvert.exe}
+\item{pwiz}{`character(1)` path to the pwiz directory}
 }
 \description{
 Run a shiny application in the default web browser
