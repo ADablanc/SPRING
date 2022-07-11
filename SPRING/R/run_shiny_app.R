@@ -3,7 +3,7 @@
 #' @description
 #' Run a shiny application in the default web browser
 #'
-#' @param pwiz `character(1)` path to the pwiz directory
+#' @param pwiz_dir `character(1)` path to the pwiz directory
 #' @param log_file_path `character(1)` path to the file were to write the stderr
 #'  & stdout
 #'
