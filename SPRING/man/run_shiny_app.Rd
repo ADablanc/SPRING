@@ -7,10 +7,10 @@
 run_shiny_app(pwiz_dir = "pwiz", log_file_path = NULL)
 }
 \arguments{
+\item{pwiz_dir}{`character(1)` path to the pwiz directory}
+
 \item{log_file_path}{`character(1)` path to the file were to write the stderr
 & stdout}
-
-\item{pwiz}{`character(1)` path to the pwiz directory}
 }
 \description{
 Run a shiny application in the default web browser

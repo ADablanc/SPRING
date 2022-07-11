@@ -289,7 +289,7 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
                         tmp_ann[l, "best_npeak"] <- tmp[[l]]$npeak
                     }
                     tmp_ann$rtmin <- min(tmp_ann$rtmin, basepeak$rtmin)
-                    tmp_ann$rtmin <- max(tmp_ann$rtmax, basepeak$rtmax)
+                    tmp_ann$rtmax <- max(tmp_ann$rtmax, basepeak$rtmax)
                     spectra_id <- spectra_id + 1
                 }
             }
