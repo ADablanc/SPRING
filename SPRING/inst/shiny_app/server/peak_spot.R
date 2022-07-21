@@ -5,8 +5,8 @@
 #' Each basepeak are plotted with their annotations
 #' Hover a trace will show all popup for all basepeak with the same group ID (
 #' same compound flagged by CAMERA)
-#' A click on a trace will update the peak_spot_eic output by returning the EIC
-#'  ID to the server
+#' A click on a trace will update the peak_spot_row_id output by returning the
+#' row id of the annotation dataframe to the server
 #'
 #' @param db `reactive value` pointer to the sqlite connection
 #'
@@ -29,7 +29,7 @@ output$peak_spot_plot <- plotly::renderPlotly({
             'function(el, x) {
                 el.on("plotly_click", function(data) {
                     Shiny.onInputChange(
-                        "peak_spot_eic_id",
+                        "peak_spot_row_id",
                         data["points"][0].customdata
                     );
                 })
@@ -54,24 +54,34 @@ output$peak_spot_plot <- plotly::renderPlotly({
 #' It contains a special behavior when the mouse hover a trace : it will display
 #'  all the hovertext of all traces in a unique textbox allowing the user to
 #'   differentiate all the y coordinates of the traces in one shot
-#' If available it will use the retention time corrected in the slot
-#' `scantime_corrected` added by the function `obiwarp`
 #'
 #' @param db `reactive value` pointer to the sqlite connection
-#' @param input$peak_spot_eic_id `numeric` EIC ID of the trace clicked in the
-#'  peak_spot_plot output
+#' @param input$peak_spot_row_id `numeric` row id of the annotation DataFrame
+#'  which correspond to the ion clicked
 #'
 #' @return `plotly`
 output$peak_spot_eic <- plotly::renderPlotly({
     params <- list(
         db = db(),
-        eic_id = input$peak_spot_eic_id
+        row_id = input$peak_spot_row_id
     )
     tryCatch({
-        if (is.null(params$eic_id)) {
+        if (is.null(params$row_id)) {
             plot_empty_chromato("EIC")
         } else {
-            plot_db_eic(params$db, params$eic_id)
+            # retrieve the group ID for this ion
+            params$group_id <- db_get_group_id(
+                params$db,
+                row_id = params$row_id
+            )
+            # give a title to the EIC with the name of the cpd + adduct
+            ann <- db_get_annotations(params$db, row_ids = params$row_id)
+            if (!all(is.na(ann[1, "name"]))) {
+                title <- paste(ann[1, c("name", "adduct")], collapse = "<br />")
+            } else {
+                title <- ""
+            }
+            plot_eic(params$db, params$group_id, title)
         }
     }, error = function(e) {
         print("########## peak_spot_eic")

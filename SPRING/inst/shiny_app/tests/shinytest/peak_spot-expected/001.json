@@ -142,7 +142,7 @@
       "jsHooks": {
         "render": [
           {
-            "code": "function(el, x) {\n                el.on(\"plotly_click\", function(data) {\n                    Shiny.onInputChange(\n                        \"peak_spot_eic_id\",\n                        data[\"points\"][0].customdata\n                    );\n                })\n            }",
+            "code": "function(el, x) {\n                el.on(\"plotly_click\", function(data) {\n                    Shiny.onInputChange(\n                        \"peak_spot_row_id\",\n                        data[\"points\"][0].customdata\n                    );\n                })\n            }",
             "data": null
           }
         ]

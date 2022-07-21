@@ -10,8 +10,8 @@ get_int_ann(ann, spectra_infos, nsamples, val = "int")
 \item{ann}{`DataFrame` each line correspond to a compound found
 with the columns:
 \itemize{
-    \item group_id `integer` group ID
-    \item eic_id `integer` eic ID
+    \item pcgroup_id `integer` pcgroup ID
+    \item basepeak_group_id `ìnteger` group ID of the basepeak
     \item class `character` cpd class
     \item name `character` name
     \item referent_adduct `character` referent adduct for the compound
@@ -58,7 +58,7 @@ desired}
 \value{
 `DataFrame` each line represent an ion with the columns
 \itemize{
-    \item Group ID `numeric` group ID
+    \item PCGroup ID `numeric` pcgroup ID
     \item EIC ID `numeric` EIC ID
     \item Class `character` cpd class
     \item Name `character` name of the compound

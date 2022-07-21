@@ -8,40 +8,36 @@
 #'     \item convert each raw file in the polarity desired ("positive" or
 #'     "negative" mode with msConvert. It also trim the file according the rt
 #'     according the m/z & rT of compounds to discover with msconvert. Check
-#'     with XCMS package if the file can be converted. If the file is a CDF it
-#'     will copy the file instead. If the conversion failed & the file is a mzML
-#'      or mzXML it will copy the file instead and try to trim only the rt
+#'     with MSnbase package if the file can be converted. If the file is a CDF
+#'     it will copy the file instead. If the conversion failed & the file is a
+#'     mzML or mzXML it will copy the file instead and try to trim only the rt
 #'     range. Record then a `xcmsRaw` file and its corresponding profile matrix
 #'     in the database, this object is compress into a blob object before
 #'     inserting in the database.
-#'      \item launch workflow foreach polarity, this workflow consist of the
-#'      steps:
-#'      \itemize{
-#'         \item peak peacking with CentWave algorithm (it will create a list of
-#'         `xcmsSet` objects with the `xcmsRaw` loaded in the database)
-#'         \item alignment with obiwarp which is based on the complete mz-rt
-#'         data
-#'         \item group peaklists from a `xcmsSet` object using the density
-#'         method
-#'         \item annotate isotopologues & adducts with the CAMERA package
-#'         \item annotate peaklists from a `xsAnnotate` object from CAMERA
-#'         it loop through the pcgroups
-#'         if one of the peak match with one of the theoretical monoisotopic
-#'             from database it will compare the pseudo spectra obtained from
-#'             CAMERA against the theoretical spectra & compute an isotopic
-#'             score
-#'         The scoring algorithm will search each corresponding observed peak
-#'         with theoreticals. Therefore it contains some important rules :
-#'         \itemize{
-#'              \item an observed peak can only correspond to ONE theoretical
-#'              peak and vice versa
-#'              \item the relative abundance peak must not be under a tolerance
-#'              compared to the theoretical
-#'              but it can be higher since a peak can hide another
-#'              \item the A+x is not searched if the A+x-1 is not found
-#'              (the loop search is stopped)
-#'         }
+#'      \item peak peacking with CentWave algorithm
+#'      \item alignment with obiwarp which is based on the complete mz-rt
+#'      data
+#'      \item group peaklists from a `xcmsSet` object using the density
+#'      method
+#'      \item annotate isotopologues & adducts with the CAMERA package
+#'      \item annotate peaklists from a `xsAnnotate` object from CAMERA
+#'      it loop through the pcgroups
+#'      if one of the peak match with one of the theoretical monoisotopic
+#'       from database it will compare the pseudo spectra obtained from
+#'       CAMERA against the theoretical spectra & compute an isotopic
+#'       score
+#'       The scoring algorithm will search each corresponding observed peak
+#'       with theoreticals. Therefore it contains some important rules :
+#'       \itemize{
+#'            \item an observed peak can only correspond to ONE theoretical
+#'            peak and vice versa
+#'            \item the relative abundance peak must not be under a tolerance
+#'            compared to the theoretical
+#'            but it can be higher since a peak can hide another
+#'            \item the A+x is not searched if the A+x-1 is not found
+#'            (the loop search is stopped)
 #'     }
+#'     \item record all EICs & m/z foreach basepeak foreach sample
 #'     \item record all results in the sqlite database
 #' }
 #'
@@ -106,7 +102,8 @@ ms_process <- function(raw_files,
                        cores = parallel::detectCores(),
                        show_txt_pb = TRUE,
                        pb_fct = NULL) {
-    msg <- tryCatch({
+    tryCatch({
+        ########## INITIALIZE
         check_ms_process_args(
             raw_files,
             sqlite_path,
@@ -121,150 +118,137 @@ ms_process <- function(raw_files,
         raw_files <- sapply(raw_files, normalizePath)
         sqlite_path <- suppressWarnings(normalizePath(sqlite_path))
         converter <- normalizePath(converter)
-        sample_names <- tools::file_path_sans_ext(basename(raw_files))
 
-        # order alphabetically raw files & sample names
-        raw_files <- raw_files[order(sample_names)]
-        sample_names <- sort(unique(sample_names))
-
+        # XCMS will use only one core per file
+        cores <- min(length(raw_files), cores)
         cwt_params@verboseColumns <- TRUE
         obw_params@binSize <- .1
-        pd_params@sampleGroups <- seq(length(unique(sample_names)))
+        pd_params@sampleGroups <- seq(length(raw_files))
         pd_params@minFraction <- 10**-9
         pd_params@minSamples <- 1
         pd_params@maxFeatures <- 500
         filter_params <- FilterParam(cwt_params, ann_params)
 
-        if (cores > 1) {
-            cl <- parallel::makeCluster(min(cores, length(raw_files)))
-            parallel::clusterExport(
-                cl,
-                list("sqlite_path", "db_connect", "db_execute",
-                     "db_write_table", "db_get_query", "import_ms_file",
-                     "convert_file", "check_ms_file", "db_record_ms_file",
-                     "compress", "filter_ms_file", "filter_params",
-                     "db_read_ms_file", "decompress", "find_chrompeaks"),
-                envir = pryr::where("sqlite_path")
-            )
-            doSNOW::registerDoSNOW(cl)
-            operator <- foreach::"%dopar%"
-        } else {
-            operator <- foreach::"%do%"
-        }
+        BiocParallel::register(BiocParallel::SnowParam(cores))
+        BiocParallel::bpstart()
+        parallel::clusterExport(
+            BiocParallel::bpbackend(),
+            list("convert_file", "check_ms_file", "filter_ms_file"),
+            envir = pryr::where("convert_file")
+        )
 
-        db <- db_connect(sqlite_path)
-        db_record_samples(db, sample_names)
-        RSQLite::dbDisconnect(db)
-
+        ################ CONVERSION
+        print("Conversion")
         if (show_txt_pb) {
             pb <- utils::txtProgressBar(
                 min = 0,
-                max = 100,
+                max = 1,
                 style = 3,
                 title = ""
             )
             if (is.null(pb_fct)) {
-                pb_fct <- function(n, total, title) {
+                pb_total <- 8
+                pb_fct <- function(n, total = pb_total, title) {
                     utils::setTxtProgressBar(
                         pb,
-                        value = (n - 1) / total * 100,
+                        value = (n - 1) / total,
                         title = title
                     )
                 }
             }
         }
-        raw_file <- NULL # just to get rid of the NOTE
-        print("Conversion")
+
         if (!is.null(pb_fct)) {
-            pb_fct(n = 0, total = length(raw_files), title = "Conversion")
+            pb_val <- 1
+            pb_fct(n = pb_val, title = "Conversion")
         }
-        infos <- operator(
-            foreach::foreach(
-                raw_file = iterators::iter(raw_files),
-                .combine = rbind,
-                .options.snow = list(
-                    progress = if (is.null(pb_fct)) {
-                        NULL
-                    } else {
-                        function(n) {
-                            pb_fct(n, length(raw_files), "Conversion")
-                        }
-                    }
-                )
-            ), {
-                db <- db_connect(sqlite_path)
-                sample_name <- tools::file_path_sans_ext(basename(raw_file))
-                msg <- cbind(
-                    sample = sample_name,
-                    imported = import_ms_file(
-                        db,
-                        sample_name,
+        tmp_fun <- function(raw_file, converter, filter_params) {
+            tryCatch({
+                cbind(
+                    filepath = convert_file(
                         raw_file,
                         converter,
                         filter_params
-                    )
+                    ),
+                    success = "success"
                 )
-                RSQLite::dbDisconnect(db)
-                msg
-            }
-        )
-        if (!is.null(pb_fct)) {
-            pb_fct(n = 1, total = 1, title = "Conversion")
+            }, error = function(e) {
+                cbind(filepath = e$message, success = "error")
+            })
         }
-        if (any(infos[, "imported"] != "success")) {
-            print(infos)
+        filepaths <- suppressWarnings(do.call(
+            rbind,
+            BiocParallel::bplapply(
+                raw_files,
+                tmp_fun,
+                converter,
+                filter_params
+            )
+        ))
+        if (any(filepaths[, "success"] == "error")) {
+            print(filepaths[filepaths[, "success"] == "error", ])
             stop("some of the file was not imported correctly")
+        } else {
+            filepaths <- filepaths[, "filepath"]
         }
 
+        ############ PEAK PICKING
         print("Peak picking")
         if (!is.null(pb_fct)) {
-            pb_fct(n = 0, total = 1, title = "PeakPicking")
+            pb_val <- pb_val + 1
+            pb_fct(n = pb_val, title = "PeakPicking")
         }
-        xsets <- operator(
-            foreach::foreach(
-                sample_name = iterators::iter(sample_names),
-                .combine = append,
-                .options.snow = list(
-                    progress = if (is.null(pb_fct)) {
-                        NULL
-                    } else {
-                        function(n) {
-                            pb_fct(n, length(sample_names), "PeakPicking")
-                        }
-                    }
-                )
-            ),
-            tryCatch({
-                db <- db_connect(sqlite_path)
-                ms_file <- db_read_ms_file(db, sample_name)
-                RSQLite::dbDisconnect(db)
-                list(find_chrompeaks(ms_file, cwt_params, sample_name))
-            }, error = function(e) {
-                e$message
-            })
-        )
-        if (!is.null(pb_fct)) {
-            pb_fct(n = 1, total = 1, title = "PeakPicking")
-        }
-        test_error <- which(sapply(xsets, class) != "xcmsSet")
-        if (length(test_error) > 0) {
-            stop(paste(unlist(xsets[test_error]), collapse = "\n"))
-        }
+        ms_files <- MSnbase::readMSData(filepaths, mode = "onDisk")
+        suppressWarnings(suppressMessages(xset <- xcms::findChromPeaks(
+            ms_files,
+            cwt_params,
+            return.type = "xcmsSet"
+        )))
+        rm(ms_files)
 
+        ######### ALIGNMENT
         print("Obiwarp")
-        xset <- obiwarp(
-            sqlite_path,
-            sample_names,
-            xsets,
-            obw_params,
-            operator,
-            pb_fct
-        )
+        if (!is.null(pb_fct)) {
+            pb_val <- pb_val + 1
+            pb_fct(n = pb_val, title = "Obiwarp")
+        }
+        suppressMessages(invisible(capture.output(xset <- xcms::retcor.obiwarp(
+            xset,
+            plottype = "none",
+            profStep = obw_params@binSize,
+            center = as.integer(names(which.max(
+                table(xset@peaks[, "sample"])))),
+            response = obw_params@response,
+            distFunc = obw_params@distFun,
+            gapInit = obw_params@gapInit,
+            gapExtend = obw_params@gapExtend,
+            factorDiag = as.numeric(obw_params@factorDiag),
+            factorGap = as.numeric(obw_params@factorGap),
+            localAlignment = obw_params@localAlignment,
+            initPenalty = as.numeric(obw_params@initPenalty)
+        ))))
 
+        ########### GROUP
         print("Alignment")
-        xset <- group_peaks(xset, pd_params, operator, pb_fct)
+        if (!is.null(pb_fct)) {
+            pb_val <- pb_val + 1
+            pb_fct(n = pb_val, title = "Alignment")
+        }
+        suppressMessages(xset <- xcms::group.density(
+            xset,
+            minfrac = pd_params@minFraction,
+            minsamp = pd_params@minSamples,
+            bw = pd_params@bw,
+            mzwid = pd_params@binSize,
+            max = pd_params@maxFeatures,
+        ))
 
-        print("Annotate")
+        ########## CAMERA
+        print("Group")
+        if (!is.null(pb_fct)) {
+            pb_val <- pb_val + 1
+            pb_fct(n = pb_val, title = "Group")
+        }
         invisible(utils::capture.output(xsa <- CAMERA::annotate(
             xset,
             sigma = camera_params@sigma,
@@ -288,19 +272,22 @@ ms_process <- function(raw_files,
             intval = camera_params@intval
         )))
 
-        xsa <- annotate_pcgroups(xsa, ann_params, pb_fct)
-
+        ########## ANNOTATE
+        print("Annotate")
         if (!is.null(pb_fct)) {
-            pb_fct(n = 1, total = 1, title = "Record results")
+            pb_val <- pb_val + 1
+            pb_fct(n = pb_val, title = "Annotate")
+        }
+        xsf <- annotate_pcgroups(xsa, ann_params)
+        rm(xsa)
+
+        ############ RECORD
+        print("Record results")
+        if (!is.null(pb_fct)) {
+            pb_fct(n = 7, title = "Record results")
         }
         db <- db_connect(sqlite_path)
-        db_record_xsa(db, xsa, sample_names[1])
-        db_record_ann(
-            db,
-            xsa@ann,
-            xsa@spectras,
-            xsa@spectra_infos
-        )
+        db_record_xsf(db, xsf)
         db_record_params(
             db,
             filter_params,
@@ -310,26 +297,31 @@ ms_process <- function(raw_files,
             camera_params,
             ann_params
         )
-        if (nrow(xsa@ann) > 0) {
-            print("Generate EICs")
-            db_record_eics(db, pb_fct)
+
+        ########### GENERATE EICs & mzMat
+        if (nrow(xsf$peakgroups) > 0) {
+            print("GENERATE EICs & mzMat")
+            if (!is.null(pb_fct)) {
+                pb_val <- pb_val + 1
+                pb_fct(n = pb_val, title = "GENERATE EICs & mzMat")
+            }
+            db_record_mzdata(db, xset)
         }
+        rm(xset)
         RSQLite::dbDisconnect(db)
         if (show_txt_pb) {
+            pb_val <- pb_val + 1
+            pb_fct(n = pb_val)
             close(pb)
         }
-        if (exists("cl")) {
-            parallel::stopCluster(cl)
-        }
+        BiocParallel::bpstop()
         NULL
     }, error = function(e) {
         try(suppressWarnings(file.remove(sqlite_path)))
         if (exists("pb")) {
             close(pb)
         }
-        if (exists("cl")) {
-            parallel::stopCluster(cl)
-        }
+        BiocParallel::bpstop()
         stop(e)
     })
 }
@@ -340,10 +332,6 @@ ms_process <- function(raw_files,
 #' Export all annotations in a excel file
 #' First sheet will have the annotations regroup by compound
 #' Second will have annotations regroup by ions
-#'
-#' Warning ! It export only the annotations with no conflicts !
-#' (Conflicts are when for a group of peaks multiple annotations are possible
-#' (it happens often when for an ion formula refers to multiple compounds))
 #'
 #' @param sqlite_path `character(1)` sqlite path to the annotation results
 #' @param excel_path `character(1)` path to the excel file to create
@@ -371,6 +359,7 @@ export_annotations <- function(sqlite_path, excel_path, by = "referent") {
     spectra_ids <- na.omit(unlist(
         ann[, (ncol(ann) - nsamples + 1):ncol(ann)]))
     spectra_infos <- db_get_spectra_infos(db, spectra_ids)
+    RSQLite::dbDisconnect(db)
 
     summarised_ann <- summarise_ann(ann, spectra_infos, nsamples, by)
     wb <- openxlsx::createWorkbook()

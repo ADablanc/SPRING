@@ -46,7 +46,7 @@ app$snapshot(
 # load a project
 sqlite_file <- system.file(
     "testdata",
-    "220221CCM_global-conflicts.sqlite",
+    "220221CCM_global.sqlite",
     package = "SPRING"
 )
 sqlite_file2 <- gsub("\\\\", "/", tempfile(fileext = ".sqlite"))

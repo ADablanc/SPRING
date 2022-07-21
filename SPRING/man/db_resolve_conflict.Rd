@@ -4,12 +4,12 @@
 \alias{db_resolve_conflict}
 \title{Resolve annotation conflict}
 \usage{
-db_resolve_conflict(db, group_id, name)
+db_resolve_conflict(db, pcgroup_id, name)
 }
 \arguments{
 \item{db}{`SQLiteConnection`}
 
-\item{group_id}{`numeric(1)` ID of the peak groups}
+\item{pcgroup_id}{`numeric(1)` pcgroup ID of the annotation}
 
 \item{name}{`character(1)` name of the annotation to keep instead of others}
 }

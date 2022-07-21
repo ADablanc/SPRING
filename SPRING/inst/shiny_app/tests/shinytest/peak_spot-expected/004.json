@@ -22,6 +22,7 @@
           },
           "spikedistance": -1,
           "hovermode": "x unified",
+          "hoverdistance": 1,
           "xaxis": {
             "domain": [
               0,
@@ -174,7 +175,7 @@
               124145.0625,
               83991.9375
             ],
-            "name": "220221CCM_global_POS_01_ssleu_filtered",
+            "name": "220221CCM_global_POS_01_ssleu_filtered.mzXML",
             "showlegend": false,
             "marker": {
               "color": "rgba(255,127,14,1)",
@@ -199,6 +200,7 @@
             "mode": "lines",
             "type": "scatter",
             "x": [
+              4.128,
               4.137,
               4.146,
               4.154,
@@ -267,7 +269,9 @@
               4.71,
               4.718,
               4.727,
+              4.736,
               null,
+              4.859,
               4.868,
               4.877,
               4.886,
@@ -326,6 +330,7 @@
               5.353
             ],
             "y": [
+              0,
               0,
               0,
               0,
@@ -394,7 +399,9 @@
               0,
               0,
               0,
+              0,
               null,
+              83991.9375,
               57429.65625,
               39043.34375,
               28808.65625,
@@ -452,7 +459,7 @@
               0,
               0
             ],
-            "name": "220221CCM_global_POS_01_ssleu_filtered",
+            "name": "220221CCM_global_POS_01_ssleu_filtered.mzXML",
             "showlegend": false,
             "line": {
               "color": "rgb(0,0,0)",
@@ -518,7 +525,7 @@
               35691.90625,
               27198.71875
             ],
-            "name": "220221CCM_global_POS_02_ssleu_filtered",
+            "name": "220221CCM_global_POS_02_ssleu_filtered.mzXML",
             "showlegend": false,
             "marker": {
               "color": "rgba(214,39,40,1)",
@@ -543,6 +550,7 @@
             "mode": "lines",
             "type": "scatter",
             "x": [
+              4.128,
               4.137,
               4.146,
               4.154,
@@ -611,7 +619,9 @@
               4.71,
               4.718,
               4.727,
+              4.736,
               null,
+              4.886,
               4.895,
               4.904,
               4.912,
@@ -667,6 +677,7 @@
               5.353
             ],
             "y": [
+              0,
               0,
               0,
               0,
@@ -735,7 +746,9 @@
               0,
               0,
               2351.955078125,
+              0,
               null,
+              27198.71875,
               0,
               12195.6953125,
               0,
@@ -790,7 +803,7 @@
               0,
               0
             ],
-            "name": "220221CCM_global_POS_02_ssleu_filtered",
+            "name": "220221CCM_global_POS_02_ssleu_filtered.mzXML",
             "showlegend": false,
             "line": {
               "color": "rgb(0,0,0)",
@@ -2019,7 +2032,7 @@
             "data": null
           },
           {
-            "code": "function(el, x) {\n                el.on(\"plotly_click\", function(data) {\n                    Shiny.onInputChange(\n                        \"peak_spot_eic_id\",\n                        data[\"points\"][0].customdata\n                    );\n                })\n            }",
+            "code": "function(el, x) {\n                el.on(\"plotly_click\", function(data) {\n                    Shiny.onInputChange(\n                        \"peak_spot_row_id\",\n                        data[\"points\"][0].customdata\n                    );\n                })\n            }",
             "data": null
           }
         ]

@@ -91,8 +91,8 @@ testthat::test_that("workflow", {
         "some of the file was not imported correctly"
     )))
 
-    # 2nd test: no parallelization
-    invisible(capture.output(ms_process(
+    # 2nd test: normal
+    capture.output(ms_process(
         raw_files,
         sqlite_path,
         converter,
@@ -100,9 +100,8 @@ testthat::test_that("workflow", {
         obw_params,
         pd_params,
         camera_params,
-        ann_params,
-        cores = 1
-    )))
+        ann_params
+    ))
     db <- db_connect(sqlite_path)
     db_test <- db_connect(sqlite_path_test)
     testthat::expect_equal(
@@ -118,38 +117,20 @@ testthat::test_that("workflow", {
         db_read_table(db_test, "spectras")
     )
     testthat::expect_equal(
-        db_read_table(db, "eic"),
-        db_read_table(db_test, "eic")
-    )
-    RSQLite::dbDisconnect(db)
-
-    # 3rd test: parallelization
-    capture.output(ms_process(
-        raw_files,
-        sqlite_path,
-        converter,
-        cwt_params,
-        obw_params,
-        pd_params,
-        camera_params,
-        ann_params
-    ))
-    db <- db_connect(sqlite_path)
-    testthat::expect_equal(
-        db_read_table(db, "ann"),
-        db_read_table(db_test, "ann")
+        db_read_table(db, "peakgroups"),
+        db_read_table(db_test, "peakgroups")
     )
     testthat::expect_equal(
-        db_read_table(db, "spectra_infos"),
-        db_read_table(db_test, "spectra_infos")
-    )
-    testthat::expect_equal(
-        db_read_table(db, "spectras"),
-        db_read_table(db_test, "spectras")
+        db_read_table(db, "peaks"),
+        db_read_table(db_test, "peaks")
     )
     testthat::expect_equal(
         db_read_table(db, "eic"),
         db_read_table(db_test, "eic")
+    )
+    testthat::expect_equal(
+        db_read_table(db, "mzmat"),
+        db_read_table(db_test, "mzmat")
     )
     RSQLite::dbDisconnect(db)
     RSQLite::dbDisconnect(db_test)
@@ -203,8 +184,8 @@ testthat::test_that("export annotations", {
     ann <- db_get_annotations(db)
     spectra_infos <- db_get_spectra_infos(db)
     summarised_ann <- summarise_ann(ann, spectra_infos, 2)
-    summarised_ann$resume[, "Group ID"] <- as.character(
-        summarised_ann$resume[, "Group ID"])
+    summarised_ann$resume[, "PCGroup ID"] <- as.character(
+        summarised_ann$resume[, "PCGroup ID"])
     summarised_ann$resume$Class <- as.character(summarised_ann$resume$Class)
 
     export_annotations(sqlite_file, excel_file)
@@ -212,8 +193,8 @@ testthat::test_that("export annotations", {
         openxlsx::read.xlsx(excel_file, 1, sep.names = " "),
         summarised_ann$resume
     )
-    summarised_ann$details[, "Group ID"] <- as.character(
-        summarised_ann$details[, "Group ID"])
+    summarised_ann$details[, "PCGroup ID"] <- as.character(
+        summarised_ann$details[, "PCGroup ID"])
     summarised_ann$details$Class <- as.character(summarised_ann$details$Class)
     testthat::expect_equal(
         openxlsx::read.xlsx(excel_file, 2, sep.names = " "),
@@ -224,8 +205,8 @@ testthat::test_that("export annotations", {
     ann <- db_get_annotations(db)
     spectra_infos <- db_get_spectra_infos(db)
     summarised_ann <- summarise_ann(ann, spectra_infos, 2, by = "all")
-    summarised_ann$resume[, "Group ID"] <- as.character(
-        summarised_ann$resume[, "Group ID"])
+    summarised_ann$resume[, "PCGroup ID"] <- as.character(
+        summarised_ann$resume[, "PCGroup ID"])
     summarised_ann$resume$Class <- as.character(summarised_ann$resume$Class)
 
     export_annotations(sqlite_file, excel_file, by = "all")
@@ -233,8 +214,8 @@ testthat::test_that("export annotations", {
         openxlsx::read.xlsx(excel_file, 1, sep.names = " "),
         summarised_ann$resume
     )
-    summarised_ann$details[, "Group ID"] <- as.character(
-        summarised_ann$details[, "Group ID"])
+    summarised_ann$details[, "PCGroup ID"] <- as.character(
+        summarised_ann$details[, "PCGroup ID"])
     summarised_ann$details$Class <- as.character(summarised_ann$details$Class)
     testthat::expect_equal(
         openxlsx::read.xlsx(excel_file, 2, sep.names = " "),

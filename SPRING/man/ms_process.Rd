@@ -50,40 +50,36 @@ Launch the workflow on the raw files, which consist of the steps :
     \item convert each raw file in the polarity desired ("positive" or
     "negative" mode with msConvert. It also trim the file according the rt
     according the m/z & rT of compounds to discover with msconvert. Check
-    with XCMS package if the file can be converted. If the file is a CDF it
-    will copy the file instead. If the conversion failed & the file is a mzML
-     or mzXML it will copy the file instead and try to trim only the rt
+    with MSnbase package if the file can be converted. If the file is a CDF
+    it will copy the file instead. If the conversion failed & the file is a
+    mzML or mzXML it will copy the file instead and try to trim only the rt
     range. Record then a `xcmsRaw` file and its corresponding profile matrix
     in the database, this object is compress into a blob object before
     inserting in the database.
-     \item launch workflow foreach polarity, this workflow consist of the
-     steps:
-     \itemize{
-        \item peak peacking with CentWave algorithm (it will create a list of
-        `xcmsSet` objects with the `xcmsRaw` loaded in the database)
-        \item alignment with obiwarp which is based on the complete mz-rt
-        data
-        \item group peaklists from a `xcmsSet` object using the density
-        method
-        \item annotate isotopologues & adducts with the CAMERA package
-        \item annotate peaklists from a `xsAnnotate` object from CAMERA
-        it loop through the pcgroups
-        if one of the peak match with one of the theoretical monoisotopic
-            from database it will compare the pseudo spectra obtained from
-            CAMERA against the theoretical spectra & compute an isotopic
-            score
-        The scoring algorithm will search each corresponding observed peak
-        with theoreticals. Therefore it contains some important rules :
-        \itemize{
-             \item an observed peak can only correspond to ONE theoretical
-             peak and vice versa
-             \item the relative abundance peak must not be under a tolerance
-             compared to the theoretical
-             but it can be higher since a peak can hide another
-             \item the A+x is not searched if the A+x-1 is not found
-             (the loop search is stopped)
-        }
+     \item peak peacking with CentWave algorithm
+     \item alignment with obiwarp which is based on the complete mz-rt
+     data
+     \item group peaklists from a `xcmsSet` object using the density
+     method
+     \item annotate isotopologues & adducts with the CAMERA package
+     \item annotate peaklists from a `xsAnnotate` object from CAMERA
+     it loop through the pcgroups
+     if one of the peak match with one of the theoretical monoisotopic
+      from database it will compare the pseudo spectra obtained from
+      CAMERA against the theoretical spectra & compute an isotopic
+      score
+      The scoring algorithm will search each corresponding observed peak
+      with theoreticals. Therefore it contains some important rules :
+      \itemize{
+           \item an observed peak can only correspond to ONE theoretical
+           peak and vice versa
+           \item the relative abundance peak must not be under a tolerance
+           compared to the theoretical
+           but it can be higher since a peak can hide another
+           \item the A+x is not searched if the A+x-1 is not found
+           (the loop search is stopped)
     }
+    \item record all EICs & m/z foreach basepeak foreach sample
     \item record all results in the sqlite database
 }
 }

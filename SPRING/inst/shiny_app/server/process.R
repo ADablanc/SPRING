@@ -368,11 +368,11 @@ shiny::observeEvent(input$process_launch, {
             ann_params,
             cores = params$Cores,
             show_txt_pb = FALSE,
-            pb_fct = function(n, total, title) {
+            pb_fct = function(n, title, total = 8) {
                 shinyWidgets::updateProgressBar(
                     session,
                     id = "pb",
-                    value = (n - 1) * 100 / total,
+                    value = (n - 1) / total,
                     title = title
                 )
             }
@@ -387,7 +387,7 @@ shiny::observeEvent(input$process_launch, {
         ann <- db_get_annotations(db())
         if (nrow(ann) > 0) {
             conflicts <- split_conflicts(ann)$conflicts
-            conflicts(sapply(conflicts, function(x) x[[1]][1, "group_id"]))
+            conflicts(sapply(conflicts, function(x) x[[1]][1, "pcgroup_id"]))
             if (length(conflicts) > 0) conflict_id(1)
             else conflict_id(0)
             shiny::updateSliderInput(

@@ -2,24 +2,19 @@
 % Please edit documentation in R/db_func.R
 \name{db_get_eic}
 \alias{db_get_eic}
-\title{Get EIC from data}
+\title{Get EIC data}
 \usage{
-db_get_eic(db, eic_id)
+db_get_eic(db, group_id)
 }
 \arguments{
 \item{db}{`SQLiteConnection`}
 
-\item{eic_id}{`numeric(1)` eic ID in database, it corresponds to the row ID
-for the annotation table in the database}
+\item{group_id}{`numeric(1)` group ID}
 }
 \value{
-`DataFrame` with a variable number of columns
- (one sample = one column):
-\itemize{
-    \item rt `numeric` retention time (in sec)
-    \item ... `numeric` intensity of the sample
-}
+`DataFrame` with a column rT & multiple columns, each of them
+corresponding to a sample with the intensity
 }
 \description{
-Get all the EIC for all the files in the database for ONE basepeak mass
+Get EIC recorded in the database for peaks with the same group ID
 }

@@ -17,6 +17,7 @@ its corresponding theoretical peak or the theoretical peak missed,
 with the columns :
 \itemize{
         \item spectra_id `integer` spectra ID
+        \item group_id `integer` group ID
         \item feature_id `integer` feature ID
         \item mz `numeric` m/z
         \item mzmin `numeric` m/z born min

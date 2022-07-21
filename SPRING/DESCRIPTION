@@ -25,15 +25,10 @@ VignetteBuilder: knitr
 RoxygenNote: 7.1.2
 Depends: Rcpp
 Imports: 
-    blob, 
     bsplus, 
-    doSNOW, 
     DT, 
     enviPat, 
-    foreach, 
     htmlwidgets, 
-    iterators, 
-    methods, 
     openxlsx, 
     parallel, 
     plotly, 
@@ -51,4 +46,8 @@ Imports:
     utils, 
     xcms,
     CAMERA,
-    RColorBrewer
+    RColorBrewer,
+    BiocParallel,
+    MSnbase,
+    methods
+    

@@ -4,24 +4,24 @@
 \alias{db_get_annotations}
 \title{Get Annotations}
 \usage{
-db_get_annotations(db, names = NULL, group_ids = NULL, row = NULL)
+db_get_annotations(db, names = NULL, pcgroup_ids = NULL, row_ids = NULL)
 }
 \arguments{
 \item{db}{`SQLiteConnection`}
 
 \item{names}{`character vector` the compound names, not mandatory}
 
-\item{group_ids}{`numeric vector` the group IDs, not mandatory}
+\item{pcgroup_ids}{`numeric vector` the group IDs, not mandatory}
 
-\item{row}{`numeric` the rowID to extract for the annotation table in the DB,
-not mandatory}
+\item{row_ids}{`numeric(1)` the rowIDs to extract for the annotation table in
+the DB, not mandatory}
 }
 \value{
 `DataFrame` each line correspond to a compound found
 with the columns:
 \itemize{
-        \item group_id `integer` group ID
-        \item eic_id `integer` EIC ID
+        \item pcgroup_id `integer` group ID
+        \item basepeak_group_id `integer` EIC ID
         \item class `character` cpd class
         \item name `character` name
         \item referent_adduct `character` referent adduct for the compound

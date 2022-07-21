@@ -18,8 +18,4 @@ the referent ion or `all` to sum all the intensity for the compound}
 Export all annotations in a excel file
 First sheet will have the annotations regroup by compound
 Second will have annotations regroup by ions
-
-Warning ! It export only the annotations with no conflicts !
-(Conflicts are when for a group of peaks multiple annotations are possible
-(it happens often when for an ion formula refers to multiple compounds))
 }

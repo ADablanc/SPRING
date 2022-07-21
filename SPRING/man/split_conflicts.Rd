@@ -10,8 +10,8 @@ split_conflicts(ann)
 \item{ann}{`DataFrame` each line correspond to a compound found
 with the columns:
 \itemize{
-    \item group_id `integer` group ID
-    \item eic_id `integer` EIC ID
+    \item pcgroup_id `integer` pcgroup ID
+    \item basepeak_group_id `ìnteger` group ID of the basepeak
     \item class `character` cpd class
     \item name `character` name
     \item referent_adduct `character` referent adduct for the compound
@@ -41,8 +41,8 @@ with the columns:
     \item no_conflicts : `DataFrame` each line correspond to a compound found
     with the columns:
     \itemize{
-        \item group_id `integer` group ID
-        \item eic_id `integer` EIC ID
+        \item pcgroup_id `integer` pcgroup ID
+        \item basepeak_group_id `ìnteger` group ID of the basepeak
         \item class `character` cpd class
         \item name `character` name
         \item referent_adduct `character` referent adduct for the compound
@@ -69,8 +69,8 @@ with the columns:
      of peaks where multiple annotations is possible. each dataframe has the
     columns :
     \itemize{
-        \item group_id `integer` group ID
-        \item eic_id `integer` EIC ID
+        \item pcgroup_id `integer` pcgroup ID
+        \item basepeak_group_id `ìnteger` group ID of the basepeak
         \item class `character` cpd class
         \item name `character` name
         \item referent_adduct `character` referent adduct for the compound

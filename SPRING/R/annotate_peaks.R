@@ -6,30 +6,32 @@
 #' if one of the peak match with one of the theoretical monoisotopic from
 #' database it will compare the pseudo spectra obtained by CAMERA against the
 #' theoretical spectra & compute an isotopic score
-#' The scoring algorithm will search each corresponding observed peak
-#'      with theoreticals
-#' Therefore it contains some important rules :
+#' The scoring algorithm will search each corresponding observed peak with
+#' theoreticals. Therefore it contains some important rules :
 #' \itemize{
 #'      \item an observed peak can only correspond to ONE theoretical peak
 #'       and vice versa
 #'      \item the relative abundance peak must not be under a tolerance
-#'      compared to the theoretical
-#'      but it can be higher since a peak can hide another
-#'      \item the A+x is not searched if the A+x-1 is not found
-#'      (the loop search is stopped)
+#'      compared to the theoretical (but it can be higher since a peak can hide
+#'      another)
+#'      \item the A+x is not searched if the A+x-1 is not found (the loop search
+#'       is stopped)
 #' }
+#' The pcgroup_id correspond to the pcgroup ID given by CAMERA (one pcgroup =
+#' one compound), the cluster_id correspond to the same ion (compound + adduct)
+#'  identified by CAMERA with the 12C/13C delta mass shift. The group_id is the
+#'  group ID given by XCMS.
 #'
 #' @param xsa `xsAnnotate`
 #' @param ann_params `AnnotationParameter`
-#' @param pb_fct `function` used to update the progress bar
 #'
-#' @return `xsAnnotate` with three additional slots :
+#' @return `list` with items :
 #' \itemize{
 #'     \item ann `DataFrame` each line represent an hypothesis annotation
 #'     it contains the columns :
 #'     \itemize{
-#'         \item group_id `integer` group ID
-#'         \item eic_id `ìnteger` EIC ID
+#'         \item pcgroup_id `integer` pcgroup ID
+#'         \item basepeak_group_id `ìnteger` group ID of the basepeak
 #'         \item class `character` cpd class
 #'         \item name `character` name
 #'         \item referent_adduct `character` referent adduct for the compound
@@ -57,6 +59,7 @@
 #'      with the columns :
 #'     \itemize{
 #'         \item spectra_id `integer` spectra ID
+#'         \item group_id `integer` group ID
 #'         \item feature_id `integer` feature ID
 #'         \item mz `numeric` m/z
 #'         \item mzmin `numeric` m/z born min
@@ -84,11 +87,51 @@
 #'         isotopologues annotated
 #'         \item rt `numeric` retention time
 #'     }
+#'     \item peakgroups `DataFrame`, each line correspond to a group annotated
+#'      by XCMS and CAMERA
+#'     \itemize{
+#'         \item group_id `integer` group ID
+#'         \item pcgroup_id `integer` pcgroup ID
+#'         \item adduct `character` adduct annotation by CAMERA (NULL if absent)
+#'         \item cluster_id `integer` cluster ID
+#'         \item iso `character` could be "M" or "M+*"
+#'         \item mzmed `float` m/z median computed by XCMS
+#'         \item mzmin `float` m/z median born min (not the m/z born min !!)
+#'         \item mzmax `float` m/z median born max (not the m/z born max !!)
+#'         \item rtmed `float` rT median computed by XCMS
+#'         \item rtmin `float` rT median born min (not the rT born min !!)
+#'         \item rtmax `float` rT median born max (not the rT born max !!)
+#'         \item npeaks `integer` number of peaks grouped accross samples
+#'         \item ... `integer` a column for each sample which contain the
+#'         feature ID (row ID from the peaktable)
+#'     }
+#'     \item peaks `DataFrame`, peaktable from XCMS
+#'     \itemize{
+#'         \item mz `float` m/z
+#'         \item mzmin `float` m/z born min
+#'         \item mzmax `float` m/z born max
+#'         \item rt `float` rT
+#'         \item rtmin `float` rT born min
+#'         \item rtmax `float` rT born max
+#'         \item into `float` area of the peak
+#'         \item intb `float` area of the peak above baseline
+#'         \item maxo `float` maximum intensity
+#'         \item sn `float` signal/noise
+#'         \item egauss `float` ignore
+#'         \item mu `float` ignore
+#'         \item sigma `float` ignore
+#'         \item h `float` ignore
+#'         \item f `integer` ID of the ROI
+#'         \item dppm `float` ppm deviation
+#'         \item scale `integer` width of the wave used for the peak detection
+#'         \item scpos `integer` scan ID
+#'         \item scmin `integer` scan ID born min of the wave detection
+#'         \item scmax `integer` scan ID born max of the wave detection
+#'         \item lmin `integer` scan ID after extension of the scmin
+#'         \item lmax `integer` scan ID after extension of the scmax
+#'     }
 #' }
-annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
-    if (!is.null(pb_fct)) {
-        pb_fct(n = 0, total = 1, title = "Annotate")
-    }
+annotate_pcgroups <- function(xsa, ann_params) {
     chem_db <- load_ion_db(
         ann_params@database,
         ann_params@instrument,
@@ -111,23 +154,23 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
     colnames(peaks)[which(colnames(peaks) == "into")] <- "int"
     # replace the value in peak_groups by the feature id
     # instead of the intensity
-    peak_groups <- data.frame(xset@groups)
-    peak_groups[, 8:ncol(peak_groups)] <- xcms::groupval(xset)
-    colnames(peak_groups)[8:ncol(peak_groups)] <- samples
-    peak_groups <- cbind(
-        group_id = seq(nrow(peak_groups)),
-        cluster_id = seq(nrow(peak_groups)),
+    peakgroups <- data.frame(xset@groups)
+    peakgroups[, 8:ncol(peakgroups)] <- xcms::groupval(xset)
+    colnames(peakgroups)[8:ncol(peakgroups)] <- samples
+    peakgroups <- cbind(
+        group_id = seq(nrow(peakgroups)),
+        cluster_id = seq(nrow(peakgroups)),
         iso = "M",
-        peak_groups
+        peakgroups
     )
-    peak_groups[xsa@isoID[, "isopeak"], "cluster_id"] <- xsa@isoID[, "mpeak"]
-    peak_groups[xsa@isoID[, "isopeak"], "iso"] <- "M+*"
+    peakgroups[xsa@isoID[, "isopeak"], "cluster_id"] <- xsa@isoID[, "mpeak"]
+    peakgroups[xsa@isoID[, "isopeak"], "iso"] <- "M+*"
 
     spectra_id <- 1
     samples <- rownames(xset@phenoData)
-    spectras <- data.frame(matrix(, nrow = 0, ncol = 14, dimnames = list(
-        c(), c("spectra_id", "feature_id", "mz", "mzmin", "mzmax", "rt",
-               "rtmin", "rtmax", "int", "abd", "ion_id_theo", "mz_theo",
+    spectras <- data.frame(matrix(, nrow = 0, ncol = 15, dimnames = list(
+        c(), c("spectra_id", "group_id", "feature_id", "mz", "mzmin", "mzmax",
+               "rt", "rtmin", "rtmax", "int", "abd", "ion_id_theo", "mz_theo",
                "abd_theo", "iso_theo")
     )))
     spectra_infos <- data.frame(matrix(, nrow = 0, ncol = 9, dimnames = list(
@@ -136,10 +179,10 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
     )))
     ann <- data.frame(
         matrix(, nrow = 0, ncol = 16 + length(samples), dimnames = list(
-            c(), c("group_id", "eic_id", "class", "name", "referent_adduct",
-                   "formula", "adduct", "ion_formula", "rtdiff", "rt", "rtmin",
-                   "rtmax", "nsamples", "best_score", "best_deviation_mz",
-                   "best_npeak", samples))
+            c(), c("pcgroup_id", "basepeak_group_id", "class", "name",
+                   "referent_adduct", "formula", "adduct", "ion_formula",
+                   "rtdiff", "rt", "rtmin", "rtmax", "nsamples", "best_score",
+                   "best_deviation_mz", "best_npeak", samples))
         ),
         check.names = FALSE
     )
@@ -148,14 +191,8 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
 
     # for each pcgroup
     for (i in seq(length(xsa@pspectra))) {
-        if (!is.null(pb_fct)) {
-            # update the progress bar only every 1%
-            if (i %% ceiling(length(xsa@pspectra) / 100) == 0) {
-                pb_fct(i, length(xsa@pspectra), "Annotate")
-            }
-        }
 
-        pcgroup <- peak_groups[xsa@pspectra[[i]], , drop = FALSE]
+        pcgroup <- peakgroups[xsa@pspectra[[i]], , drop = FALSE]
         idx <- lapply(seq(nrow(pcgroup)), function(i) {
             which(
                 chem_db$mz >= pcgroup[i, "mzmed"] - ann_params@da_tol &
@@ -233,10 +270,15 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
                     next
                 }
                 basepeak <- peaks[cluster[cluster$iso == "M", j], ]
-                q_spectra <- peaks[cluster[, j],
-                                   c("feature_id", "mz", "mzmin", "mzmax",
-                                     "rt", "rtmin", "rtmax", "int"),
-                                   drop = FALSE]
+                q_spectra <- merge(
+                    cluster[, c(1, j)],
+                    peaks[cluster[, j],
+                          c("feature_id", "mz", "mzmin", "mzmax", "rt", "rtmin",
+                            "rtmax", "int"), drop = FALSE],
+                    by.x = colnames(cluster)[j],
+                    by.y = "feature_id"
+                )
+                colnames(q_spectra)[1] <- "feature_id"
                 q_spectra$abd <- q_spectra$int / basepeak$int * 100
                 tmp <- compare_spectras(
                     q_spectra,
@@ -253,9 +295,9 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
                         spectras,
                         cbind(
                             spectra_id = spectra_id,
-                            tmp[[l]]$spectra[, c("feature_id", "mz", "mzmin",
-                                                 "mzmax", "rt", "rtmin",
-                                                 "rtmax", "int", "abd",
+                            tmp[[l]]$spectra[, c("group_id", "feature_id", "mz",
+                                                 "mzmin", "mzmax", "rt",
+                                                 "rtmin", "rtmax", "int", "abd",
                                                  "mz_theo", "abd_theo",
                                                  "iso_theo")]
                         )
@@ -305,23 +347,45 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
                 tmp_ann$rtdiff <- abs(chem_db_match$rt - tmp_ann$rt)
             }
             tmp_ann <- cbind(
-                group_id = i,
-                eic_id = cluster[1, "cluster_id"],
+                pcgroup_id = i,
+                basepeak_group_id = cluster[cluster$iso == "M", "group_id"],
                 tmp_ann
             )
             ann <- rbind(ann, tmp_ann)
         }
     }
-    if (!is.null(pb_fct)) {
-        pb_fct(n = 1, total = 1, title = "Annotate")
-    }
+
+    # create the peak groups table which combine XCMS info & CAMERA
+    peakgroups <- merge(
+        merge(
+            cbind(
+                pcgroup_id = rep(
+                    seq(length(xsa@pspectra)),
+                    lengths(xsa@pspectra)
+                ),
+                group_id = unlist(xsa@pspectra)
+            ),
+            cbind(
+                group_id = xsa@annoID[, "id"],
+                adduct = adducts[xsa@annoID[, "ruleID"], "name"]
+            ),
+            by = "group_id",
+            all = TRUE
+        ),
+        peakgroups,
+        by = "group_id"
+    )
 
     rownames(ann) <- NULL
     rownames(spectras) <- NULL
-    attributes(xsa)$ann <- ann
-    attributes(xsa)$spectra_infos <- spectra_infos
-    attributes(xsa)$spectras <- spectras
-    xsa
+
+    list(
+        ann = ann,
+        spectra_infos = spectra_infos,
+        spectras = spectras,
+        peakgroups = peakgroups,
+        peaks = as.data.frame(xset@peaks)
+    )
 }
 
 #' @title Get conflicts
@@ -334,8 +398,8 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
 #' @param ann `DataFrame` each line correspond to a compound found
 #' with the columns:
 #' \itemize{
-#'     \item group_id `integer` group ID
-#'     \item eic_id `integer` EIC ID
+#'     \item pcgroup_id `integer` pcgroup ID
+#'     \item basepeak_group_id `ìnteger` group ID of the basepeak
 #'     \item class `character` cpd class
 #'     \item name `character` name
 #'     \item referent_adduct `character` referent adduct for the compound
@@ -364,8 +428,8 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
 #'     \item no_conflicts : `DataFrame` each line correspond to a compound found
 #'     with the columns:
 #'     \itemize{
-#'         \item group_id `integer` group ID
-#'         \item eic_id `integer` EIC ID
+#'         \item pcgroup_id `integer` pcgroup ID
+#'         \item basepeak_group_id `ìnteger` group ID of the basepeak
 #'         \item class `character` cpd class
 #'         \item name `character` name
 #'         \item referent_adduct `character` referent adduct for the compound
@@ -392,8 +456,8 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
 #'      of peaks where multiple annotations is possible. each dataframe has the
 #'     columns :
 #'     \itemize{
-#'         \item group_id `integer` group ID
-#'         \item eic_id `integer` EIC ID
+#'         \item pcgroup_id `integer` pcgroup ID
+#'         \item basepeak_group_id `ìnteger` group ID of the basepeak
 #'         \item class `character` cpd class
 #'         \item name `character` name
 #'         \item referent_adduct `character` referent adduct for the compound
@@ -418,7 +482,7 @@ annotate_pcgroups <- function(xsa, ann_params, pb_fct = NULL) {
 #'     }
 #' }
 split_conflicts <- function(ann) {
-    splitted_ann <- lapply(split(ann, ann$group_id), function(x) {
+    splitted_ann <- lapply(split(ann, ann$pcgroup_id), function(x) {
         if (length(unique(x$name)) == 1) x else split(x, x$name)
     })
     names(splitted_ann) <- NULL
@@ -442,8 +506,8 @@ split_conflicts <- function(ann) {
 #' @param ann `DataFrame` each line correspond to a compound found
 #' with the columns:
 #' \itemize{
-#'     \item group_id `integer` group ID
-#'     \item eic_id `integer` EIC ID
+#'     \item pcgroup_id `integer` pcgroup ID
+#'     \item basepeak_group_id `ìnteger` group ID of the basepeak
 #'     \item class `character` cpd class
 #'     \item name `character` name
 #'     \item referent_adduct `character` referent adduct for the compound
@@ -488,7 +552,7 @@ split_conflicts <- function(ann) {
 #' \itemize{
 #'     \item resume: `DataFrame` each line represent a compound with the columns
 #'     \itemize{
-#'         \item Group ID `numeric` group ID
+#'         \item PCGroup ID `numeric` pcgroup ID
 #'         \item class `character` cpd class
 #'         \item name `character` name of the compound
 #'         \item rt (min) `numeric` meanned rT
@@ -507,7 +571,7 @@ split_conflicts <- function(ann) {
 #'     }
 #'     \item details: `DataFrame` each line represent an ion with the columns
 #'     \itemize{
-#'         \item Group ID `numeric` group ID
+#'         \item PCGroup ID `numeric` pcgroup ID
 #'         \item Class `character` cpd class
 #'         \item Name `character` name of the compound
 #'         \item rt (min) `numeric` meanned rT
@@ -530,7 +594,7 @@ summarise_ann <- function(ann, spectra_infos, nsamples, by = "referent") {
     if (nrow(int_ann) == 0) {
         return(list(
            resume = data.frame(matrix(, nrow = 0, ncol = 10, dimnames = list(
-               c(), c("Group ID", "Class", "Name", "rT (min)",
+               c(), c("PCGroup ID", "Class", "Name", "rT (min)",
                       "Diff rT (sec)", "Adducts", "nSamples",
                       "Best score (%)", "Best m/z dev (mDa)", "Max iso"))),
                check.names = FALSE),
@@ -543,10 +607,10 @@ summarise_ann <- function(ann, spectra_infos, nsamples, by = "referent") {
             c(lapply(
                 split(
                     int_ann,
-                    paste(int_ann[, "Group ID"], int_ann$Name, sep = "/")
+                    paste(int_ann[, "PCGroup ID"], int_ann$Name, sep = "/")
                 ), function(x) {
                 data.frame(
-                    `Group ID` = x[1, "Group ID"],
+                    `PCGroup ID` = x[1, "PCGroup ID"],
                     Class = x[1, "Class"],
                     Name = x[1, "Name"],
                     `rT (min)` = round(mean(x[, "rT (min)"]), 2),
@@ -583,7 +647,7 @@ summarise_ann <- function(ann, spectra_infos, nsamples, by = "referent") {
                 )
             }), make.row.names = FALSE)
         ),
-        details = int_ann[, -which(colnames(int_ann) %in% c("EIC ID",
+        details = int_ann[, -which(colnames(int_ann) %in% c("Group ID",
                                                             "Referent adduct"))]
     )
 }
@@ -597,8 +661,8 @@ summarise_ann <- function(ann, spectra_infos, nsamples, by = "referent") {
 #' @param ann `DataFrame` each line correspond to a compound found
 #' with the columns:
 #' \itemize{
-#'     \item group_id `integer` group ID
-#'     \item eic_id `integer` eic ID
+#'     \item pcgroup_id `integer` pcgroup ID
+#'     \item basepeak_group_id `ìnteger` group ID of the basepeak
 #'     \item class `character` cpd class
 #'     \item name `character` name
 #'     \item referent_adduct `character` referent adduct for the compound
@@ -641,7 +705,7 @@ summarise_ann <- function(ann, spectra_infos, nsamples, by = "referent") {
 #'
 #' @return `DataFrame` each line represent an ion with the columns
 #' \itemize{
-#'     \item Group ID `numeric` group ID
+#'     \item PCGroup ID `numeric` pcgroup ID
 #'     \item EIC ID `numeric` EIC ID
 #'     \item Class `character` cpd class
 #'     \item Name `character` name of the compound
@@ -663,7 +727,7 @@ get_int_ann <- function(ann, spectra_infos, nsamples, val = "int") {
     if (nrow(ann) == 0) {
         return(data.frame(matrix(, nrow = 0, ncol = 12,
             dimnames = list(c(),
-                c("Group ID", "EIC ID", "Class", "Name", "rT (min)",
+                c("PCGroup ID", "Group ID", "Class", "Name", "rT (min)",
                   "Diff rT (sec)", "Referent adduct", "Adduct", "nSamples",
                   "Best score (%)", "Best m/z dev (mDa)", "Max iso")
             )
@@ -671,8 +735,8 @@ get_int_ann <- function(ann, spectra_infos, nsamples, val = "int") {
     }
     # extract intensity of basepeaks
     data.frame(
-        `Group ID` = as.factor(ann$group_id),
-        `EIC ID` = ann$eic_id,
+        `PCGroup ID` = as.factor(ann$pcgroup_id),
+        `Group ID` = ann$basepeak_group_id,
         Class = as.factor(ann$class),
         Name = ann$name,
         `rT (min)` = round(ann$rt / 60, 2),

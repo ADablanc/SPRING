@@ -55,7 +55,8 @@ summary_table_options <- list(
 #'
 #' @description
 #' Summary datatable: annotations regrouped by compound instead by ion
-#' it will return in the column samples the sum of intensity of ALL basepeaks
+#' it will return in the column samples the sum of intensity of ALL basepeaks or
+#'  the intensity of the referent ion foreach compound
 #' It use the function DT::formatCurrency in order to sort the intensities
 #' even if the thousand separator is " " and not ","
 #'
@@ -66,18 +67,19 @@ summary_table_options <- list(
 #'
 #' @return `DataTable` with columns :
 #' \itemize{
-#'     \item class `character` cpd class
-#'     \item name `character` name of the compound
-#'     \item rt (min) `numeric` meanned rT
+#'     \item PCGroup ID `numeric` pcgroup ID
+#'     \item Class `character` cpd class
+#'     \item Name `character` name of the compound
+#'     \item rT (min) `numeric` meanned rT
 #'     \item Diff rT (sec) `numeric` rT difference between observed &
 #'     theoretical
 #'     \item Adducts `character` all adducts detected separated by a space
 #'     \item nSamples `integer` number of samples where the compound was
 #'     detected
-#'     \item best score (%) `numeric` the highest isotopic score
-#'     \item best m/z dev (mDa) `numeric` the minimal m/z deviation observed
+#'     \item Best score (%) `numeric` the highest isotopic score
+#'     \item Best m/z dev (mDa) `numeric` the minimal m/z deviation observed
 #'     in mDa
-#'     \item max iso `integer` the highest number of isotopologue for the ions
+#'     \item Max iso `integer` the highest number of isotopologue for the ions
 #'     reported
 #'     \item ... `integer` a column for each sample which contain the summed
 #'     intensity of ALL basepeaks
@@ -105,7 +107,7 @@ output$summary_table <- DT::renderDataTable({
         print(params)
         print(i)
         data.frame(matrix(, nrow = 0, ncol = 10, dimnames = list(c(),
-            c("Group ID", "Class", "Name", "rT (min)", "Diff rT (sec)",
+            c("PCGroup ID", "Class", "Name", "rT (min)", "Diff rT (sec)",
               "Adducts", "nSamples", "Best score (%)", "Best m/z dev (mDa)",
               "Max iso"))), check.names = FALSE)
     }, error = function(e) {
@@ -114,7 +116,7 @@ output$summary_table <- DT::renderDataTable({
         print(e)
         sweet_alert_error(e$message)
         data.frame(matrix(, nrow = 0, ncol = 9, dimnames = list(c(),
-             c("Group ID", "Class", "Name", "rT (min)", "Diff rT (sec)",
+             c("PCGroup ID", "Class", "Name", "rT (min)", "Diff rT (sec)",
                "Adducts", "nSamples", "Best score (%)", "Best m/z dev (mDa)",
                "Max iso"))), check.names = FALSE)
     })

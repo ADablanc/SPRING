@@ -102,7 +102,7 @@ app$snapshot(
 )
 
 # 4th test : click on a point to update the graph
-app$executeScript("Shiny.setInputValue(\"peak_spot_eic_id\", 5)")
+app$executeScript("Shiny.setInputValue(\"peak_spot_row_id\", 5)")
 peak_spot_eic <- app$waitForValue(
     "peak_spot_eic",
     iotype = "output",
@@ -116,7 +116,7 @@ app$snapshot(
 )
 
 # 5th test : update the graph by clicking on another point
-app$executeScript("Shiny.setInputValue(\"peak_spot_eic_id\", 3)")
+app$executeScript("Shiny.setInputValue(\"peak_spot_row_id\", 3)")
 app$waitForValue(
     "peak_spot_eic",
     iotype = "output",

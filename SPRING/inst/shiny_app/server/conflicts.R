@@ -58,24 +58,22 @@ output$conflicts_info <- shiny::renderText({
 #' @title Conflicts table
 #'
 #' @description
-#' Show all possible annotation conflicts for the same peak group
-#' The selection of a line will update the value "conflict_row_selected" with
-#' the row index in order to update the plot "conflicts_ms"
+#' Show all possible annotation conflicts for the same pcgroup
+#' The selection of a line will update the value "conflict_name_selected" with
+#' the name of the compound in order to update the plot "conflicts_ms" & the
+#' plot "conflicts_eic"s
 #'
 #' @param conflicts() `reactive value` group IDs where a conflict was detected
 #' @param conflict_id `reactiveValue` conflict ID
 #'
 #' @return `DataTable` with columns :
 #' \itemize{
-#'     \item name `character` name of the possible annotation
-#'     \item Already seen with `character` name of all the adducts were the
-#'     annotation was already found without any conflict with another
-#'     \item Already seen in nSamples `character` number of samples were the
-#'     annotation was already found without any conflict with another
+#'     \item nSamples `numeric` number of samples were founded
+#'     \item rT (min) `numeric` rT of the annotation
 #'     \item Diff rT (sec) `numeric` difference in time retention compared to
 #'     theoretical (in sec)
-#'     \item Adduct `character` name of the adduct form
-#'     \item nsamples `numeric` number of samples were founded
+#'     \item Adducts `character`
+#'     \item name `character` name of the possible annotation
 #'     \item Best score (%) `numeric` best isotopic score
 #'     \item Best m/z dev (mDa) `numeric` best m/z deviation compared to
 #'     theoretical
@@ -103,7 +101,7 @@ output$conflicts_table <- DT::renderDataTable({
 
         ann <- db_get_annotations(
             db(),
-            group_ids = conflicts()[conflict_id()]
+            pcgroup_ids = conflicts()[conflict_id()]
         )
         nsamples <- db_get_nsamples(db())
         spectra_ids <- na.omit(unlist(
@@ -260,12 +258,10 @@ output$conflicts_ms <- plotly::renderPlotly({
 #' It contains a special behavior when the mouse hover a trace : it will display
 #'  all the hovertext of all traces in a unique textbox allowing the user to
 #'   differentiate all the y coordinates of the traces in one shot
-#' If available it will use the retention time corrected in the slot
-#' `scantime_corrected` added by the function `obiwarp`
 #'
 #' @param db `reactive value` pointer to the sqlite connection
-#' @param input$peak_spot_eic_id `numeric` EIC ID of the trace clicked in the
-#'  peak_spot_plot output
+#' @param input$conflict_name_selected `character` name of the conflicted cpd
+#'  table
 #'
 #' @return `plotly`
 output$conflicts_eic <- plotly::renderPlotly({
@@ -279,9 +275,21 @@ output$conflicts_eic <- plotly::renderPlotly({
         } else if (params$conflict_name_selected == "") {
             custom_stop("invalid", "no rows in the table")
         }
-        # retrieve the EIC ID of the referent ion for this compound
-        params$row_id <- db_get_row_id(params$db, params$conflict_name_selected)
-        plot_db_eic(params$db, params$row_id)
+        # retrieve the group ID of the referent ion for this compound
+        params$group_id <- db_get_group_id(
+            params$db,
+            name = params$conflict_name_selected
+        )
+        # give a title to the EIC with the name of the cpd + adduct
+        ann <- db_get_annotations(params$db, params$conflict_name_selected)
+        title <- paste(
+            ann[
+                ann$adduct == ann[1, "referent_adduct"],
+                c("name", "adduct")
+            ],
+            collapse = "<br />"
+        )
+        plot_eic(params$db, params$group_id, title)
     }, invalid = function(i) {
         print("########## conflict_eic")
         print(params)
@@ -316,11 +324,11 @@ observeEvent(input$conflicts_table_valid, {
         conflicts_table_valid = input$conflicts_table_valid$value
     )
     tryCatch({
-        # db_resolve_conflict(
-        #     db(),
-        #     conflicts()[conflict_id()],
-        #     params$conflicts_table_valid
-        # )
+        db_resolve_conflict(
+            params$db,
+            params$conflicts[params$conflict_id],
+            params$conflicts_table_valid
+        )
         conflicts(conflicts()[-conflict_id()])
         conflict_id(
             if (length(conflicts()) == 0) 0

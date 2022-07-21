@@ -10,8 +10,8 @@ summarise_ann(ann, spectra_infos, nsamples, by = "referent")
 \item{ann}{`DataFrame` each line correspond to a compound found
 with the columns:
 \itemize{
-    \item group_id `integer` group ID
-    \item eic_id `integer` EIC ID
+    \item pcgroup_id `integer` pcgroup ID
+    \item basepeak_group_id `ìnteger` group ID of the basepeak
     \item class `character` cpd class
     \item name `character` name
     \item referent_adduct `character` referent adduct for the compound
@@ -60,7 +60,7 @@ list of two items :
 \itemize{
     \item resume: `DataFrame` each line represent a compound with the columns
     \itemize{
-        \item Group ID `numeric` group ID
+        \item PCGroup ID `numeric` pcgroup ID
         \item class `character` cpd class
         \item name `character` name of the compound
         \item rt (min) `numeric` meanned rT
@@ -79,7 +79,7 @@ list of two items :
     }
     \item details: `DataFrame` each line represent an ion with the columns
     \itemize{
-        \item Group ID `numeric` group ID
+        \item PCGroup ID `numeric` pcgroup ID
         \item Class `character` cpd class
         \item Name `character` name of the compound
         \item rt (min) `numeric` meanned rT

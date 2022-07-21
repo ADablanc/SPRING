@@ -42,7 +42,7 @@
 
           ]
         ],
-        "container": "<table class=\"display\">\n  <thead>\n    <tr>\n      <th>Group ID<\/th>\n      <th>Class<\/th>\n      <th>Name<\/th>\n      <th>rT (min)<\/th>\n      <th>Diff rT (sec)<\/th>\n      <th>Adducts<\/th>\n      <th>nSamples<\/th>\n      <th>Best score (%)<\/th>\n      <th>Best m/z dev (mDa)<\/th>\n      <th>Max iso<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>",
+        "container": "<table class=\"display\">\n  <thead>\n    <tr>\n      <th>PCGroup ID<\/th>\n      <th>Class<\/th>\n      <th>Name<\/th>\n      <th>rT (min)<\/th>\n      <th>Diff rT (sec)<\/th>\n      <th>Adducts<\/th>\n      <th>nSamples<\/th>\n      <th>Best score (%)<\/th>\n      <th>Best m/z dev (mDa)<\/th>\n      <th>Max iso<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>",
         "options": {
           "dom": "Bfrtip",
           "paging": true,

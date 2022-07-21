@@ -22,6 +22,7 @@
           },
           "spikedistance": -1,
           "hovermode": "x unified",
+          "hoverdistance": 1,
           "xaxis": {
             "domain": [
               0,

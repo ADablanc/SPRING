@@ -4,17 +4,19 @@
 \alias{check_ms_file}
 \title{Check mass spectrometry file}
 \usage{
-check_ms_file(filepath, exp_polarity)
+check_ms_file(filepath, filter_params)
 }
 \arguments{
 \item{filepath}{`character(1)`}
 
-\item{exp_polarity}{`character(1)` "positive" or "negative" only !}
+\item{filter_params}{`FilterParam` object}
 }
 \value{
-`xcmsRaw` object
+`character(1)` filepath to the file checked
 }
 \description{
-check if a mass spectrometry file can be read by xcms
+check if a mass spectrometry file can be read by MSnbase
 & if the polarity expected is the good one
+If not it will split the file & keep only scans with the desired polarity &
+rewrite it in a new file (see function (split_ms_file))
 }

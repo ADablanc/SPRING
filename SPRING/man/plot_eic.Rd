@@ -2,40 +2,30 @@
 % Please edit documentation in R/plots.R
 \name{plot_eic}
 \alias{plot_eic}
-\title{Plot EIC}
+\title{Plot DB EIC}
 \usage{
-plot_eic(db, sample_name, name)
+plot_eic(db, group_id, title = "EIC")
 }
 \arguments{
 \item{db}{`SQLiteConnection`}
 
-\item{sample_name}{`character(1)` sample name of the file recorded in db}
+\item{group_id}{`numeric(1)` group ID}
 
-\item{name}{`character(1)` compound name}
+\item{title}{`character(1)` title of the plot (by default it show "EIC")}
 }
 \value{
 `plotly`
 }
 \description{
-Plot the EIC for a sample and a compound. It will trace all the EIC in the
-same  plot for all possible adducts detected in the processing workflow.
+Plot the EIC for all the sample for a basepeak mass recorded in the database
 The line dashed correspond to the area not integrated & the line colored the
-retention time range where integrated by XCMS. The two line dashed which
-surround the trace correspond to the retention time tolerance used for the
-identification
-This special EIC help to distinguate if this is the peakpicking which turn
-wrong or the identification (if it is the rT tolerance or the FWHM window)
+retention time range where integrated by XCMS.
 It contains a special behavior when the mouse hover a trace : it will display
  all the hovertext of all traces in a unique textbox allowing the user to
   differentiate all the y coordinates of the traces in one shot
-It is useful when combined with the `plotmzdev` plot next to it
-It draw also annotation to better view to which adduct correspond the trace
-(the annotation is placed at the most intense point for the trace)
-If available it will use the retention time corrected in the slot
-`scantime_corrected` added by the function `obiwarp`
 }
 \examples{
 \dontrun{
-plot_eic(db, "220221CCM_global__01_ssleu_filtered", "LPC 11:0")
+plot_eic(db, 2)
 }
 }

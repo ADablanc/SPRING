@@ -77,10 +77,6 @@ sidebar <- shinydashboard::dashboardSidebar(
                 tabName = "conflicts"
             ),
             shinydashboard::menuSubItem(
-                "Check data",
-                tabName = "check_data"
-            ),
-            shinydashboard::menuSubItem(
                 "Peak spot viewer",
                 tabName = "peak_spot"
             ),
@@ -109,7 +105,6 @@ body <- shinydashboard::dashboardBody(
                 shinydashboard::tabItems(
                     source("ui/process.R", local = TRUE)$value,
                     source("ui/conflicts.R", local = TRUE)$value,
-                    source("ui/check_data.R", local = TRUE)$value,
                     source("ui/peak_spot.R", local = TRUE)$value,
                     source("ui/summary.R", local = TRUE)$value,
                     source("ui/database.R", local = TRUE)$value

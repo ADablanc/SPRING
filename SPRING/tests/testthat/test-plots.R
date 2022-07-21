@@ -121,89 +121,6 @@ testthat::test_that("plot annotation MS", {
     ))
 })
 
-testthat::test_that("plot empty heatmap", {
-    p <- plot_empty_heatmap()
-    p2 <- readRDS(system.file(
-        "testdata",
-        "plots.RDS",
-        package = "SPRING"
-    ))
-    testthat::expect_true(all(
-        unlist(p[[1]]$attrs) == unlist(p2$plot_empty_heatmap[[1]]$attrs)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[1]]$layoutAttrs) ==
-            unlist(p2$plot_empty_heatmap[[1]]$layoutAttrs)
-    ))
-})
-
-testthat::test_that("plot heatmap", {
-    db_empty <- db_connect(":memory:")
-    db <- db_connect(system.file(
-        "testdata",
-        "220221CCM_global-plots.sqlite",
-        package = "SPRING"
-    ))
-
-    # 1st test : without db
-    testthat::expect_error(
-        plot_heatmap(NULL, NULL),
-        "db must be a connection to the sqlite database"
-    )
-
-    # 2nd test : without compounds
-    testthat::expect_error(
-        plot_heatmap(db, NULL),
-        "name must be a character"
-    )
-
-    # 3rd test : without no compounds
-    testthat::expect_error(
-        plot_heatmap(db, character(0)),
-        "name must contain at least ONE compound"
-    )
-
-    # 4th test : with no samples in database (no processing yet)
-    # must return an empty heatmap
-    p <- plot_heatmap(db_empty, "LPC 11:0")
-    p2 <- readRDS(system.file(
-        "testdata",
-        "plots.RDS",
-        package = "SPRING"
-    ))
-    RSQLite::dbDisconnect(db_empty)
-    testthat::expect_true(all(
-        unlist(p[[1]]$attrs) == unlist(p2$plot_heatmap[[1]][[1]]$attrs)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[1]]$layoutAttrs) ==
-            unlist(p2$plot_heatmap[[1]][[1]]$layoutAttrs)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[1]]$config) == unlist(p2$plot_heatmap[[1]][[1]]$config)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[8]]) == unlist(p2$plot_heatmap[[1]][[8]])
-    ))
-
-    # 5th test : normal
-    p <- plot_heatmap(db, c("LPC 11:0", "Cer (d18:1/C12:0)"))
-    RSQLite::dbDisconnect(db)
-    testthat::expect_true(all(na.omit(
-        unlist(p[[1]]$attrs) == unlist(p2$plot_heatmap[[2]][[1]]$attrs)
-    )))
-    testthat::expect_true(all(
-        unlist(p[[1]]$layoutAttrs) ==
-            unlist(p2$plot_heatmap[[2]][[1]]$layoutAttrs)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[1]]$config) == unlist(p2$plot_heatmap[[2]][[1]]$config)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[8]]) == unlist(p2$plot_heatmap[[2]][[8]])
-    ))
-})
-
 testthat::test_that("empty chromato", {
     p <- plot_empty_chromato()
     p2 <- readRDS(system.file(
@@ -224,64 +141,39 @@ testthat::test_that("plot EIC", {
     db_empty <- db_connect(":memory:")
     db <- db_connect(system.file(
         "testdata",
-        "220221CCM_global-plots.sqlite",
+        "220221CCM_global.sqlite",
         package = "SPRING"
     ))
-
-    # 1st test : with no db
-    testthat::expect_error(
-        plot_eic(NULL, NULL, NULL),
-        "db must be a connection to the sqlite database"
-    )
-
-    # 2nd test : with no sample name
-    testthat::expect_error(
-        plot_eic(db, NULL, NULL),
-        "sample name must be a character"
-    )
-
-    # 3rd test : with more than one sample name
-    testthat::expect_error(
-        plot_eic(
-            db,
-            c("220221CCM_global_POS_01_ssleu_filtered",
-              "220221CCM_global_POS_02_ssleu_filtered"),
-            NULL
-        ),
-        "sample name must contain only ONE sample name"
-    )
-
-    # 4th test : with no compound name
-    testthat::expect_error(
-        plot_eic(db, "220221CCM_global_POS_01_ssleu_filtered", NULL),
-        "name must be a character"
-    )
-
-    # 5th test : with more than one compound name
-    testthat::expect_error(
-        plot_eic(
-            db,
-            "220221CCM_global_POS_01_ssleu_filtered",
-            c("LPC 11:0", "Cer (d18:1/C12:0)")
-        ),
-        "name must contain only ONE compound"
-    )
-
-    # 6th test : no processing was made (no files in database yet)
-    p <- plot_eic(
-        db_empty,
-        "220221CCM_global_POS_01_ssleu_filtered",
-        "LPC 11:0"
-    )
     p2 <- readRDS(system.file(
         "testdata",
         "plots.RDS",
         package = "SPRING"
     ))
+
+    # 1st test : with no db
+    testthat::expect_error(
+        plot_eic(NULL, NULL),
+        "db must be a connection to the sqlite database"
+    )
+
+    # 2nd test : with no group ID
+    testthat::expect_error(
+        plot_eic(db, NULL),
+        "group_id must be numerical"
+    )
+
+    # 3rd test : with more than one group ID
+    testthat::expect_error(
+        plot_eic(db, c(1, 2)),
+        "only one group_id is required"
+    )
+
+    # 4th test : with no sample files in database (not yet processed)
+    p <- plot_eic(db_empty, 2)
     RSQLite::dbDisconnect(db_empty)
-    testthat::expect_true(all(
+    testthat::expect_true(all(na.omit(
         unlist(p[[1]]$attrs) == unlist(p2$plot_eic[[1]][[1]]$attrs)
-    ))
+    )))
     testthat::expect_true(all(
         unlist(p[[1]]$layoutAttrs) == unlist(p2$plot_eic[[1]][[1]]$layoutAttrs)
     ))
@@ -292,12 +184,23 @@ testthat::test_that("plot EIC", {
         unlist(p[[8]]) == unlist(p2$plot_eic[[1]][[8]])
     ))
 
-    # 7th test : compound not detected & not integrated
-    p <- plot_eic(
-        db,
-        "220221CCM_global_POS_01_ssleu_filtered",
-        "Cer (d18:1/C12:0)"
-    )
+    # 5th test : group ID not exists
+    p <- plot_eic(db, 999)
+    testthat::expect_true(all(na.omit(
+        unlist(p[[1]]$attrs) == unlist(p2$plot_eic[[1]][[1]]$attrs)
+    )))
+    testthat::expect_true(all(
+        unlist(p[[1]]$layoutAttrs) == unlist(p2$plot_eic[[1]][[1]]$layoutAttrs)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[1]]$config) == unlist(p2$plot_eic[[1]][[1]]$config)
+    ))
+    testthat::expect_true(all(
+        unlist(p[[8]]) == unlist(p2$plot_eic[[1]][[8]])
+    ))
+
+    # 6th test : feature integrated but in only one sample
+    p <- plot_eic(db, 1)
     testthat::expect_true(all(na.omit(
         unlist(p[[1]]$attrs) == unlist(p2$plot_eic[[2]][[1]]$attrs)
     )))
@@ -311,12 +214,9 @@ testthat::test_that("plot EIC", {
         unlist(p[[8]]) == unlist(p2$plot_eic[[2]][[8]])
     ))
 
-    # 8th test : compound not detected but integrated
-    p <- plot_eic(
-        db,
-        "220221CCM_global_POS_02_ssleu_filtered",
-        "Cer (d18:1/C12:0)"
-    )
+    # 7th test : feature integrated in all the samples
+    p <- plot_eic(db, 2)
+    RSQLite::dbDisconnect(db)
     testthat::expect_true(all(na.omit(
         unlist(p[[1]]$attrs) == unlist(p2$plot_eic[[3]][[1]]$attrs)
     )))
@@ -329,110 +229,6 @@ testthat::test_that("plot EIC", {
     testthat::expect_true(all(
         unlist(p[[8]]) == unlist(p2$plot_eic[[3]][[8]])
     ))
-
-    # 9th test : compound detected & with more than one adduct but one is
-         # missing for this file & not the other one
-    p <- plot_eic(db, "220221CCM_global_POS_01_ssleu_filtered", "LPC 11:0")
-    testthat::expect_true(all(na.omit(
-        unlist(p[[1]]$attrs) == unlist(p2$plot_eic[[4]][[1]]$attrs)
-    )))
-    testthat::expect_true(all(
-        unlist(p[[1]]$layoutAttrs) == unlist(p2$plot_eic[[4]][[1]]$layoutAttrs)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[1]]$config) == unlist(p2$plot_eic[[4]][[1]]$config)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[8]]) == unlist(p2$plot_eic[[4]][[8]])
-    ))
-
-    # 10th test : compound detected & with more than one adduct
-    p <- plot_eic(db, "220221CCM_global_POS_02_ssleu_filtered", "LPC 11:0")
-    RSQLite::dbDisconnect(db)
-    testthat::expect_true(all(na.omit(
-        unlist(p[[1]]$attrs) == unlist(p2$plot_eic[[5]][[1]]$attrs)
-    )))
-    testthat::expect_true(all(
-        unlist(p[[1]]$layoutAttrs) == unlist(p2$plot_eic[[5]][[1]]$layoutAttrs)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[1]]$config) == unlist(p2$plot_eic[[5]][[1]]$config)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[8]]) == unlist(p2$plot_eic[[5]][[8]])
-    ))
-})
-
-testthat::test_that("plot DB EIC", {
-    db_empty <- db_connect(":memory:")
-    db <- db_connect(system.file(
-        "testdata",
-        "220221CCM_global.sqlite",
-        package = "SPRING"
-    ))
-    p2 <- readRDS(system.file(
-        "testdata",
-        "plots.RDS",
-        package = "SPRING"
-    ))
-
-    # 1st test : with no db
-    testthat::expect_error(
-        plot_db_eic(NULL, NULL),
-        "db must be a connection to the sqlite database"
-    )
-
-    # 2nd test : with no EIC ID
-    testthat::expect_error(
-        plot_db_eic(db, NULL),
-        "row_id must be a numeric"
-    )
-
-    # 3rd test : with a character as EIC ID
-    testthat::expect_error(
-        plot_db_eic(db, "a"),
-        "row_id must be a numeric"
-    )
-
-    # 4th test : with more than one EIC ID
-    testthat::expect_error(
-        plot_db_eic(db, c(1, 2)),
-        "row_id must contain only ONE ID"
-    )
-
-    # 5th test : normal test
-    p <- plot_db_eic(db, 5)
-    testthat::expect_true(all(na.omit(
-        unlist(p[[1]]$attrs) == unlist(p2$plot_db_eic[[1]][[1]]$attrs)
-    )))
-    testthat::expect_true(all(
-        unlist(p[[1]]$layoutAttrs) ==
-            unlist(p2$plot_db_eic[[1]][[1]]$layoutAttrs)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[1]]$config) == unlist(p2$plot_db_eic[[1]][[1]]$config)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[8]]) == unlist(p2$plot_db_eic[[1]][[8]])
-    ))
-
-    # 6th test : test where one of the file doesn't contain a trace
-    p <- plot_db_eic(db, 3)
-    RSQLite::dbDisconnect(db)
-    testthat::expect_true(all(na.omit(
-        unlist(p[[1]]$attrs) == unlist(p2$plot_db_eic[[2]][[1]]$attrs)
-    )))
-    testthat::expect_true(all(
-        unlist(p[[1]]$layoutAttrs) ==
-            unlist(p2$plot_db_eic[[2]][[1]]$layoutAttrs)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[1]]$config) == unlist(p2$plot_db_eic[[2]][[1]]$config)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[8]]) == unlist(p2$plot_db_eic[[2]][[8]])
-    ))
-
 })
 
 testthat::test_that("plot raw TIC", {
@@ -535,319 +331,6 @@ testthat::test_that("plot raw TIC", {
     ))
     testthat::expect_true(all(
         unlist(p[[8]]) == unlist(p2$plot_raw_tic[[2]][[8]])
-    ))
-})
-
-testthat::test_that("plot empty m/z dev", {
-    p <- plot_empty_mzdev()
-    p2 <- readRDS(system.file(
-        "testdata",
-        "plots.RDS",
-        package = "SPRING"
-    ))
-    testthat::expect_true(all(
-        unlist(p[[1]]$attrs) == unlist(p2$plot_empty_mzdev[[1]]$attrs)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[1]]$layoutAttrs) ==
-            unlist(p2$plot_empty_mzdev[[1]]$layoutAttrs)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[1]]$config) == unlist(p2$plot_empty_mzdev[[1]]$config)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[8]]) == unlist(p2$plot_empty_mzdev[[8]])
-    ))
-})
-
-testthat::test_that("plot m/z dev", {
-    db_empty <- db_connect(":memory:")
-    db <- db_connect(system.file(
-        "testdata",
-        "220221CCM_global-plots.sqlite",
-        package = "SPRING"
-    ))
-
-    # 1st test : without db
-    testthat::expect_error(
-        plot_mzdev(NULL, NULL, NULL),
-        "db must be a connection to the sqlite database"
-    )
-
-    # 2nd test : without sample name
-    testthat::expect_error(
-        plot_mzdev(db, NULL, NULL),
-        "sample name must be a character"
-    )
-
-    # 3rd test : with more than one sample name
-    testthat::expect_error(
-        plot_mzdev(
-            db,
-            c("220221CCM_global_POS_01_ssleu_filtered",
-              "220221CCM_global_POS_02_ssleu_filtered"),
-            NULL
-        ),
-        "sample name must contain only ONE sample name"
-    )
-
-    # 4th test : without compound name
-    testthat::expect_error(
-        plot_mzdev(db, "220221CCM_global_POS_01_ssleu_filtered", NULL),
-        "name must be a character"
-    )
-
-    # 5th test : with more than one compound name
-    testthat::expect_error(
-        plot_mzdev(
-            db,
-            "220221CCM_global_POS_01_ssleu_filtered",
-            c("LPC 11:0", "Cer (d18:1/C12:0)")
-        ),
-        "name must contain only ONE compound"
-    )
-
-    # 7th test : with no sample files in database (not yet processed)
-    p <- plot_mzdev(
-            db_empty,
-            "220221CCM_global_POS_01_ssleu_filtered",
-            "LPC 11:0"
-    )
-    p2 <- readRDS(system.file(
-        "testdata",
-        "plots.RDS",
-        package = "SPRING"
-    ))
-    RSQLite::dbDisconnect(db_empty)
-    testthat::expect_true(all(
-        unlist(p[[1]]$attrs) == unlist(p2$plot_mzdev[[1]][[1]]$attrs)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[1]]$layoutAttrs) ==
-            unlist(p2$plot_mzdev[[1]][[1]]$layoutAttrs)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[1]]$config) == unlist(p2$plot_mzdev[[1]][[1]]$config)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[8]]) == unlist(p2$plot_mzdev[[1]][[8]])
-    ))
-
-    # 8th test : with the wrong file
-    p <- plot_mzdev(
-        db,
-        "220221CCM_global_POS_03_ssleu_filtered",
-        "LPC 11:0"
-    )
-    testthat::expect_true(all(
-        unlist(p[[1]]$attrs) == unlist(p2$plot_mzdev[[2]][[1]]$attrs)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[1]]$layoutAttrs) ==
-            unlist(p2$plot_mzdev[[2]][[1]]$layoutAttrs)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[1]]$config) == unlist(p2$plot_mzdev[[2]][[1]]$config)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[8]]) == unlist(p2$plot_mzdev[[2]][[8]])
-    ))
-
-    # 9th test : compound not integrated
-    p <- plot_mzdev(
-        db,
-        "220221CCM_global_POS_02_ssleu_filtered",
-        "Cer (d18:1/C12:0)"
-    )
-    testthat::expect_true(all(
-        unlist(p[[1]]$attrs) == unlist(p2$plot_mzdev[[3]][[1]]$attrs)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[1]]$layoutAttrs) ==
-            unlist(p2$plot_mzdev[[3]][[1]]$layoutAttrs)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[1]]$config) == unlist(p2$plot_mzdev[[3]][[1]]$config)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[8]]) == unlist(p2$plot_mzdev[[3]][[8]])
-    ))
-
-    # 10th test : normal
-    p <- plot_mzdev(
-        db,
-        "220221CCM_global_POS_01_ssleu_filtered",
-        "LPC 11:0"
-    )
-    RSQLite::dbDisconnect(db)
-    testthat::expect_true(all(
-        unlist(p[[1]]$attrs) == unlist(p2$plot_mzdev[[4]][[1]]$attrs)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[1]]$layoutAttrs) ==
-            unlist(p2$plot_mzdev[[4]][[1]]$layoutAttrs)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[1]]$config) == unlist(p2$plot_mzdev[[4]][[1]]$config)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[8]]) == unlist(p2$plot_mzdev[[4]][[8]])
-    ))
-})
-
-testthat::test_that("plot EIC m/z dev", {
-    db_empty <- db_connect(":memory:")
-    db <- db_connect(system.file(
-        "testdata",
-        "220221CCM_global-plots.sqlite",
-        package = "SPRING"
-    ))
-
-    # 1st test : with no db
-    testthat::expect_error(
-        plot_eic_mzdev(NULL, NULL, NULL),
-        "db must be a connection to the sqlite database"
-    )
-
-    # 2nd test : with no sample name
-    testthat::expect_error(
-        plot_eic_mzdev(db, NULL, NULL),
-        "sample name must be a character"
-    )
-
-    # 3rd test : with more than one sample name
-    testthat::expect_error(
-        plot_eic_mzdev(
-            db,
-            c("220221CCM_global_POS_01_ssleu_filtered",
-              "220221CCM_global_POS_02_ssleu_filtered"),
-            NULL
-        ),
-        "sample name must contain only ONE sample name"
-    )
-
-    # 4th test : with no compound name
-    testthat::expect_error(
-        plot_eic_mzdev(db, "220221CCM_global_POS_01_ssleu_filtered", NULL),
-        "name must be a character"
-    )
-
-    # 5th test : with more than one compound name
-    testthat::expect_error(
-        plot_eic_mzdev(
-            db,
-            "220221CCM_global_POS_01_ssleu_filtered",
-            c("LPC 11:0", "PS 24:0")
-        ),
-        "name must contain only ONE compound"
-    )
-
-    # 6th test : no processing was made (no files in database yet)
-    p <- plot_eic_mzdev(
-        db_empty,
-        "220221CCM_global_POS_01_ssleu_filtered",
-        "LPC 11:0"
-    )
-    p2 <- readRDS(system.file(
-        "testdata",
-        "plots.RDS",
-        package = "SPRING"
-    ))
-    RSQLite::dbDisconnect(db_empty)
-    testthat::expect_true(all(
-        unlist(p[[1]]$attrs) == unlist(p2$plot_eic_mzdev[[1]][[1]]$attrs)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[1]]$layoutAttrs) ==
-            unlist(p2$plot_eic_mzdev[[1]][[1]]$layoutAttrs)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[1]]$config) == unlist(p2$plot_eic_mzdev[[1]][[1]]$config)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[8]]) == unlist(p2$plot_eic_mzdev[[1]][[8]])
-    ))
-
-    # 7th test : compound not detected & not integrated
-    p <- plot_eic_mzdev(
-        db,
-        "220221CCM_global_POS_01_ssleu_filtered",
-        "Cer (d18:1/C12:0)"
-    )
-    testthat::expect_true(all(na.omit(
-        unlist(p[[1]]$attrs) == unlist(p2$plot_eic_mzdev[[2]][[1]]$attrs)
-    )))
-    testthat::expect_true(all(
-        unlist(p[[1]]$layoutAttrs) ==
-            unlist(p2$plot_eic_mzdev[[2]][[1]]$layoutAttrs)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[1]]$config) == unlist(p2$plot_eic_mzdev[[2]][[1]]$config)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[8]]) == unlist(p2$plot_eic_mzdev[[2]][[8]])
-    ))
-
-    # 8th test : compound not detected but integrated
-    p <- plot_eic_mzdev(
-        db,
-        "220221CCM_global_POS_02_ssleu_filtered",
-        "Cer (d18:1/C12:0)"
-    )
-    testthat::expect_true(all(na.omit(
-        unlist(p[[1]]$attrs) == unlist(p2$plot_eic_mzdev[[3]][[1]]$attrs)
-    )))
-    testthat::expect_true(all(
-        unlist(p[[1]]$layoutAttrs) ==
-            unlist(p2$plot_eic_mzdev[[3]][[1]]$layoutAttrs)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[1]]$config) == unlist(p2$plot_eic_mzdev[[3]][[1]]$config)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[8]]) == unlist(p2$plot_eic_mzdev[[3]][[8]])
-    ))
-
-    # 9th test : compound detected & with more than one adduct but one is
-        # missing for this file & not the other one
-    p <- plot_eic_mzdev(
-        db,
-        "220221CCM_global_POS_01_ssleu_filtered",
-        "LPC 11:0"
-    )
-    testthat::expect_true(all(na.omit(
-        unlist(p[[1]]$attrs) == unlist(p2$plot_eic_mzdev[[4]][[1]]$attrs)
-    )))
-    testthat::expect_true(all(
-        unlist(p[[1]]$layoutAttrs) ==
-            unlist(p2$plot_eic_mzdev[[4]][[1]]$layoutAttrs)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[1]]$config) == unlist(p2$plot_eic_mzdev[[4]][[1]]$config)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[8]]) == unlist(p2$plot_eic_mzdev[[4]][[8]])
-    ))
-
-    # 10th test : compound detected & with more than one adduct
-    p <- plot_eic_mzdev(
-        db,
-        "220221CCM_global_POS_02_ssleu_filtered",
-        "LPC 11:0"
-    )
-    RSQLite::dbDisconnect(db)
-    testthat::expect_true(all(na.omit(
-        unlist(p[[1]]$attrs) == unlist(p2$plot_eic_mzdev[[5]][[1]]$attrs)
-    )))
-    testthat::expect_true(all(
-        unlist(p[[1]]$layoutAttrs) ==
-            unlist(p2$plot_eic_mzdev[[5]][[1]]$layoutAttrs)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[1]]$config) == unlist(p2$plot_eic_mzdev[[5]][[1]]$config)
-    ))
-    testthat::expect_true(all(
-        unlist(p[[8]]) == unlist(p2$plot_eic_mzdev[[5]][[8]])
     ))
 })
 

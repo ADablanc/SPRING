@@ -151,178 +151,6 @@ db_read_table <- function(db, table_name, ...) {
     }
 }
 
-#' @title Record samples
-#'
-#' @description
-#' Create an empty table "sample" with all predefined sample names
-#' The sample names will be the primary key of the table
-#' It serve to be updated later with the function "import_ms_file"
-#'
-#' @param db `SQLiteConnection`
-#' @param sample_names `character vector` sample names, should be unique !!!!
-db_record_samples <- function(db, sample_names) {
-    db_write_table(
-        db,
-        "sample",
-        data.frame(
-            sample = sample_names,
-            ms_file = NA,
-            xsa = NA
-        ),
-        overwrite = TRUE
-    )
-}
-
-#' @title Compress object
-#'
-#' @description
-#' Compress an R object in order to put it in a sqlite file with the `blob` type
-#'
-#' @param obj any R object
-#'
-#' @return `blob` object
-compress <- function(obj) {
-    blob::blob(
-        serialize(obj, NULL)
-    )
-}
-
-#' @title Decompress object
-#'
-#' @description
-#' Decompress a `blob` object to obtain the initial R object
-#'
-#' @param obj `blob` object
-#'
-#' @return the initial R object
-decompress <- function(obj) {
-    unserialize(
-        obj[[1]]
-    )
-}
-
-#' @title Record ms file
-#'
-#' @description
-#' Record a `xcmsRaw` file in the database
-#' this object is compressed into a blob object before inserting in the
-#' database.
-#' Before doing it, we must first use the function `db_record_samples` in order
-#' to prepopulate the database with the sample name (which is the primary key)
-#'
-#' @param db `SQLiteConnection`
-#' @param sample_name `character(1)` sample name (primary key)
-#' @param ms_file `xcmsRaw` object
-db_record_ms_file <- function(db, sample_name, ms_file) {
-    ms_file <- compress(ms_file)
-    query <- sprintf(
-        "UPDATE sample SET ms_file = :a WHERE sample == \"%s\";",
-        sample_name
-    )
-    db_execute(db, query, params = list(a = ms_file))
-    rm(ms_file)
-    gc()
-}
-
-#' @title Get ms file
-#'
-#' @description
-#' Get the `xcmsRaw` of corresponding sample
-#'
-#' @param db `SQLiteConnection`
-#' @param sample_name `character(1)` sample name
-#'
-#' @return an `xcmsRaw` object
-db_read_ms_file <- function(db, sample_name) {
-    query <- sprintf(
-        "SELECT ms_file
-        FROM sample
-        WHERE sample == \"%s\";",
-        sample_name
-    )
-    ms_file <- db_get_query(db, query)[1, 1]
-    if (is.null(ms_file)) {
-        NULL
-    } else if (is.na(ms_file)) {
-        NULL
-    } else {
-        decompress(ms_file)
-    }
-}
-
-#' @title Import ms file
-#'
-#' @description
-#' First it try to convert the file in mzXML
-#' Convert one RAW file to a mzXML file
-#' It will try to convert the file and extract only the scans in positive or
-#' negative
-#' It also trim the file according the rt range and m/z range specified in
-#' the filter_params object with msconvert
-#' Check with XCMS package if the file can be converted
-#' If the file is a CDF it will copy the file instead
-#' If the conversion failed & the file is a mzML or mzXML
-#' it will copy the file instead and try to trim only the rt range
-#' then it record the `xcmsRaw` object obtained in the database if the
-#' conversion was successful
-#' the `xcmsRaw` object is compressed into a `blob` object before inserting in
-#' the database.
-#' Before doing it, we must first use the function `db_record_samples` in order
-#' to prepopulate the database with the sample name (which is the primary key)
-#'
-#' @param db `SQLiteConnection`
-#' @param sample_name `character(1)` sample name (primary key)
-#' @param raw_file `character(1)` filepath to the raw file to convert
-#' @param converter `character(1)` filepath to the msconvert.exe
-#' @param filter_params `FilterParam` object
-#'
-#' @seealso `convert_file`, `record_ms_file`
-import_ms_file <- function(db,
-                           sample_name,
-                           raw_file,
-                           converter,
-                           filter_params) {
-    ms_file <- tryCatch({
-            ms_file <- convert_file(
-                raw_file,
-                converter,
-                filter_params
-            )
-            attributes(ms_file)$scantime_corrected <- ms_file@scantime
-            filter_ms_file(ms_file, filter_params)
-        },
-        error = function(e) {
-            e$message
-        }
-    )
-    if (class(ms_file) == "xcmsRaw") {
-        db_record_ms_file(db, sample_name, ms_file)
-        "success"
-    } else {
-        ms_file
-    }
-}
-
-#' @title Record `xsAnnotate` in the database
-#'
-#' @description
-#' Record an `xsAnnotate`
-#' This record is only use to debugging the `annotate_peaks` function to see why
-#' some peaks were not annotated
-#'
-#' @param db `SQLiteConnection`
-#' @param xsa `xsAnnotate`
-#' @param sample_name `character(1)` sample name
-db_record_xsa <- function(db, xsa, sample_name) {
-    query <- sprintf(
-        "UPDATE sample
-        SET xsa = :a
-        WHERE sample == \"%s\";",
-        sample_name
-    )
-    db_execute(db, query, params = list(a = compress(xsa)))
-}
-
 #' @title Record the annotation results
 #'
 #' @description
@@ -330,63 +158,111 @@ db_record_xsa <- function(db, xsa, sample_name) {
 #' database
 #'
 #' @param db `SQLiteConnection` sqlite connection
-#' @param ann `DataFrame` each line correspond to a compound found
-#' with the columns:
+#' @param xsf `DataFrame list` with items :
 #' \itemize{
-#'     \item group_id `integer` group ID
-#'     \item eic_id `integer` EIC ID
-#'     \item class `character` cpd class
-#'     \item name `character` name
-#'     \item formula `character` chemical formula
-#'     \item adduct `character` adduct form
-#'     \item ion_formula `character` ion chemical formula
-#'     \item rtdiff `numeric` retention time difference between the measured &
-#'     the expected
-#'     \item rt `numeric` retention time measured meanned accross the samples
-#'     \item rtmin `numeric` born min of retention time measured accross the
-#'     samples
-#'     \item rtmax `numeric` born max of the retention time measured accross the
-#'      samples
-#'     \item nsamples `integer` number of samples where the compound was found
-#'     \item best_score `numeric` best isotopic score seen
-#'     \item best_deviation_mz `numeric` best m/z deviation seen
-#'     \item best_npeak `integer` best number of isotopologues found
-#'     \item ... `integer` a column for each sample which contain the spectra ID
+#'     \item ann `DataFrame` each line correspond to a compound found
+#'     with the columns:
+#'     \itemize{
+#'         \item pcgroup_id `integer` group ID
+#'         \item basepeak_group_id `integer` EIC ID
+#'         \item class `character` cpd class
+#'         \item name `character` name
+#'         \item formula `character` chemical formula
+#'         \item adduct `character` adduct form
+#'         \item ion_formula `character` ion chemical formula
+#'         \item rtdiff `numeric` retention time difference between the measured
+#'          & the expected
+#'         \item rt `numeric` retention time measured meanned accross the
+#'         samples
+#'         \item rtmin `numeric` born min of retention time measured accross the
+#'         samples
+#'         \item rtmax `numeric` born max of the retention time measured accross
+#'          the samples
+#'         \item nsamples `integer` number of samples where the compound was
+#'         found
+#'         \item best_score `numeric` best isotopic score seen
+#'         \item best_deviation_mz `numeric` best m/z deviation seen
+#'         \item best_npeak `integer` best number of isotopologues found
+#'         \item ... `integer` a column for each sample which contain the
+#'         spectra ID
+#'     }
+#'     \item spectras `DataFrame`, each line correspond to a peak annotated with
+#'     its corresponding theoretical peak or the theoretical peak missed,
+#'     with the columns :
+#'         \itemize{
+#'         \item spectra_id `integer` spectra ID
+#'         \item feature_id `integer` feature ID
+#'         \item mz `numeric` m/z
+#'         \item int `numeric` area integrated
+#'         \item abd `numeric` relative abundance
+#'         \item ion_id_theo `integer` ignore
+#'         \item mz_theo `numeric` theoretical m/z
+#'         \item abd_theo `numeric` theoretical relative abundance
+#'         \item iso_theo `character` theoretical isotopologue annotation
+#'     }
+#'     \item spectra_infos `DataFrame`, each line correspond to a spectra
+#'     annotated, with the columns :
+#'     \itemize{
+#'         \item spectra_id `integer` spectra ID
+#'         \item score `numeric` isotopic score observed
+#'         \item deviation_mz `numeric` m/z deviation observed
+#'         \item npeak `integer` number of isotopologue annotated
+#'         \item basepeak_mz `numeric` m/z of the basepeak annotated
+#'         \item basepeak_int `numeric` area of the basepeak annotated
+#'         \item sum_int `numeric` cumulative sum off all the area of the
+#'         isotopologues annotated
+#'         \item rt `numeric` retention time
+#'     }
+#'     \item peakgroups `DataFrame`, each line correspond to a group annotated
+#'     by XCMS and CAMERA
+#'     \itemize{
+#'         \item group_id `integer` group ID
+#'         \item pcgroup_id `integer` pcgroup ID
+#'         \item adduct `character` adduct annotation by CAMERA (NULL if absent)
+#'         \item cluster_id `integer` cluster ID
+#'         \item iso `character` could be "M" or "M+*"
+#'         \item mzmed `float` m/z median computed by XCMS
+#'         \item mzmin `float` m/z median born min (not the m/z born min !!)
+#'         \item mzmax `float` m/z median born max (not the m/z born max !!)
+#'         \item rtmed `float` rT median computed by XCMS
+#'         \item rtmin `float` rT median born min (not the rT born min !!)
+#'         \item rtmax `float` rT median born max (not the rT born max !!)
+#'         \item npeaks `integer` number of peaks grouped accross samples
+#'         \item ... `integer` a column for each sample which contain the
+#'         feature ID (row ID from the peaktable)
+#'     }
+#'     \item peaks `DataFrame`, peaktable from XCMS
+#'     \itemize{
+#'         \item mz `float` m/z
+#'         \item mzmin `float` m/z born min
+#'         \item mzmax `float` m/z born max
+#'         \item rt `float` rT
+#'         \item rtmin `float` rT born min
+#'         \item rtmax `float` rT born max
+#'         \item into `float` area of the peak
+#'         \item intb `float` area of the peak above baseline
+#'         \item maxo `float` maximum intensity
+#'         \item sn `float` signal/noise
+#'         \item egauss `float` ignore
+#'         \item mu `float` ignore
+#'         \item sigma `float` ignore
+#'         \item h `float` ignore
+#'         \item f `integer` ID of the ROI
+#'         \item dppm `float` ppm deviation
+#'         \item scale `integer` width of the wave used for the peak detection
+#'         \item scpos `integer` scan ID
+#'         \item scmin `integer` scan ID born min of the wave detection
+#'         \item scmax `integer` scan ID born max of the wave detection
+#'         \item lmin `integer` scan ID after extension of the scmin
+#'         \item lmax `integer` scan ID after extension of the scmax
+#'     }
 #' }
-#' @param spectras `DataFrame`, each line correspond to a peak annotated with
-#' its corresponding theoretical peak or the theoretical peak missed,
-#' with the columns :
-#' \itemize{
-#'     \item spectra_id `integer` spectra ID
-#'     \item feature_id `integer` feature ID
-#'     \item mz `numeric` m/z
-#'     \item int `numeric` area integrated
-#'     \item abd `numeric` relative abundance
-#'     \item ion_id_theo `integer` ignore
-#'     \item mz_theo `numeric` theoretical m/z
-#'     \item abd_theo `numeric` theoretical relative abundance
-#'     \item iso_theo `character` theoretical isotopologue annotation
-#' }
-#' @param spectra_infos `DataFrame`, each line correspond to a spectra
-#' annotated, with the columns :
-#' \itemize{
-#'     \item spectra_id `integer` spectra ID
-#'     \item score `numeric` isotopic score observed
-#'     \item deviation_mz `numeric` m/z deviation observed
-#'     \item npeak `integer` number of isotopologue annotated
-#'     \item basepeak_mz `numeric` m/z of the basepeak annotated
-#'     \item basepeak_int `numeric` area of the basepeak annotated
-#'     \item sum_int `numeric` cumulative sum off all the area of the
-#'     isotopologues annotated
-#'     \item rt `numeric` retention time
-#' }
-db_record_ann <- function(db,
-                          ann,
-                          spectras,
-                          spectra_infos) {
-    db_write_table(db, "ann", ann, overwrite = TRUE)
-    db_write_table(db, "spectras", spectras, overwrite = TRUE)
-    db_write_table(db, "spectra_infos", spectra_infos, overwrite = TRUE)
+db_record_xsf <- function(db, xsf) {
+    db_write_table(db, "ann", xsf$ann, overwrite = TRUE)
+    db_write_table(db, "spectra_infos", xsf$spectra_infos, overwrite = TRUE)
+    db_write_table(db, "spectras", xsf$spectras, overwrite = TRUE)
+    db_write_table(db, "peakgroups", xsf$peakgroups, overwrite = TRUE)
+    db_write_table(db, "peaks", xsf$peaks, overwrite = TRUE)
 }
 
 #' @title Record parameters in database
@@ -429,15 +305,15 @@ db_record_params <- function(db,
 #'
 #' @param db `SQLiteConnection`
 #' @param names `character vector` the compound names, not mandatory
-#' @param group_ids `numeric vector` the group IDs, not mandatory
-#' @param row `numeric` the rowID to extract for the annotation table in the DB,
-#' not mandatory
+#' @param pcgroup_ids `numeric vector` the group IDs, not mandatory
+#' @param row_ids `numeric(1)` the rowIDs to extract for the annotation table in
+#'  the DB, not mandatory
 #'
 #' @return `DataFrame` each line correspond to a compound found
 #' with the columns:
 #' \itemize{
-#'         \item group_id `integer` group ID
-#'         \item eic_id `integer` EIC ID
+#'         \item pcgroup_id `integer` group ID
+#'         \item basepeak_group_id `integer` EIC ID
 #'         \item class `character` cpd class
 #'         \item name `character` name
 #'         \item referent_adduct `character` referent adduct for the compound
@@ -460,20 +336,23 @@ db_record_params <- function(db,
 #'         \item ... `integer` a column for each sample which contain the
 #'         spectra ID
 #' }
-db_get_annotations <- function(db, names = NULL, group_ids = NULL, row = NULL) {
+db_get_annotations <- function(db,
+                               names = NULL,
+                               pcgroup_ids = NULL,
+                               row_ids = NULL) {
     query <- "SELECT * FROM ann"
-    if (!is.null(group_ids)) {
+    if (!is.null(pcgroup_ids)) {
         query2 <- sprintf(
-            "group_id IN (%s)",
-            paste(group_ids, sep = "", collapse = ", ")
+            "pcgroup_id IN (%s)",
+            paste(pcgroup_ids, collapse = ", ")
         )
     } else if (!is.null(names)) {
         query2 <- sprintf(
             "name IN (%s)",
             paste("\"", names, "\"", sep = "", collapse = ", ")
         )
-    } else if (!is.null(row)) {
-        query2 <- sprintf("ROWID == %s", row)
+    } else if (!is.null(row_ids)) {
+        query2 <- sprintf("ROWID IN (%s)", paste(row_ids, collapse = ", "))
     } else {
         query2 <- NULL
     }
@@ -530,6 +409,7 @@ db_get_spectra_infos <- function(db, spectra_ids = NULL) {
 #' with the columns :
 #' \itemize{
 #'         \item spectra_id `integer` spectra ID
+#'         \item group_id `integer` group ID
 #'         \item feature_id `integer` feature ID
 #'         \item mz `numeric` m/z
 #'         \item mzmin `numeric` m/z born min
@@ -558,6 +438,35 @@ db_get_spectras <- function(db, spectra_ids = NULL) {
             )
         )
     }
+}
+
+#' @title Get peakgroups
+#'
+#' @description
+#' Get peakgroups from database
+#'
+#' @param db `SQLiteConnection`
+#'
+#' @return `DataFrame`, each line correspond to a group annotated by
+#' XCMS and CAMERA
+#' \itemize{
+#'     \item group_id `integer` group ID
+#'     \item pcgroup_id `integer` pcgroup ID
+#'     \item adduct `character` adduct annotation by CAMERA (NULL if absent)
+#'     \item cluster_id `integer` cluster ID
+#'     \item iso `character` could be "M" or "M+*"
+#'     \item mzmed `float` m/z median computed by XCMS
+#'     \item mzmin `float` m/z median born min (not the m/z born min !!)
+#'     \item mzmax `float` m/z median born max (not the m/z born max !!)
+#'     \item rtmed `float` rT median computed by XCMS
+#'     \item rtmin `float` rT median born min (not the rT born min !!)
+#'     \item rtmax `float` rT median born max (not the rT born max !!)
+#'     \item npeaks `integer` number of peaks grouped accross samples
+#'     \item ... `integer` a column for each sample which contain the
+#'     feature ID (row ID from the peaktable)
+#' }
+db_get_peakgroups <- function(db) {
+    db_read_table(db, "peakgroups")
 }
 
 #' @title Get all parameters
@@ -709,7 +618,13 @@ db_get_params <- function(db) {
 #'
 #' @return `numeric` number of samples recorded in database
 db_get_nsamples <- function(db) {
-    max(0, db_get_query(db, "select count(sample) from sample")[1, 1])
+    max(
+        0,
+        db_get_query(
+            db,
+            "select COUNT(DISTINCT(sample)) from spectra_infos"
+        )[1, 1]
+    )
 }
 
 #' @title Resolve annotation conflict
@@ -719,14 +634,14 @@ db_get_nsamples <- function(db) {
 #' annotations and only keep one
 #'
 #' @param db `SQLiteConnection`
-#' @param group_id `numeric(1)` ID of the peak groups
+#' @param pcgroup_id `numeric(1)` pcgroup ID of the annotation
 #' @param name `character(1)` name of the annotation to keep instead of others
-db_resolve_conflict <- function(db, group_id, name) {
+db_resolve_conflict <- function(db, pcgroup_id, name) {
     db_execute(db, sprintf(
         "DELETE FROM ann
-            WHERE group_id == %s
+            WHERE pcgroup_id == %s
                 AND name != \"%s\";",
-        group_id,
+        pcgroup_id,
         name
     ))
 }
@@ -734,136 +649,217 @@ db_resolve_conflict <- function(db, group_id, name) {
 #' @title Record EICs
 #'
 #' @description
-#' Record EICs for each basepeak for each EIC ID for each sample
+#' Record EICs and mz for each basepeak and sample
 #' It will be faster than reloading each raw file from database & retrace the
-#' corresponding EIC
+#' corresponding EIC or the m/z deviations
 #'
 #' @param db `SQLiteConnection`
-#' @param pb_fct `function` used to update the progress bar
-db_record_eics <- function(db, pb_fct = NULL) {
-    if (!is.null(pb_fct)) {
-        pb_fct(n = 0, total = 1, title = "Generate EICs")
-    }
-
+#' @param xset `xcmsSet` xcms object
+db_record_mzdata <- function(db, xset) {
     # get data
     params <- db_get_params(db)
     nsamples <- db_get_nsamples(db)
-    mz_ann <- get_int_ann(
-        db_get_annotations(db),
-        db_get_spectra_infos(db),
-        nsamples,
-        val = "mz"
-    )
-    sample_names <- colnames(mz_ann)[(ncol(mz_ann) - nsamples + 1):ncol(mz_ann)]
-    mz_ann <- mz_ann[!duplicated(mz_ann[, "EIC ID"]),
-                     c("EIC ID", "rT (min)", sample_names),
-                     drop = FALSE]
-    mzs <- apply(mz_ann[, (ncol(mz_ann) - nsamples + 1):ncol(mz_ann)],
-                 1, median, na.rm = TRUE)
-    da_tol <- convert_ppm_da(params$cwt$ppm, mzs)
+
+    peakgroups <- db_get_peakgroups(db)
+    sample_names <- colnames(peakgroups)[
+        (ncol(peakgroups) - nsamples + 1):ncol(peakgroups)]
+    da_tol <- convert_ppm_da(params$cwt$ppm, peakgroups$mzmed)
     rt_tol <- max(params$cwt$peakwidth_max, params$ann$rt_tol)
-    data <- data.frame(
-        eic_id = mz_ann[, "EIC ID"],
-        mzmin = mzs - da_tol,
-        mzmax = mzs + da_tol,
-        rtmin = mz_ann[, "rT (min)"] * 60 - rt_tol,
-        rtmax = mz_ann[, "rT (min)"] * 60 + rt_tol
+    peakgroups <- data.frame(
+        group_id = peakgroups$group_id,
+        mz = peakgroups$mzmed,
+        mzmin = peakgroups$mzmed - da_tol,
+        mzmax = peakgroups$mzmed + da_tol,
+        rtmin = peakgroups$rtmed - rt_tol,
+        rtmax = peakgroups$rtmed + rt_tol
     )
 
-    # record eic first in a temporary database
-    tmp_db <- db_connect(tempfile(fileext = ".sqlite"))
-    db_execute(db, "DROP TABLE IF EXISTS eic")
-    for (i in seq(length(sample_names))) {
-        if (!is.null(pb_fct)) {
-            # update the progress bar only every 21%
-            if (i %% ceiling(length(sample_names) / 100) == 0) {
-                pb_fct(i, length(sample_names), "Generate EICs")
-            }
-        }
-        ms_file <- db_read_ms_file(db, sample_names[i])
-        invisible(capture.output(lapply(seq(nrow(data)), function(j) {
-            db_write_table(
-                tmp_db,
-                "eic",
-                cbind(
-                    eic_id = data[j, "eic_id"],
-                    sample = sample_names[i],
-                    get_eic(
-                        ms_file,
-                        mz_range = data[j, c("mzmin", "mzmax")],
-                        rt_range = data[j, c("rtmin", "rtmax")],
-                        NA_values = TRUE
-                    )
-                ),
-                append = TRUE
-            )
-        })))
+    # record eic & mzmat first in a temporary database foreach file
+    tmp_db_file <- tempfile(fileext = ".sqlite")
+    tmp_db <- db_connect(tmp_db_file)
+    db_execute(tmp_db, "DROP TABLE IF EXISTS eic")
+    db_execute(tmp_db, "DROP TABLE IF EXISTS mzmat")
+    RSQLite::dbDisconnect(tmp_db)
+
+    # check if BiocParallel was initialized
+    parallelization <- class(BiocParallel::bpbackend())[1] == "SOCKcluster"
+    if (!parallelization) {
+        BiocParallel::register(BiocParallel::SerialParam())
+        BiocParallel::bpstart()
+    } else {
+        parallel::clusterExport(
+            BiocParallel::bpbackend(),
+            list("db_write_table", "db_connect", "db_execute"),
+            envir = pryr::where("db_connect")
+        )
+        parallel::clusterExport(
+            BiocParallel::bpbackend(),
+            list("xset", "peakgroups", "tmp_db_file", "sample_names"),
+            envir = pryr::where("xset")
+        )
     }
 
-    # now for each group id align the EICs
-    db_execute(db, "DROP TABLE IF EXISTS eic")
-    for (i in seq(nrow(data))) {
-        if (!is.null(pb_fct)) {
-            # update the progress bar only every 1%
-            if (i %% ceiling(nrow(data) / 100) == 0) {
-                pb_fct(i, nrow(data), "Align EICs")
-            }
+    suppressWarnings(suppressMessages(
+        BiocParallel::bplapply(seq(nsamples), function(i) {
+            tmp_db <- db_connect(tmp_db_file)
+            ms_file <- xcms::getXcmsRaw(
+                xset,
+                sampleidx = i,
+                profstep = 0,
+                BPPARAM = BiocParallel::SerialParam()
+            )
+            lapply(seq(nrow(peakgroups)), function(j) {
+                rawmat <- xcms::rawMat(
+                    ms_file,
+                    mzrange = unlist(peakgroups[j, c("mzmin", "mzmax")]),
+                    rtrange = peakgroups[j, c("rtmin", "rtmax")]
+                )
+                scans <- which(ms_file@scantime %in% rawmat[, "time"])
+                scmin <- which.min(abs(ms_file@scantime -
+                                           peakgroups[j, "rtmin"]))
+                scmax <- which.min(abs(ms_file@scantime -
+                                           peakgroups[j, "rtmax"]))
+                missing_scans <- scmin:scmax
+                missing_scans <- missing_scans[!missing_scans %in% scans]
+                rawmat <- rbind(
+                    rawmat[, c("time", "intensity", "mz")],
+                    data.frame(
+                        time = ms_file@scantime[missing_scans],
+                        intensity = NA,
+                        mz = NA
+                    )
+                )
+                db_write_table(
+                    tmp_db,
+                    "eic",
+                    cbind(
+                        group_id = peakgroups[j, "group_id"],
+                        sample = i,
+                        aggregate(
+                            intensity ~ time,
+                            data = rawmat,
+                            FUN = sum,
+                            na.action = NULL
+                        )
+                    ),
+                    append = TRUE
+                )
+                db_write_table(
+                    tmp_db,
+                    "mzmat",
+                    cbind(
+                        group_id = peakgroups[j, "group_id"],
+                        sample = i,
+                        aggregate(
+                            mz ~ time,
+                            data = rawmat,
+                            FUN = function(x) {
+                                if (all(is.na(x))) NA
+                                else x[which.min(abs(x - peakgroups[j, "mz"]))]
+                            },
+                            na.action = NULL
+                        )
+                    ),
+                    append = TRUE
+                )
+            })
+            RSQLite::dbDisconnect(tmp_db)
         }
+    )))
+
+    # stop the parallelization if wasn't initialized
+    BiocParallel::bpstop()
+
+    # now for each group id align the EICs & mzmat
+    db_execute(db, "DROP TABLE IF EXISTS eic")
+    db_execute(db, "DROP TABLE IF EXISTS mzmat")
+    tmp_db <- db_connect(tmp_db_file)
+    for (i in seq(nrow(peakgroups))) {
         eics <- db_get_query(
             tmp_db,
-            sprintf("SELECT * FROM eic WHERE eic_id == %s", data[i, "eic_id"])
+            sprintf(
+                "SELECT * FROM eic WHERE group_id == %s",
+                peakgroups[i, "group_id"])
         )
         db_write_table(
             db,
             "eic",
             cbind.data.frame(
-                eic_id = data[i, "eic_id"],
-                rt = eics[eics$sample == sample_names[1], "rt"],
-                do.call(cbind, split(eics$int, eics$sample))
+                group_id = peakgroups[i, "group_id"],
+                rt = eics[eics$sample == 1, "time"],
+                do.call(
+                    cbind,
+                    setNames(split(eics$int, eics$sample), sample_names)
+                )
+            ),
+            append = TRUE
+        )
+        mzmat <- db_get_query(
+            tmp_db,
+            sprintf(
+                "SELECT * FROM mzmat WHERE group_id == %s",
+                peakgroups[i, "group_id"]
+            )
+        )
+        db_write_table(
+            db,
+            "mzmat",
+            cbind.data.frame(
+                group_id = peakgroups[i, "group_id"],
+                rt = mzmat[mzmat$sample == 1, "time"],
+                do.call(
+                    cbind,
+                    setNames(split(mzmat$mz, mzmat$sample), sample_names)
+                )
             ),
             append = TRUE
         )
     }
     RSQLite::dbDisconnect(tmp_db)
-    if (!is.null(pb_fct)) {
-        pb_fct(n = 1, total = 1, title = "Align EICs")
-    }
 }
 
-#' @title Get EIC from data
+#' @title Get EIC data
 #'
 #' @description
-#' Get all the EIC for all the files in the database for ONE basepeak mass
+#' Get EIC recorded in the database for peaks with the same group ID
 #'
 #' @param db `SQLiteConnection`
-#' @param eic_id `numeric(1)` eic ID in database, it corresponds to the row ID
-#' for the annotation table in the database
+#' @param group_id `numeric(1)` group ID
 #'
-#' @return `DataFrame` with a variable number of columns
-#'  (one sample = one column):
-#' \itemize{
-#'     \item rt `numeric` retention time (in sec)
-#'     \item ... `numeric` intensity of the sample
-#' }
-db_get_eic <- function(db, eic_id) {
-    db_get_query(db, sprintf(
-        "SELECT * FROM eic WHERE eic_id == %s;",
-        eic_id
+#' @return `DataFrame` with a column rT & multiple columns, each of them
+#' corresponding to a sample with the intensity
+db_get_eic <- function(db, group_id) {
+    eic <- db_get_query(db, sprintf(
+        "SELECT * FROM eic WHERE group_id == %s",
+        group_id
     ))[, -1]
+    eic[is.na(eic)] <- 0
+    eic
 }
 
-#' @title Get row ID
+#' @title Get Group ID of ion
+#'
 #' @description
-#' Get the row ID from the database for a compound according its referent adduct
+#' Get group ID of an ion. If only the name is given it will return the group ID
+#'  of the referent ion
 #'
 #' @param db `SQLiteConnection`
-#' @param cpd_name `character(1)` name of the compound
+#' @param name `character(1)` compound name, optional
+#' @param row_id `numeric(1)` row ID of the ann DataFrame
 #'
-#' @return `numeric(1)` the EIC ID
-db_get_row_id <- function(db, cpd_name) {
-    db_get_query(db, sprintf(
-        "SELECT rowid FROM ann WHERE name == \"%s\" AND adduct == (
-            SELECT referent_adduct FROM ann WHERE name == \"%s\" LIMIT 1);",
-        cpd_name, cpd_name
-    ))[1, "rowid"]
+#' @return `numeric(1)` group ID
+db_get_group_id <- function(db, name = NULL, row_id = NULL) {
+    query <- "SELECT basepeak_group_id FROM ann WHERE"
+    if (!is.null(name)) {
+        query <- paste(query, sprintf(
+            "name == \"%s\" AND referent_adduct == adduct",
+            name
+        ), sep = " ")
+    } else if (!is.null(row_id)) {
+        query <- paste(query, sprintf("ROWID == %s", row_id), sep = " ")
+    } else {
+        return(NULL)
+    }
+
+    db_get_query(db, query)[1, 1]
 }

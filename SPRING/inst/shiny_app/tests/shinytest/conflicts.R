@@ -52,13 +52,21 @@ app$snapshot(
 )
 
 # 2nd test : give a project file
+# insert a second conflict in database
 sqlite_file <- system.file(
     "testdata",
-    "220221CCM_global-conflicts.sqlite",
+    "220221CCM_global.sqlite",
     package = "SPRING"
 )
-sqlite_file2 <- gsub("\\\\", "/", tempfile(fileext = ".sqlite"))
-invisible(file.copy(sqlite_file, sqlite_file2))
+sqlite_file_conflicts <- gsub("\\\\", "/", tempfile(fileext = ".sqlite"))
+invisible(file.copy(sqlite_file, sqlite_file_conflicts, overwrite = TRUE))
+db <- db_connect(sqlite_file)
+db_conflicts <- db_connect(sqlite_file_conflicts)
+ann <- db_get_annotations(db, row_ids = 9)
+ann$name <- paste0(ann$name, "-B")
+db_write_table(db_conflicts, "ann", ann, append = TRUE)
+RSQLite::dbDisconnect(db)
+RSQLite::dbDisconnect(db_conflicts)
 app$executeScript(sprintf(
     "Shiny.setInputValue(
         \"project_load\",
@@ -71,7 +79,7 @@ app$executeScript(sprintf(
     )",
     paste(
         "\"",
-        strsplit(sqlite_file2, "/")[[1]][-1],
+        strsplit(sqlite_file_conflicts, "/")[[1]][-1],
         "\"",
         sep = "",
         collapse = ", "

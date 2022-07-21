@@ -4,15 +4,17 @@
 \alias{filter_ms_file}
 \title{Filter MS file}
 \usage{
-filter_ms_file(ms_file, filter_params)
+filter_ms_file(ms_file, exp_rt_range, overwrite = TRUE)
 }
 \arguments{
-\item{ms_file}{`xcmsRaw` object}
+\item{ms_file}{`OnDiskMSnExp` MSnbase object}
 
-\item{filter_params}{`FilterParam` object}
+\item{exp_rt_range}{`numeric(2)` expected rT range (in seconds !!!)}
+
+\item{overwrite}{`logical(1)` should overwrite the file if needed ?}
 }
 \value{
-`xcmsRaw` object filtered
+`character(1)` filepath
 }
 \description{
 Filter MS file according a rT range in seconds

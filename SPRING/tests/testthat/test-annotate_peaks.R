@@ -17,8 +17,8 @@ testthat::test_that("annotate peaks", {
         graph_method = "hcs"
     )
     ann <- data.frame(
-        group_id = c(1, 2, 3, 3, 3, 3, 3, 3, 4, 4, 5, 6, 7, 8),
-        eic_id = c(4, 5, 1, 1, 2, 2, 12, 12, 13, 14, 6, 7, 15, 11),
+        pcgroup_id = c(1, 2, 3, 3, 3, 3, 3, 3, 4, 4, 5, 6, 7, 8),
+        basepeak_group_id = c(4, 5, 1, 1, 2, 2, 12, 12, 13, 14, 6, 7, 15, 11),
         formula = c(NA, NA, "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
                     "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
                     "C30H59N1O3", "C30H59N1O3", NA, NA, NA, NA),
@@ -118,6 +118,10 @@ testthat::test_that("annotate peaks", {
                        7, 8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 11, 11, 11,
                        11, 12, 12, 12, 12, 13, 13, 13, 13, 14, 14, 15, 16, 17,
                        18),
+        group_id = c(4, 9, 4, 9, 5, 8, 5, 8, 1, NA, NA, NA, 2, 3, NA, NA, 2, 3,
+                     NA, NA, 12, NA, NA, NA, 12, NA, NA, NA, 13, NA, NA, NA, 13,
+                     NA, NA, NA, 14, NA, NA, NA, 14, NA, NA, NA, 6, 10, 7, 15,
+                     15, 11),
         feature_id = c(7, 9, 22, 24, 8, 10, 23, 17, 18, NA, NA, NA, 6, 4, NA,
                        NA, 21, 20, NA, NA, 5, NA, NA, NA, 19, NA, NA, NA, 1, NA,
                        NA, NA, 15, NA, NA, NA, 2, NA, NA, NA, 16, NA, NA, NA,
@@ -206,7 +210,47 @@ testthat::test_that("annotate peaks", {
                      "M+2", "M+3", "M", "M+1", "M+2", "M+3", "M", "M+1", "M+2",
                      "M+3", "M", "M+1", "M+2", "M+3", NA, NA, NA, NA, NA, NA)
     )
-    peaks <- matrix(
+    peakgroups <- data.frame(
+        group_id = 1:15,
+        pcgroup_id = c(3, 3, 3, 1, 2, 5, 6, 2, 1, 5, 8, 3, 4, 4, 7),
+        adduct = c("[M+H-H2O]+", "[M+H]+", NA, NA, NA, NA, NA, NA, NA, NA, NA,
+                   "[M+Na]+", "[M+H-H2O]+", "[M+Na]+", NA),
+        cluster_id = c(1, 2, 2, 4, 5, 6, 7, 5, 4, 6, 11, 12, 13, 14, 15),
+        iso = c("M", "M", "M+*", "M", "M", "M", "M", "M+*", "M+*", "M+*", "M",
+                "M", "M", "M", "M"),
+        mzmed = c(408.251325886321, 426.262125882248, 427.265534374579,
+                  428.268122152242, 428.268197619998, 428.2675574767,
+                  428.267840674347, 429.270612779717, 429.270808224298,
+                  429.269607476748, 429.270782294993, 448.243903573737,
+                  464.447379285654, 504.440256583885, 505.443684675365),
+        mzmin = c(408.251325886321, 426.261908233279, 427.265397484755,
+                  428.267772595199, 428.267855601901, 428.2675574767,
+                  428.267840674347, 429.270339913969, 429.270423563444,
+                  429.269607476748, 429.270782294993, 448.243644005027,
+                  464.447304014051, 504.440032161331, 505.443534603),
+        mzmax = c(408.251325886321, 426.262343531217, 427.265671264404,
+                  428.268471709284, 428.268539638095, 428.2675574767,
+                  428.267840674347, 429.270885645465, 429.271192885151,
+                  429.269607476748, 429.270782294993, 448.244163142448,
+                  464.447454557257, 504.44048100644, 505.44383474773),
+        rtmed = c(286.278, 286.8085, 286.8085, 279.141, 259.046, 297.915,
+                  308.494, 258.782, 279.141, 296.857, 306.904, 286.8085,
+                  197.973, 197.7085, 197.444),
+        rtmin = c(286.278, 286.807, 286.807, 278.875, 258.782, 297.915, 308.494,
+                  258.782, 278.875, 296.857, 306.904, 286.807, 197.973, 197.444,
+                  197.444),
+        rtmax = c(286.278, 286.81, 286.81, 279.407, 259.31, 297.915, 308.494,
+                  258.782, 279.407, 296.857, 306.904, 286.81, 197.973, 197.973,
+                  197.444),
+        npeaks = c(1, 2, 2, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 2, 2),
+        `220221CCM_global_POS_01_ssleu_filtered` = c(NA, 6, 4, 7, 8, 12, 13, 10,
+                                                     9, 11, NA, 5, 1, 2, 3),
+        `220221CCM_global_POS_02_ssleu_filtered` = c(18, 21, 20, 22, 23, NA, NA,
+                                                     17, 24, NA, 25, 19, 15, 16,
+                                                     14),
+        check.names = FALSE
+    )
+    peaks_mat <- matrix(
         c(464.447304014051, 504.440032161331, 505.443534603, 427.265397484755,
           448.243644005027, 426.261908233279, 428.267772595199,
           428.267855601901, 429.270423563444, 429.270339913969,
@@ -287,6 +331,7 @@ testthat::test_that("annotate peaks", {
                    "sample")
         )
     )
+    peaks <- as.data.frame(peaks_mat)
     groupidx <- list(
         18,
         c(6, 21),
@@ -304,7 +349,7 @@ testthat::test_that("annotate peaks", {
         c(2, 16),
         c(3, 14)
     )
-    groups <- matrix(
+    groups_mat <- matrix(
         c(408.251325886321, 426.262125882248, 427.265534374579,
           428.268122152242, 428.268197619998, 428.2675574767,
           428.267840674347, 429.270612779717, 429.270808224298,
@@ -388,9 +433,9 @@ testthat::test_that("annotate peaks", {
                "contain only one sample.")
     )
 
-    xset@peaks <- peaks
+    xset@peaks <- peaks_mat
     xset@groupidx <- groupidx
-    xset@groups <- groups
+    xset@groups <- groups_mat
     invisible(utils::capture.output(xsa <- CAMERA::annotate(
         xset,
         sigma = camera_params@sigma,
@@ -430,35 +475,51 @@ testthat::test_that("annotate peaks", {
     empty_spectras[, c("mz_theo", "abd_theo", "iso_theo")] <- NA
     ann_params_no_hits <- ann_params
     ann_params_no_hits@da_tol <- 10**-9
-    xsa <- annotate_pcgroups(xsa, ann_params_no_hits)
+    xsf <- annotate_pcgroups(xsa, ann_params_no_hits)
     testthat::expect_equal(
-        xsa@ann,
+        xsf$ann,
         empty_ann
     )
     testthat::expect_equal(
-        xsa@spectra_infos,
+        xsf$spectra_infos,
         empty_spectra_infos
     )
     testthat::expect_equal(
-        xsa@spectras,
+        xsf$spectras,
         empty_spectras
+    )
+    testthat::expect_equal(
+        xsf$peakgroups,
+        peakgroups
+    )
+    testthat::expect_equal(
+        xsf$peaks,
+        peaks
     )
 
     # 3rd test : with a rT tolerance too restrictive
     ann_params_no_hits <- ann_params
     ann_params_no_hits@rt_tol <- 10**-9
-    xsa <- annotate_pcgroups(xsa, ann_params_no_hits)
+    xsf <- annotate_pcgroups(xsa, ann_params_no_hits)
     testthat::expect_equal(
-        xsa@ann,
+        xsf$ann,
         empty_ann
     )
     testthat::expect_equal(
-        xsa@spectra_infos,
+        xsf$spectra_infos,
         empty_spectra_infos
     )
     testthat::expect_equal(
-        xsa@spectras,
+        xsf$spectras,
         empty_spectras
+    )
+    testthat::expect_equal(
+        xsf$peakgroups,
+        peakgroups
+    )
+    testthat::expect_equal(
+        xsf$peaks,
+        peaks
     )
 
     # 4th test : with a restriction on compound class
@@ -488,40 +549,56 @@ testthat::test_that("annotate peaks", {
 
     ann_params_no_hits <- ann_params
     ann_params_no_hits@cpd_classes <- "Cer"
-    xsa <- annotate_pcgroups(xsa, ann_params_no_hits)
+    xsf <- annotate_pcgroups(xsa, ann_params_no_hits)
     testthat::expect_equal(
-        xsa@ann,
+        xsf$ann,
         ann_cer
     )
     testthat::expect_equal(
-        xsa@spectra_infos,
+        xsf$spectra_infos,
         spectra_infos_cer
     )
     testthat::expect_equal(
-        xsa@spectras,
+        xsf$spectras,
         spectras_cer
+    )
+    testthat::expect_equal(
+        xsf$peakgroups,
+        peakgroups
+    )
+    testthat::expect_equal(
+        xsf$peaks,
+        peaks
     )
 
     # 5th test: normal
-    xsa <- annotate_pcgroups(xsa, ann_params)
+    xsf <- annotate_pcgroups(xsa, ann_params)
     testthat::expect_equal(
-        xsa@ann,
+        xsf$ann,
         ann
     )
     testthat::expect_equal(
-        xsa@spectra_infos,
+        xsf$spectra_infos,
         spectra_infos
     )
     testthat::expect_equal(
-        xsa@spectras,
+        xsf$spectras,
         spectras
+    )
+    testthat::expect_equal(
+        xsf$peakgroups,
+        peakgroups
+    )
+    testthat::expect_equal(
+        xsf$peaks,
+        peaks
     )
 })
 
 testthat::test_that("split conflicts", {
     ann <- data.frame(
-        group_id = c(1, 2, 3, 3, 3, 3, 3, 3, 4, 4, 5, 6, 7, 8),
-        eic_id = c(4, 5, 1, 1, 2, 2, 12, 12, 13, 14, 6, 7, 15, 11),
+        pcgroup_id = c(1, 2, 3, 3, 3, 3, 3, 3, 4, 4, 5, 6, 7, 8),
+        basepeak_group_id = c(4, 5, 1, 1, 2, 2, 12, 12, 13, 14, 6, 7, 15, 11),
         formula = c(NA, NA, "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
                     "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
                     "C30H59N1O3", "C30H59N1O3", NA, NA, NA, NA),
@@ -615,18 +692,18 @@ testthat::test_that("get int in annotation df", {
         ),
         data.frame(matrix(, nrow = 0, ncol = 12,
             dimnames = list(c(),
-                          c("Group ID", "EIC ID", "Class", "Name", "rT (min)",
-                            "Diff rT (sec)", "Referent adduct", "Adduct",
-                            "nSamples", "Best score (%)", "Best m/z dev (mDa)",
-                            "Max iso")
+                          c("PCGroup ID", "Group ID", "Class", "Name",
+                            "rT (min)", "Diff rT (sec)", "Referent adduct",
+                            "Adduct", "nSamples", "Best score (%)",
+                            "Best m/z dev (mDa)", "Max iso")
             )
         ), check.names = FALSE)
     )
     testthat::expect_equal(
         get_int_ann(
             data.frame(
-                group_id = 1,
-                eic_id = 1,
+                pcgroup_id = 1,
+                basepeak_group_id = 1,
                 class = "LPC",
                 name = "LPC 11:0",
                 formula = "C19H40N1O7P1",
@@ -646,7 +723,6 @@ testthat::test_that("get int in annotation df", {
                 check.names = FALSE
             ),
             data.frame(
-                group_id = 1,
                 spectra_id = 1,
                 score = 79.8211975097656,
                 deviation_mz = 0.0003662109375,
@@ -660,8 +736,8 @@ testthat::test_that("get int in annotation df", {
             nsamples = 2
         ),
         data.frame(
-            `Group ID` = factor(1, levels = 1),
-            `EIC ID` = 1,
+            `PCGroup ID` = factor(1, levels = 1),
+            `Group ID` = 1,
             Class = factor("LPC", levels = "LPC"),
             Name = "LPC 11:0",
             `rT (min)` = 4.77,
@@ -681,8 +757,8 @@ testthat::test_that("get int in annotation df", {
     testthat::expect_equal(
         get_int_ann(
             data.frame(
-                group_id = 1,
-                eic_id = 1,
+                pcgroup_id = 1,
+                basepeak_group_id = 1,
                 class = "LPC",
                 name = "LPC 11:0",
                 formula = "C19H40N1O7P1",
@@ -702,7 +778,6 @@ testthat::test_that("get int in annotation df", {
                 check.names = FALSE
             ),
             data.frame(
-                group_id = 1,
                 spectra_id = 1,
                 score = 79.8211975097656,
                 deviation_mz = 0.0003662109375,
@@ -717,8 +792,8 @@ testthat::test_that("get int in annotation df", {
             val = "mz"
         ),
         data.frame(
-            `Group ID` = factor(1, levels = 1),
-            `EIC ID` = 1,
+            `PCGroup ID` = factor(1, levels = 1),
+            `Group ID` = 1,
             Class = factor("LPC", levels = "LPC"),
             Name = "LPC 11:0",
             `rT (min)` = 4.77,
@@ -738,8 +813,8 @@ testthat::test_that("get int in annotation df", {
 
 testthat::test_that("summarise ann df", {
     ann <- data.frame(
-        group_id = c(1, 2, 3, 3, 3, 3, 3, 3, 4, 4, 5, 6, 7, 8),
-        eic_id = c(4, 5, 1, 1, 2, 2, 12, 12, 13, 14, 6, 7, 15, 11),
+        pcgroup_id = c(1, 2, 3, 3, 3, 3, 3, 3, 4, 4, 5, 6, 7, 8),
+        basepeak_group_id = c(4, 5, 1, 1, 2, 2, 12, 12, 13, 14, 6, 7, 15, 11),
         formula = c(NA, NA, "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
                     "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
                     "C30H59N1O3", "C30H59N1O3", NA, NA, NA, NA),
@@ -840,11 +915,11 @@ testthat::test_that("summarise ann df", {
         summarise_ann(ann[0, ], spectras[0, ], nsamples = 2),
         list(
             resume = data.frame(matrix(, nrow = 0, ncol = 10, dimnames = list(
-                c(), c("Group ID", "Class", "Name", "rT (min)", "Diff rT (sec)",
-                       "Adducts", "nSamples", "Best score (%)",
+                c(), c("PCGroup ID", "Class", "Name", "rT (min)",
+                       "Diff rT (sec)", "Adducts", "nSamples", "Best score (%)",
                        "Best m/z dev (mDa)", "Max iso"))), check.names = FALSE),
             details = data.frame(matrix(, nrow = 0, ncol = 12, dimnames = list(
-                c(), c("Group ID", "EIC ID", "Class", "Name", "rT (min)",
+                c(), c("PCGroup ID", "Group ID", "Class", "Name", "rT (min)",
                        "Diff rT (sec)", "Referent adduct", "Adduct", "nSamples",
                        "Best score (%)", "Best m/z dev (mDa)", "Max iso"))),
                 check.names = FALSE)
@@ -860,7 +935,7 @@ testthat::test_that("summarise ann df", {
         ),
         list(
             resume = data.frame(
-                `Group ID` = factor(3, levels = 3),
+                `PCGroup ID` = factor(3, levels = 3),
                 Class = factor("LPC", levels = "LPC"),
                 Name = "LPC 11:0",
                 `rT (min)` = 4.78,
@@ -875,7 +950,7 @@ testthat::test_that("summarise ann df", {
                 check.names = FALSE
             ),
             details = data.frame(
-                `Group ID` = factor(c(3, 3, 3), levels = 3),
+                `PCGroup ID` = factor(c(3, 3, 3), levels = 3),
                 Class = factor(c("LPC", "LPC", "LPC"), levels = "LPC"),
                 Name = c("LPC 11:0", "LPC 11:0", "LPC 11:0"),
                 `rT (min)` = c(4.78, 4.78, 4.78),
@@ -906,7 +981,7 @@ testthat::test_that("summarise ann df", {
         ),
         list(
             resume = data.frame(
-                `Group ID` = factor(3, levels = 3),
+                `PCGroup ID` = factor(3, levels = 3),
                 Class = factor("LPC", levels = "LPC"),
                 Name = "LPC 11:0",
                 `rT (min)` = 4.78,
@@ -921,7 +996,7 @@ testthat::test_that("summarise ann df", {
                 check.names = FALSE
             ),
             details = data.frame(
-                `Group ID` = factor(c(3, 3, 3), levels = 3),
+                `PCGroup ID` = factor(c(3, 3, 3), levels = 3),
                 Class = factor(c("LPC", "LPC", "LPC"), levels = "LPC"),
                 Name = c("LPC 11:0", "LPC 11:0", "LPC 11:0"),
                 `rT (min)` = c(4.78, 4.78, 4.78),
@@ -947,7 +1022,7 @@ testthat::test_that("summarise ann df", {
         summarise_ann(ann, spectra_infos, nsamples = 2),
         list(
             resume = data.frame(
-                `Group ID` = factor(c(1:3, 3, 4:8), levels = 1:8),
+                `PCGroup ID` = factor(c(1:3, 3, 4:8), levels = 1:8),
                 Class = factor(c(NA, NA, "LPC", "LPC", "Cer", NA, NA, NA, NA),
                                levels = c("Cer", "LPC")),
                 Name = c(NA, NA, "LPC 11:0", "LPC 11a:0", "Cer (d18:1/C12:0)",
@@ -982,8 +1057,8 @@ testthat::test_that("summarise ann df", {
                 check.names = FALSE
             ),
             details = data.frame(
-                `Group ID` = factor(c(1, 2, 3, 3, 3, 3, 3, 3, 4, 4, 5, 6, 7, 8),
-                                    levels = 1:8),
+                `PCGroup ID` = factor(c(1, 2, 3, 3, 3, 3, 3, 3, 4, 4, 5, 6, 7,
+                                        8), levels = 1:8),
                 Class = factor(c(NA, NA, "LPC", "LPC", "LPC", "LPC", "LPC",
                                  "LPC", "Cer", "Cer", NA, NA, NA, NA),
                                levels = c("Cer", "LPC")),
@@ -1041,7 +1116,7 @@ testthat::test_that("summarise ann df", {
         summarise_ann(ann, spectra_infos, nsamples = 2, by = "all"),
         list(
             resume = data.frame(
-                `Group ID` = factor(c(1:3, 3, 4:8), levels = 1:8),
+                `PCGroup ID` = factor(c(1:3, 3, 4:8), levels = 1:8),
                 Class = factor(c(NA, NA, "LPC", "LPC", "Cer", NA, NA, NA, NA),
                                levels = c("Cer", "LPC")),
                 Name = c(NA, NA, "LPC 11:0", "LPC 11a:0", "Cer (d18:1/C12:0)",
@@ -1076,8 +1151,8 @@ testthat::test_that("summarise ann df", {
                 check.names = FALSE
             ),
             details = data.frame(
-                `Group ID` = factor(c(1, 2, 3, 3, 3, 3, 3, 3, 4, 4, 5, 6, 7, 8),
-                                    levels = 1:8),
+                `PCGroup ID` = factor(c(1, 2, 3, 3, 3, 3, 3, 3, 4, 4, 5, 6, 7,
+                                        8), levels = 1:8),
                 Class = factor(c(NA, NA, "LPC", "LPC", "LPC", "LPC", "LPC",
                                  "LPC", "Cer", "Cer", NA, NA, NA, NA),
                                levels = c("Cer", "LPC")),

@@ -45,6 +45,7 @@ app$executeScript(sprintf(
 ))
 
 app$waitForValue("project_name", iotype = "output", ignore = list(""))
+Sys.sleep(1)
 app$executeScript(paste0("Shiny.setInputValue(\"project_modal_visible\", $(\"#",
                          "project_modal\").length !=  0)"))
 app$snapshot(

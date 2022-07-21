@@ -6,7 +6,7 @@
 #' negative
 #' It also trim the file according the rt range and m/z range specified in
 #' the filter_params with msconvert
-#' Check with XCMS package if the file can be converted
+#' Check with MSnbase package if the file can be converted
 #' If the file is a CDF it will copy the file instead
 #' If the conversion failed & the file is a mzML or mzXML
 #' it will copy the file instead and try to trim only the rt range
@@ -15,7 +15,7 @@
 #' @param converter `character(1)` filepath to msconvert executable
 #' @param filter_params `FilterParam` object
 #'
-#' @return `xcmsRaw` object
+#' @return `character(1)` filepath of the converted file
 convert_file <- function(raw_file, converter, filter_params) {
     filepath <- gsub(
         "\\\\",
@@ -58,50 +58,89 @@ convert_file <- function(raw_file, converter, filter_params) {
         # filter_params@mz_range[1], filter_params@mz_range[2]
     )
     suppressWarnings(
-        system(query, intern = TRUE, wait = TRUE)
+        msg <- system(query, intern = TRUE, wait = TRUE)
     )
 
     if (!file.exists(filepath)) {
-        if (grepl("\\.mzML$", raw_file)) {
-            filepath <- gsub("\\\\", "/", tempfile(fileext = ".mzML"))
-            file.copy(raw_file, filepath, overwrite = TRUE)
-        } else if (grepl("\\.mzXML$", raw_file)) {
-            file.copy(raw_file, filepath, overwrite = TRUE)
+        if (grepl("\\.mzML$", raw_file) || grepl("\\.mzXML$", raw_file)) {
+            file.copy(raw_file, filepath)
         } else {
+            print(msg)
             stop("msconvert error")
         }
     }
-    check_ms_file(filepath, filter_params@polarity)
+    check_ms_file(filepath, filter_params)
 }
 
 #' @title Check mass spectrometry file
 #'
 #' @description
-#' check if a mass spectrometry file can be read by xcms
+#' check if a mass spectrometry file can be read by MSnbase
 #' & if the polarity expected is the good one
+#' If not it will split the file & keep only scans with the desired polarity &
+#' rewrite it in a new file (see function (split_ms_file))
 #'
 #' @param filepath `character(1)`
-#' @param exp_polarity `character(1)` "positive" or "negative" only !
+#' @param filter_params `FilterParam` object
 #'
-#' @return `xcmsRaw` object
-check_ms_file <- function(filepath, exp_polarity) {
+#' @return `character(1)` filepath to the file checked
+check_ms_file <- function(filepath, filter_params) {
+    exp_polarity <- filter_params@polarity
     # check if file can be read
     ms_file <- tryCatch(
-        xcms::xcmsRaw(filepath, profstep = 0),
+        MSnbase::readMSData(filepath, mode = "onDisk"),
         error = function(e) {
             e$message
         })
-    if (class(ms_file) != "xcmsRaw") {
+    if (class(ms_file) != "OnDiskMSnExp") {
         stop(ms_file)
     }
-    obs_polarity <- ms_file@polarity
-    if (!any(obs_polarity == exp_polarity)) {
-        stop("no scans detected in desired polarity")
-    } else if (length(unique(obs_polarity)) > 1) {
-        scan_idx <- which(obs_polarity == exp_polarity)
-        ms_file[scan_idx]
+
+    # cannot extract polarity from CDF files
+    if (!grepl("cdf$", filepath, ignore.case = TRUE)) {
+        obs_polarity <- unique(MSnbase::polarity(ms_file))
+
+        # if there is more than one polarity, split the file &
+            # keep only the desired polarity
+        if (length(obs_polarity) > 1) {
+            filepath <- split_ms_file(ms_file, exp_polarity)
+        } else if (
+                (exp_polarity == "positive" && obs_polarity < 1) ||
+                (exp_polarity == "negative" && obs_polarity >= 1)
+            ) {
+            stop("no scans detected in desired polarity")
+        }
+    }
+
+    filter_ms_file(ms_file, filter_params@rt_range)
+}
+
+#' @title Split MS file
+#'
+#' @description
+#' Split MS file to keep only the scans in the desired polarity & rewrite it
+#' in a new file
+#'
+#' @param ms_file `OnDiskMSnExp` MSnbase object
+#' @param exp_polarity `character(1)` expected polarity ("positive" or
+#' "negative")
+#' @param overwrite `logical(1)` should overwrite the file if needed ?
+#'
+#' @return `character(1)` filepath
+split_ms_file <- function(ms_file, exp_polarity, overwrite = TRUE) {
+    filepath <- MSnbase::fileNames(ms_file)
+    if (exp_polarity == "positive") {
+        spectras <- which(MSnbase::polarity(ms_file) >= 1)
     } else {
-        ms_file
+        spectras <- which(MSnbase::polarity(ms_file) < 1)
+    }
+    out_filepath <- file.path(tempdir(), paste0(runif(1), ".mzML"))
+    MSnbase::writeMSData(ms_file[spectras], out_filepath, copy = TRUE)
+    if (overwrite) {
+        file.rename(out_filepath, filepath)
+        filepath
+    } else {
+        out_filepath
     }
 }
 
@@ -111,24 +150,30 @@ check_ms_file <- function(filepath, exp_polarity) {
 #' Filter MS file according a rT range in seconds
 #' don't filter on the m/z dimension (too long & too heavy in flash memory)
 #'
-#' @param ms_file `xcmsRaw` object
-#' @param filter_params `FilterParam` object
+#' @param ms_file `OnDiskMSnExp` MSnbase object
+#' @param exp_rt_range `numeric(2)` expected rT range (in seconds !!!)
+#' @param overwrite `logical(1)` should overwrite the file if needed ?
 #'
-#' @return `xcmsRaw` object filtered
-filter_ms_file <- function(ms_file, filter_params) {
-    obs_rt_range <- ms_file@scantime
-    if (range(obs_rt_range)[1] <= filter_params@rt_range[1] ||
-        range(obs_rt_range)[2] >= filter_params@rt_range[2]
+#' @return `character(1)` filepath
+filter_ms_file <- function(ms_file, exp_rt_range, overwrite = TRUE) {
+    filepath <- MSnbase::fileNames(ms_file)
+    obs_rt_range <- MSnbase::rtime(ms_file)
+    if (
+        range(obs_rt_range)[1] <= exp_rt_range[1] ||
+        range(obs_rt_range)[2] >= exp_rt_range[2]
     ) {
-        scan_idx <- which(
-            ms_file@scantime >= filter_params@rt_range[1] &
-            ms_file@scantime <= filter_params@rt_range[2]
-        )
-        if (length(scan_idx) == 0) {
+        spectras <- which(obs_rt_range >= exp_rt_range[1] &
+                obs_rt_range <= exp_rt_range[2])
+        if (length(spectras) == 0) {
             stop("no spectras between rt filters")
         }
-        ms_file[scan_idx]
-    } else {
-        ms_file
+        out_filepath <- file.path(tempdir(), paste0(runif(1), ".mzML"))
+        MSnbase::writeMSData(ms_file[spectras], out_filepath, copy = TRUE)
+        if (overwrite) {
+            file.rename(out_filepath, filepath)
+        } else {
+            return(out_filepath)
+        }
     }
+    filepath
 }
