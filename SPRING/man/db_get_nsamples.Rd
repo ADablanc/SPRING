@@ -10,7 +10,7 @@ db_get_nsamples(db)
 \item{db}{`SQLiteConnection`}
 }
 \value{
-`numeric` number of samples recorded in database
+`numeric(1)` number of samples recorded in database
 }
 \description{
 Count number of samples recorded in database

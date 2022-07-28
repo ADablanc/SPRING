@@ -446,6 +446,7 @@ db_get_spectras <- function(db, spectra_ids = NULL) {
 #' Get peakgroups from database
 #'
 #' @param db `SQLiteConnection`
+#' @param group_ids `numeric` group IDs
 #'
 #' @return `DataFrame`, each line correspond to a group annotated by
 #' XCMS and CAMERA
@@ -465,8 +466,15 @@ db_get_spectras <- function(db, spectra_ids = NULL) {
 #'     \item ... `integer` a column for each sample which contain the
 #'     feature ID (row ID from the peaktable)
 #' }
-db_get_peakgroups <- function(db) {
-    db_read_table(db, "peakgroups")
+db_get_peakgroups <- function(db, group_ids = NULL) {
+    if (length(group_ids) > 0) {
+        db_get_query(db, sprintf(
+            "SELECT * FROM peakgroups WHERE group_id in (%s)",
+            paste(group_ids, collapse = ", ")
+        ))
+    } else {
+        db_read_table(db, "peakgroups")
+    }
 }
 
 #' @title Get all parameters
@@ -616,7 +624,7 @@ db_get_params <- function(db) {
 #'
 #' @param db `SQLiteConnection`
 #'
-#' @return `numeric` number of samples recorded in database
+#' @return `numeric(1)` number of samples recorded in database
 db_get_nsamples <- function(db) {
     max(
         0,
@@ -837,6 +845,23 @@ db_get_eic <- function(db, group_id) {
     eic
 }
 
+#' @title Get m/z matrix
+#'
+#' @description
+#' Get m/z deviations recorded in the database for peaks with the same group ID
+#'
+#' @param db `SQLiteConnection`
+#' @param group_id `numeric(1)` group ID
+#'
+#' @return `DataFrame` with a column rT & multiple columns, each of them
+#' corresponding to a sample with the intensity
+db_get_mzmat <- function(db, group_id) {
+    db_get_query(db, sprintf(
+        "SELECT * FROM mzmat WHERE group_id == %s",
+        group_id
+    ))[, -1]
+}
+
 #' @title Get Group ID of ion
 #'
 #' @description
@@ -862,4 +887,205 @@ db_get_group_id <- function(db, name = NULL, row_id = NULL) {
     }
 
     db_get_query(db, query)[1, 1]
+}
+
+#' @title Get all group IDs
+#'
+#' @description
+#' Get all group IDs for a batch of spectra IDs
+#'
+#' @param db `SQLiteConnection`
+#' @param spectra_ids `numeric` spectra IDs
+#'
+#' @return `numeric` group IDs
+db_get_group_ids <- function(db, spectra_ids) {
+    db_get_query(db, sprintf(
+        "SELECT DISTINCT(group_id) FROM spectras WHERE spectra_id IN (%s) AND
+            group_id IS NOT NULL",
+        paste(spectra_ids, collapse = ", ")
+    ))[, 1]
+}
+
+#' @title Get the highest IDs
+#'
+#' @description
+#' Get the highest ID for each table in database
+#'
+#' @param db `SQLiteConnection`
+#'
+#' @return `numeric(5)` named vector with the highest ID :
+#' \itemize{
+#'    \item feature
+#'    \item group
+#'    \item spectra
+#'    \item pcgroup
+#'    \item cluster
+#' }
+db_get_max_ids <- function(db) {
+    c(
+        feature = db_get_query(db, "SELECT COUNT(*) from peaks")[1, 1],
+        group = db_get_query(db, "SELECT COUNT(*) from peakgroups")[1, 1],
+        spectra = db_get_query(
+            db,
+            "SELECT COUNT(*) FROM spectra_infos"
+        )[1, 1],
+        pcgroup = db_get_query(db, "SELECT MAX(pcgroup_id) FROM ann")[1, 1],
+        cluster = db_get_query(
+            db,
+            "SELECT MAX(cluster_id) FROM peakgroups"
+        )[1, 1]
+    )
+}
+
+#' @title Duplicate EICs & m/z mat
+#'
+#' @description
+#' Duplicate EICs & m/z matrix & assign them new group IDs
+#'
+#' @param db `SQLiteConnection`
+#' @param samples `character` sample names (corresponding column names to copy)
+#' @param old_group_ids `numeric` the old group IDs of the EICs & m/z mat to
+#'  copy
+#' @param new_group_ids `numeric` the group IDs to assign to the copied EICs &
+#'  m/z mat
+db_copy_eic_mzmat <- function(db, samples, old_group_ids, new_group_ids) {
+    lapply(seq(length(old_group_ids)), function(i) {
+        db_execute(db, sprintf(
+            "INSERT INTO eic
+                SELECT %s AS group_id, rt, %s
+                FROM eic
+                WHERE group_id == %s",
+            new_group_ids[i],
+            paste("`", samples, "`", sep = "", collapse = ", "),
+            old_group_ids[i]
+        ))
+        db_execute(db, sprintf(
+            "INSERT INTO mzmat
+                SELECT %s AS group_id, rt, %s
+                FROM mzmat
+                WHERE group_id IN (%s)",
+            new_group_ids[i],
+            paste("`", samples, "`", sep = "", collapse = ", "),
+            old_group_ids[i]
+        ))
+    })
+}
+
+#' @title Replace an annotation
+#'
+#' @description
+#' Replace annotations for a compound
+#'
+#' @param db `SQLiteConnection`
+#' @param cpd_name `character(1)` compound name associated to the annotation to
+#'  replace
+#' @param ann `DataFrame` each line correspond to a compound found with the
+#'  columns:
+#' \itemize{
+#'     \item pcgroup_id `integer` group ID
+#'     \item basepeak_group_id `integer` EIC ID
+#'     \item class `character` cpd class
+#'     \item name `character` name
+#'     \item formula `character` chemical formula
+#'     \item adduct `character` adduct form
+#'     \item ion_formula `character` ion chemical formula
+#'     \item rtdiff `numeric` retention time difference between the measured
+#'      & the expected
+#'     \item rt `numeric` retention time measured meanned accross the
+#'      samples
+#'     \item rtmin `numeric` born min of retention time measured accross the
+#'      samples
+#'     \item rtmax `numeric` born max of the retention time measured accross
+#'      the samples
+#'     \item nsamples `integer` number of samples where the compound was
+#'      found
+#'     \item best_score `numeric` best isotopic score seen
+#'     \item best_deviation_mz `numeric` best m/z deviation seen
+#'     \item best_npeak `integer` best number of isotopologues found
+#'     \item ... `integer` a column for each sample which contain the
+#'      spectra ID
+#' }
+#' @param spectras `DataFrame`, each line correspond to a peak annotated with
+#'  its corresponding theoretical peak or the theoretical peak missed,
+#'  with the columns :
+#' \itemize{
+#'     \item spectra_id `integer` spectra ID
+#'     \item feature_id `integer` feature ID
+#'     \item mz `numeric` m/z
+#'     \item int `numeric` area integrated
+#'     \item abd `numeric` relative abundance
+#'     \item ion_id_theo `integer` ignore
+#'     \item mz_theo `numeric` theoretical m/z
+#'     \item abd_theo `numeric` theoretical relative abundance
+#'     \item iso_theo `character` theoretical isotopologue annotation
+#' }
+#' @param spectra_infos `DataFrame`, each line correspond to a spectra
+#'  annotated, with the columns :
+#' \itemize{
+#'     \item spectra_id `integer` spectra ID
+#'     \item score `numeric` isotopic score observed
+#'     \item deviation_mz `numeric` m/z deviation observed
+#'     \item npeak `integer` number of isotopologue annotated
+#'     \item basepeak_mz `numeric` m/z of the basepeak annotated
+#'     \item basepeak_int `numeric` area of the basepeak annotated
+#'     \item sum_int `numeric` cumulative sum off all the area of the
+#'      isotopologues annotated
+#'     \item rt `numeric` retention time
+#' }
+#' @param peakgroups `DataFrame`, each line correspond to a group annotated
+#'  by XCMS and CAMERA
+#' \itemize{
+#'     \item group_id `integer` group ID
+#'     \item pcgroup_id `integer` pcgroup ID
+#'     \item adduct `character` adduct annotation by CAMERA (NULL if absent)
+#'     \item cluster_id `integer` cluster ID
+#'     \item iso `character` could be "M" or "M+*"
+#'     \item mzmed `float` m/z median computed by XCMS
+#'     \item mzmin `float` m/z median born min (not the m/z born min !!)
+#'     \item mzmax `float` m/z median born max (not the m/z born max !!)
+#'     \item rtmed `float` rT median computed by XCMS
+#'     \item rtmin `float` rT median born min (not the rT born min !!)
+#'     \item rtmax `float` rT median born max (not the rT born max !!)
+#'     \item npeaks `integer` number of peaks grouped accross samples
+#'     \item ... `integer` a column for each sample which contain the
+#'      feature ID (row ID from the peaktable)
+#' }
+#' @param peaks `DataFrame`, peaktable from XCMS
+#' \itemize{
+#'     \item mz `float` m/z
+#'     \item mzmin `float` m/z born min
+#'     \item mzmax `float` m/z born max
+#'     \item rt `float` rT
+#'     \item rtmin `float` rT born min
+#'     \item rtmax `float` rT born max
+#'     \item into `float` area of the peak
+#'     \item intb `float` area of the peak above baseline
+#'     \item maxo `float` maximum intensity
+#'     \item sn `float` signal/noise
+#'     \item egauss `float` ignore
+#'     \item mu `float` ignore
+#'     \item sigma `float` ignore
+#'     \item h `float` ignore
+#'     \item f `integer` ID of the ROI
+#'     \item dppm `float` ppm deviation
+#'     \item scale `integer` width of the wave used for the peak detection
+#'     \item scpos `integer` scan ID
+#'     \item scmin `integer` scan ID born min of the wave detection
+#'     \item scmax `integer` scan ID born max of the wave detection
+#'     \item lmin `integer` scan ID after extension of the scmin
+#'     \item lmax `integer` scan ID after extension of the scmax
+#' }
+db_replace_ann <- function(db,
+                           cpd_name,
+                           ann,
+                           spectra_infos,
+                           spectras,
+                           peaks,
+                           peakgroups) {
+    db_execute(db, sprintf("delete from ann where name == \"%s\";", cpd_name))
+    db_write_table(db, "ann", ann, append = TRUE)
+    db_write_table(db, "spectra_infos", spectra_infos, append = TRUE)
+    db_write_table(db, "spectras", spectras, append = TRUE)
+    db_write_table(db, "peaks", peaks, append = TRUE)
+    db_write_table(db, "peakgroups", peakgroups, append = TRUE)
 }

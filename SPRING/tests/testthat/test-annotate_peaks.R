@@ -1204,3 +1204,405 @@ testthat::test_that("summarise ann df", {
         )
     )
 })
+
+testthat::test_that("reintegrate ann", {
+    temp_file <- tempfile(fileext = ".sqlite")
+    invisible(file.copy(
+        system.file("testdata", "220221CCM_global.sqlite", package = "SPRING"),
+        temp_file
+    ))
+    db <- db_connect(temp_file)
+    cpd_name <- "LPC 11:0"
+    rtmin <- 283
+    rtmax <- 294
+
+    # 1st test : without db
+    testthat::expect_error(
+        reintegrate_ann(NULL),
+        "db must be a connection to the sqlite database"
+    )
+
+    # 2nd test : with more than one compound
+    testthat::expect_error(
+        reintegrate_ann(db, c(1, 2)),
+        "only one compound per reintegration !"
+    )
+
+    # 3rd test : cpd name is not a character
+    testthat::expect_error(
+        reintegrate_ann(db, 1),
+        "cpd_name must be represent a compound name"
+    )
+
+    # 4th test : multiple rtmin
+    testthat::expect_error(
+        reintegrate_ann(db, cpd_name, c("a", "b")),
+        "only one rtmin is required"
+    )
+
+    # 5th test : rtmin is not a numeric
+    testthat::expect_error(
+        reintegrate_ann(db, cpd_name, "a"),
+        "rtmin must be a numeric"
+    )
+
+    # 6th test : multiple rtmax
+    testthat::expect_error(
+        reintegrate_ann(db, cpd_name, rtmin, c("a", "b")),
+        "only one rtmax is required"
+    )
+
+    # 7th test : rtmax is not a numeric
+    testthat::expect_error(
+        reintegrate_ann(db, cpd_name, rtmin, "a"),
+        "rtmax must be a numeric"
+    )
+
+    # 8th test : rtmax is lower than rtmin
+    testthat::expect_error(
+        reintegrate_ann(db, cpd_name, rtmin, 1),
+        "rtmax must be upper than rtmin"
+    )
+
+    # 9th test : normal
+    result <- reintegrate_ann(db, cpd_name, 283, 294)
+    testthat::expect_equal(
+        db_get_annotations(db, cpd_name),
+        result$ann
+    )
+    testthat::expect_equal(
+        result$ann,
+        data.frame(
+            pcgroup_id = rep(9, 3),
+            basepeak_group_id = c(16, 17, 19),
+            formula = rep("C19H40N1O7P1", 3),
+            class = rep("LPC", 3),
+            name = rep("LPC 11:0", 3),
+            referent_adduct = rep("[M+H]+", 3),
+            adduct = c("[M+H-H2O]+", "[M+H]+", "[M+Na]+"),
+            ion_formula = c("C19H39N1O6P1", "C19H41N1O7P1", "C19H40N1O7P1Na1"),
+            rtdiff = c(9.51899999999995, 9.51899999999995, 9.51899999999995),
+            rt = rep(286.281, 3),
+            rtmin = rep(283, 3),
+            rtmax = rep(294, 3),
+            nsamples = rep(2, 3),
+            best_score = c(79.8211975097656, 95.6488800048828,
+                           79.6432037353516),
+            best_deviation_mz = c(0.000701904296875, 0.000823974609375,
+                                  0.0003662109375),
+            best_npeak = c(1, 2, 1),
+            `220221CCM_global_POS_01_ssleu_filtered.mzXML` = c(19, 21, 23),
+            `220221CCM_global_POS_02_ssleu_filtered.mzXML` = c(20, 22, 24),
+            check.names = FALSE
+        )
+    )
+    testthat::expect_equal(
+        data.frame(result$spectra_infos, row.names = NULL),
+        data.frame(
+            spectra_id = 19:24,
+            score = c(79.8211975097656, 79.8211975097656, 95.4294357299805,
+                      95.6488800048828, 79.6432037353516, 79.6432037353516),
+            deviation_mz = c(0.000701904296875, 0.0003662109375,
+                             0.0004730224609375, 0.000823974609375,
+                             0.0003662109375, 0.000823974609375),
+            npeak = c(1, 1, 2, 2, 1, 1),
+            basepeak_mz = c(408.251639652232, 408.251325886321,
+                            426.261877129566, 426.262312513403,
+                            448.243824189865, 448.24429856507),
+            basepeak_int = c(86489.0094578489, 91433.9169842904,
+                             5985640.48894737, 5970651.94634352,
+                             249373.08941245, 276717.690733272),
+            sum_int = c(86489.0094578489, 91433.9169842904, 7156280.44765831,
+                        7157316.83654995, 249373.08941245, 276717.690733272),
+            sample = c("220221CCM_global_POS_01_ssleu_filtered.mzXML",
+                       "220221CCM_global_POS_02_ssleu_filtered.mzXML",
+                       "220221CCM_global_POS_01_ssleu_filtered.mzXML",
+                       "220221CCM_global_POS_02_ssleu_filtered.mzXML",
+                       "220221CCM_global_POS_01_ssleu_filtered.mzXML",
+                       "220221CCM_global_POS_02_ssleu_filtered.mzXML"),
+            rt = rep(286.281, 6)
+        )
+    )
+    testthat::expect_equal(
+        result$spectras,
+        data.frame(
+            spectra_id = rep(19:24, each = 4),
+            group_id = c(16, NA, NA, NA, 16, NA, NA, NA, 17, 3, NA, NA, 17, 3,
+                         NA, NA, 19, NA, NA, NA, 19, NA, NA, NA),
+            feature_id = c(26, NA, NA, NA, 27, NA, NA, NA, 28, 4, NA, NA, 30,
+                           20, NA, NA, 32, NA, NA, NA, 33, NA, NA, NA),
+            mz = c(408.251639652232, NA, NA, NA, 408.251325886321, NA, NA, NA,
+                   426.261877129566, 427.265397484755, NA, NA, 426.262312513403,
+                   427.265671264404, NA, NA, 448.243824189865, NA, NA, NA,
+                   448.24429856507, NA, NA, NA),
+            mzmin = c(408.251403808594, NA, NA, NA, 408.251037597656, NA, NA,
+                      NA, 426.261444091797, 427.264739990234, NA, NA,
+                      426.262023925781, 427.264801025391, NA, NA,
+                      448.243377685547, NA, NA, NA, 448.244018554688, NA, NA,
+                      NA),
+            mzmax = c(408.251861572266, NA, NA, NA, 408.25146484375, NA, NA, NA,
+                      426.262420654297, 427.266052246094, NA, NA,
+                      426.262786865234, 427.266052246094, NA, NA,
+                      448.244812011719, NA, NA, NA, 448.245422363281, NA, NA,
+                      NA),
+            rt = c(286.281, NA, NA, NA, 286.281, NA, NA, NA, 286.281, 286.81,
+                   NA, NA, 286.281, 286.807, NA, NA, 286.281, NA, NA, NA,
+                   286.281, NA, NA, NA),
+            rtmin = c(283, NA, NA, NA, 283, NA, NA, NA, 283, 284.695, NA, NA,
+                      283, 283.105, NA, NA, 283, NA, NA, NA, 283, NA, NA, NA),
+            rtmax = c(294, NA, NA, NA, 294, NA, NA, NA, 294, 291.04, NA, NA,
+                      294, 292.623, NA, NA, 294, NA, NA, NA, 294, NA, NA, NA),
+            int = c(86489.0094578489, NA, NA, NA, 91433.9169842904, NA, NA, NA,
+                    5985640.48894737, 1170639.95871094, NA, NA,
+                    5970651.94634352, 1186664.89020643, NA, NA, 249373.08941245,
+                    NA, NA, NA, 276717.690733272, NA, NA, NA),
+            abd = c(100, NA, NA, NA, 100, NA, NA, NA, 100, 19.5574719342493, NA,
+                    NA, 100, 19.8749634189137, NA, NA, 100, NA, NA, NA, 100, NA,
+                    NA, NA),
+            mz_theo = c(408.25095, 409.25427, 410.25672, 411.25935, 408.25095,
+                        409.25427, 410.25672, 411.25935, 426.26152, 427.26484,
+                        428.26719, 429.26984, 426.26152, 427.26484, 428.26719,
+                        429.26984, 448.24346, 449.24678, 450.24914, 451.25178,
+                        448.24346, 449.24678, 450.24914, 451.25178),
+            abd_theo = c(100, 21.65, 3.25, 0.38, 100, 21.65, 3.25, 0.38, 100,
+                         21.7, 3.46, 0.42, 100, 21.7, 3.46, 0.42, 100, 21.69,
+                         3.45, 0.42, 100, 21.69, 3.45, 0.42),
+            iso_theo = c("M", "M+1", "M+2", "M+3", "M", "M+1", "M+2", "M+3",
+                         "M", "M+1", "M+2", "M+3", "M", "M+1", "M+2", "M+3",
+                         "M", "M+1", "M+2", "M+3", "M", "M+1", "M+2", "M+3")
+        )
+    )
+    testthat::expect_equal(
+        result$peaks,
+        data.frame(
+            mz = c(408.251639652232, 408.251325886321, 426.261877129566,
+                   426.262312513403, 448.243824189865, 448.24429856507),
+            mzmin = c(408.251403808594, 408.251037597656, 426.261444091797,
+                      426.262023925781, 448.243377685547, 448.244018554688),
+            mzmax = c(408.251861572266, 408.25146484375, 426.262420654297,
+                      426.262786865234, 448.244812011719, 448.245422363281),
+            rt = c(286.281, 286.281, 286.281, 286.281, 286.281, 286.281),
+            rtmin = c(283, 283, 283, 283, 283, 283),
+            rtmax = c(294, 294, 294, 294, 294, 294),
+            into = c(86489.0094578489, 91433.9169842904, 5985640.48894737,
+                     5970651.94634352, 249373.08941245, 276717.690733272),
+            intb = rep(NA, 6),
+            maxo = c(76420.25, 70041.5625, 3501824, 3489368, 183977.625,
+                     186253.875),
+            sn = rep(NA, 6),
+            egauss = rep(NA, 6),
+            mu = rep(NA, 6),
+            sigma = rep(NA, 6),
+            h = rep(NA, 6),
+            f = rep(NA, 6),
+            dppm = rep(NA, 6),
+            scale = rep(NA, 6),
+            scpos = rep(NA, 6),
+            scmin = rep(NA, 6),
+            scmax = rep(NA, 6),
+            lmin = rep(NA, 6),
+            lmax = rep(NA, 6),
+            sample = c(1, 2, 1, 2, 1, 2)
+        )
+    )
+    testthat::expect_equal(
+        result$peakgroups,
+        data.frame(
+            group_id = 16:19,
+            pcgroup_id = rep(9, 4),
+            adduct = rep(NA, 4),
+            cluster_id = c(16, 17, 17, 18),
+            iso = c("M", "M", "M+*", "M"),
+            mzmed = c(408.251482769276, 426.262094821484, 427.26553437458,
+                      448.244061377468),
+            mzmin = c(408.251325886321, 426.261877129566, 427.265397484755,
+                      448.243824189865),
+            mzmax = c(408.251639652232, 426.262312513403, 427.265671264404,
+                      448.24429856507),
+            rtmed = c(286.281, 286.281, 286.8085, 286.281),
+            rtmin = c(286.281, 286.281, 286.807, 286.281),
+            rtmax = c(286.281, 286.281, 286.81, 286.281),
+            npeaks = c(2, 2, 2, 2),
+            `220221CCM_global_POS_01_ssleu_filtered.mzXML` = c(26, 28, 4, 32),
+            `220221CCM_global_POS_02_ssleu_filtered.mzXML` = c(27, 30, 20, 33),
+            check.names = FALSE
+        )
+    )
+
+    # 10th test : partial annotation
+    result <- reintegrate_ann(db, cpd_name, 319, 322)
+    testthat::expect_equal(
+        db_get_annotations(db, cpd_name),
+        result$ann
+    )
+    testthat::expect_equal(
+        result$ann,
+        data.frame(
+            pcgroup_id = rep(10, 3),
+            basepeak_group_id = c(20, 21, 23),
+            formula = rep("C19H40N1O7P1", 3),
+            class = rep("LPC", 3),
+            name = rep("LPC 11:0", 3),
+            referent_adduct = rep("[M+H]+", 3),
+            adduct = c("[M+H-H2O]+", "[M+H]+", "[M+Na]+"),
+            ion_formula = c("C19H39N1O6P1", "C19H41N1O7P1", "C19H40N1O7P1Na1"),
+            rtdiff = c(23.27, 24.328, 22.741),
+            rt = c(319.07, 320.128, 319.8635),
+            rtmin = c(319, 319, 319),
+            rtmax = c(322, 322, 322),
+            nsamples = c(1, 1, 2),
+            best_score = c(79.8211975097656, 79.6305084228516,
+                           79.6432037353516),
+            best_deviation_mz = c(0.001708984375, -0.00042724609375,
+                                  0.001739501953125),
+            best_npeak = c(1, 1, 1),
+            `220221CCM_global_POS_01_ssleu_filtered.mzXML` = c(25, NA, 27),
+            `220221CCM_global_POS_02_ssleu_filtered.mzXML` = c(NA, 26, 28),
+            check.names = FALSE
+        )
+    )
+    testthat::expect_equal(
+        data.frame(result$spectra_infos, row.names = NULL),
+        data.frame(
+            spectra_id = 25:28,
+            score = c(79.8211975097656, 79.6305084228516, 79.6432037353516,
+                      79.6432037353516),
+            deviation_mz = c(0.001708984375, -0.00042724609375,
+                             0.001739501953125, -0.000823974609375),
+            npeak = rep(1, 4),
+            basepeak_mz = c(408.252655029297, 426.261077784938,
+                            448.245208740234, 448.242645263672),
+            basepeak_int = c(114.037534790038, 2010.24735514322,
+                             273.652672932941, 908.643385009759),
+            sum_int = c(114.037534790038, 2010.24735514322, 273.652672932941,
+                        908.643385009759),
+            sample = c("220221CCM_global_POS_01_ssleu_filtered.mzXML",
+                       "220221CCM_global_POS_02_ssleu_filtered.mzXML",
+                       "220221CCM_global_POS_01_ssleu_filtered.mzXML",
+                       "220221CCM_global_POS_02_ssleu_filtered.mzXML"),
+            rt = c(319.07, 320.128, 318.541, 321.186)
+        )
+    )
+    testthat::expect_equal(
+        result$spectras,
+        data.frame(
+            spectra_id = c(25, 25, 25, 25, 26, 26, 26, 26, 27, 27, 27, 27, 28,
+                           28, 28, 28),
+            group_id = c(20, NA, NA, NA, 22, NA, NA, NA, 23, NA, NA, NA, 23, NA,
+                         NA, NA),
+            feature_id = c(32, NA, NA, NA, 34, NA, NA, NA, 35, NA, NA, NA, 36,
+                           NA, NA, NA),
+            mz = c(408.252655029297, NA, NA, NA, 426.261077784938, NA, NA, NA,
+                   448.245208740234, NA, NA, NA, 448.242645263672, NA, NA, NA),
+            mzmin = c(408.252655029297, NA, NA, NA, 426.261047363281, NA, NA,
+                      NA, 448.245208740234, NA, NA, NA, 448.242645263672, NA,
+                      NA, NA),
+            mzmax = c(408.252655029297, NA, NA, NA, 426.261108398438, NA, NA,
+                      NA, 448.245208740234, NA, NA, NA, 448.242645263672, NA,
+                      NA, NA),
+            rt = c(319.07, NA, NA, NA, 320.128, NA, NA, NA, 318.541, NA, NA, NA,
+                   321.186, NA, NA, NA),
+            rtmin = c(319, NA, NA, NA, 319, NA, NA, NA, 319, NA, NA, NA, 319,
+                      NA, NA, NA),
+            rtmax = c(322, NA, NA, NA, 322, NA, NA, NA, 322, NA, NA, NA, 322,
+                      NA, NA, NA),
+            int = c(114.037534790038, NA, NA, NA, 2010.24735514322, NA, NA, NA,
+                    273.652672932941, NA, NA, NA, 908.643385009759, NA, NA, NA),
+            abd = c(100, NA, NA, NA, 100, NA, NA, NA, 100, NA, NA, NA, 100, NA,
+                    NA, NA),
+            mz_theo = c(408.25095, 409.25427, 410.25672, 411.25935, 426.26152,
+                        427.26484, 428.26719, 429.26984, 448.24346, 449.24678,
+                        450.24914, 451.25178, 448.24346, 449.24678, 450.24914,
+                        451.25178),
+            abd_theo = c(100, 21.65, 3.25, 0.38, 100, 21.7, 3.46, 0.42, 100,
+                         21.69, 3.45, 0.42, 100, 21.69, 3.45, 0.42),
+            iso_theo = c("M", "M+1", "M+2", "M+3", "M", "M+1", "M+2", "M+3",
+                         "M", "M+1", "M+2", "M+3", "M", "M+1", "M+2", "M+3")
+        )
+    )
+    testthat::expect_equal(
+        result$peaks,
+        data.frame(
+            mz = c(408.252655029297, 427.265825084667, 426.261077784938,
+                   448.245208740234, 448.242645263672),
+            mzmin = c(408.252655029297, 427.265533447266, 426.261047363281,
+                      448.245208740234, 448.242645263672),
+            mzmax = c(408.252655029297, 427.265991210938, 426.261108398438,
+                      448.245208740234, 448.242645263672),
+            rt = c(319.07, 320.657, 320.128, 318.541, 321.186),
+            rtmin = c(319, 319, 319, 319, 319),
+            rtmax = c(322, 322, 322, 322, 322),
+            into = c(114.037534790038, 1021.8914880371, 2010.24735514322,
+                     273.652672932941, 908.643385009759),
+            intb = rep(NA, 5),
+            maxo = c(258.686279296875, 1476.8359375, 1755.341796875,
+                     620.76220703125, 1078.142578125),
+            sn = rep(NA, 5),
+            egauss = rep(NA, 5),
+            mu = rep(NA, 5),
+            sigma = rep(NA, 5),
+            h = rep(NA, 5),
+            f = rep(NA, 5),
+            dppm = rep(NA, 5),
+            scale = rep(NA, 5),
+            scpos = rep(NA, 5),
+            scmin = rep(NA, 5),
+            scmax = rep(NA, 5),
+            lmin = rep(NA, 5),
+            lmax = rep(NA, 5),
+            sample = c(1, 1, 2, 1, 2)
+        )
+    )
+    testthat::expect_equal(
+        result$peakgroups,
+        data.frame(
+            group_id = c(20, 21, 22, 23),
+            pcgroup_id = c(10, 10, 10, 10),
+            adduct = c(NA, NA, NA, NA),
+            cluster_id = c(19, 20, 20, 21),
+            iso = c("M", "M+*", "M", "M"),
+            mzmed = c(408.252655029297, 427.265825084667, 426.261077784938,
+                448.243927001953),
+            mzmin = c(408.252655029297, 427.265825084667, 426.261077784938,
+                448.242645263672),
+            mzmax = c(408.252655029297, 427.265825084667, 426.261077784938,
+                448.245208740234),
+            rtmed = c(319.07, 320.657, 320.128, 319.8635),
+            rtmin = c(319.07, 320.657, 320.128, 318.541),
+            rtmax = c(319.07, 320.657, 320.128, 321.186),
+            npeaks = c(1, 1, 1, 2),
+            `220221CCM_global_POS_01_ssleu_filtered.mzXML` = c(32, 33, NA, 35),
+            `220221CCM_global_POS_02_ssleu_filtered.mzXML` = c(NA, NA, 34, 36),
+            check.names = FALSE
+        )
+    )
+
+    # 11th test : no annotation cause no peaks
+    result <- reintegrate_ann(db, cpd_name, 247, 250)
+    testthat::expect_equal(
+        nrow(db_get_annotations(db, cpd_name)),
+        0
+    )
+    testthat::expect_equal(
+        nrow(result$ann),
+        nrow(db_get_annotations(db, cpd_name))
+    )
+    testthat::expect_identical(
+        result$spectra_infos,
+        data.frame()
+    )
+    testthat::expect_identical(
+        result$spectras,
+        data.frame()
+    )
+    testthat::expect_identical(
+        result$peaks,
+        data.frame()
+    )
+    testthat::expect_identical(
+        result$peakgroups,
+        data.frame()
+    )
+
+    RSQLite::dbDisconnect(db)
+})

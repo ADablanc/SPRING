@@ -4,7 +4,7 @@
 \alias{db_get_peakgroups}
 \title{Get peakgroups}
 \usage{
-db_get_peakgroups(db)
+db_get_peakgroups(db, group_ids = NULL)
 }
 \arguments{
 \item{db}{`SQLiteConnection`}
