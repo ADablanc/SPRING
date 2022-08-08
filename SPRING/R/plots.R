@@ -750,15 +750,17 @@ plot_peak_spot <- function(db, annotation_filter = "all", int_threshold = 0,
     )
 
     # get data
+    ann <- db_get_annotations(db)
+    spectra_infos <- db_get_spectra_infos(db)
     nsamples <- db_get_nsamples(db)
     int_ann <- get_int_ann(
-        db_get_annotations(db),
-        db_get_spectra_infos(db),
+        ann,
+        spectra_infos,
         nsamples
     )
     mz_ann <- get_int_ann(
-        db_get_annotations(db),
-        db_get_spectra_infos(db),
+        ann,
+        spectra_infos,
         nsamples,
         val = "mz"
     )
@@ -782,7 +784,7 @@ plot_peak_spot <- function(db, annotation_filter = "all", int_threshold = 0,
     }
 
     # get data points
-    row_ids <- seq(nrow(mz_ann))[idx]
+    row_ids <- ann[idx, "rowid"]
     mz_ann <- mz_ann[idx, , drop = FALSE]
     ints <- ints[idx]
     mzs <- apply(mz_ann[, (ncol(mz_ann) - nsamples + 1):ncol(mz_ann)],

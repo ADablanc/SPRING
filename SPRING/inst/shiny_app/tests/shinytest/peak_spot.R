@@ -257,6 +257,79 @@ app$snapshot(
     screenshot = TRUE
 )
 
+# 16th test : try to reintegrate a peak
+app$setInputs(peak_spot_type = "Peak spot")
+app$setInputs(peak_spot_annotation_filter = "all")
+app$setInputs(peak_spot_int_threshold = 0)
+app$executeScript("Shiny.setInputValue(\"peak_spot_row_id\", 4)")
+peak_spot_plot <- app$waitForValue(
+    "peak_spot_plot",
+    iotype = "output"
+)
+peak_spot_eic <- app$waitForValue(
+    "peak_spot_eic",
+    iotype = "output",
+    ignore = list(peak_spot_eic)
+)
+app$executeScript("Shiny.setInputValue(\"peak_spot_eic_rt\", [284/60, 288/60])")
+peak_spot_plot <- app$waitForValue(
+    "peak_spot_plot",
+    iotype = "output",
+    ignore = list(peak_spot_plot)
+)
+peak_spot_eic <- app$waitForValue(
+    "peak_spot_eic",
+    iotype = "output",
+    ignore = list(peak_spot_eic)
+)
+app$snapshot(
+    items = list(
+        output = c("peak_spot_plot", "peak_spot_eic")
+    ),
+    screenshot = TRUE
+)
+
+# 17th test : integrate noise
+app$executeScript("Shiny.setInputValue(\"peak_spot_row_id\", 9)")
+peak_spot_eic <- app$waitForValue(
+    "peak_spot_eic",
+    iotype = "output",
+    ignore = list(peak_spot_eic)
+)
+app$executeScript("Shiny.setInputValue(\"peak_spot_eic_rt\", [182/60, 209/60])")
+peak_spot_plot <- app$waitForValue(
+    "peak_spot_plot",
+    iotype = "output",
+    ignore = list(peak_spot_plot)
+)
+peak_spot_eic <- app$waitForValue(
+    "peak_spot_eic",
+    iotype = "output",
+    ignore = list(peak_spot_eic)
+)
+app$snapshot(
+    items = list(
+        output = c("peak_spot_plot", "peak_spot_eic")
+    ),
+    screenshot = TRUE
+)
+
+# 18th test : try to integrate a peak with no annotation (error)
+app$executeScript("Shiny.setInputValue(\"peak_spot_row_id\", 1)")
+peak_spot_eic <- app$waitForValue(
+    "peak_spot_eic",
+    iotype = "output",
+    ignore = list(peak_spot_eic)
+)
+app$executeScript("Shiny.setInputValue(\"peak_spot_eic_rt\", [180/60, 210/60])")
+app$snapshot(
+    items = list(
+        output = c("peak_spot_plot", "peak_spot_eic")
+    ),
+    screenshot = TRUE
+)
+
+
 ## Interrupt shinyProcess so covr::save_trace can execute onExit
 p <- app$.__enclos_env__$private$shinyProcess
 p$interrupt()

@@ -335,6 +335,7 @@ observeEvent(input$conflicts_table_valid, {
             else if (conflict_id() == 1) 1
             else conflict_id() - 1
         )
+        actualize$peak_spot <<- runif(1)
         # to force all the outputs to reload if they use the data from the db
         toastr_success(sprintf(
             "%s annotated",

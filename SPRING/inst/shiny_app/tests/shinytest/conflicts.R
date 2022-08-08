@@ -62,7 +62,7 @@ sqlite_file_conflicts <- gsub("\\\\", "/", tempfile(fileext = ".sqlite"))
 invisible(file.copy(sqlite_file, sqlite_file_conflicts, overwrite = TRUE))
 db <- db_connect(sqlite_file)
 db_conflicts <- db_connect(sqlite_file_conflicts)
-ann <- db_get_annotations(db, row_ids = 9)
+ann <- db_get_annotations(db, row_ids = 9)[, -1]
 ann$name <- paste0(ann$name, "-B")
 db_write_table(db_conflicts, "ann", ann, append = TRUE)
 RSQLite::dbDisconnect(db)

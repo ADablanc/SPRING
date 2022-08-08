@@ -772,8 +772,8 @@ get_int_ann <- function(ann, spectra_infos, nsamples, val = "int") {
 #'
 #' @param db `SQLiteConnection`
 #' @param cpd_name `character(1)` compound name
-#' @param rtmin `numeric(1)` rT born min
-#' @param rtmax `numeric(1)` rT born max
+#' @param rtmin `numeric(1)` rT born min (in sec)
+#' @param rtmax `numeric(1)` rT born max (in sec)
 #'
 #' @return `DataFrame list` with items :
 #' \itemize{
@@ -1184,14 +1184,14 @@ reintegrate_ann <- function(db, cpd_name, rtmin, rtmax) {
     db_replace_ann(
         db,
         cpd_name,
-        ann = ann[which(!is.na(ann$pcgroup_id)), ],
+        ann = ann,
         spectra_infos = spectra_infos,
         spectras = spectras,
         peaks = peaks,
         peakgroups = peakgroups
     )
     list(
-        ann = ann[which(!is.na(ann$pcgroup_id)), ],
+        ann = ann,
         spectra_infos = spectra_infos,
         spectras = spectras,
         peaks = peaks,

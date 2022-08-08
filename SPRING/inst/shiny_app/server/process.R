@@ -399,6 +399,7 @@ shiny::observeEvent(input$process_launch, {
                 FROM spectra_infos"
                 )[1, 1]
             )
+            actualize$peak_spot <<- runif(1)
         } else {
             conflicts(c())
             conflict_id(0)

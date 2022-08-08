@@ -74,6 +74,7 @@ db_write_table <- function(db,
 #'
 #' @seealso `DBI::dbExecute`
 db_execute <- function(db, query, ...) {
+    query <- gsub("= \"?NA\"?", "= null", query)
     msg <- "database is locked"
     while (msg == "database is locked") {
         msg <- tryCatch({
@@ -340,24 +341,22 @@ db_get_annotations <- function(db,
                                names = NULL,
                                pcgroup_ids = NULL,
                                row_ids = NULL) {
-    query <- "SELECT * FROM ann"
+    query <- "SELECT ROWID, * FROM ann WHERE pcgroup_id IS NOT NULL"
     if (!is.null(pcgroup_ids)) {
-        query2 <- sprintf(
+        query <- paste(query, "AND", sprintf(
             "pcgroup_id IN (%s)",
             paste(pcgroup_ids, collapse = ", ")
-        )
+        ))
     } else if (!is.null(names)) {
-        query2 <- sprintf(
+        query <- paste(query, "AND", sprintf(
             "name IN (%s)",
             paste("\"", names, "\"", sep = "", collapse = ", ")
-        )
+        ))
     } else if (!is.null(row_ids)) {
-        query2 <- sprintf("ROWID IN (%s)", paste(row_ids, collapse = ", "))
-    } else {
-        query2 <- NULL
-    }
-    if (!is.null(query2)) {
-        query <- paste(query, "WHERE", query2, sep = " ")
+        query <- paste(query, "AND",sprintf(
+            "ROWID IN (%s)",
+            paste(row_ids, collapse = ", ")
+        ))
     }
     db_get_query(db, query)
 }
@@ -1082,8 +1081,40 @@ db_replace_ann <- function(db,
                            spectras,
                            peaks,
                            peakgroups) {
-    db_execute(db, sprintf("delete from ann where name == \"%s\";", cpd_name))
-    db_write_table(db, "ann", ann, append = TRUE)
+    nsamples <- db_get_nsamples(db)
+    invisible(lapply(seq(nrow(ann)), function(i)
+        db_execute(db, sprintf(
+            "UPDATE ann SET
+                pcgroup_id = %s,
+                basepeak_group_id = %s,
+                rtdiff = %s,
+                rt = %s,
+                rtmin = %s,
+                rtmax = %s,
+                nsamples = %s,
+                best_score = %s,
+                best_deviation_mz = %s,
+                best_npeak = %s,
+                %s
+            WHERE ROWID == %s;",
+            ann[i, "pcgroup_id"],
+            ann[i, "basepeak_group_id"],
+            ann[i, "rtdiff"],
+            ann[i, "rt"],
+            ann[i, "rtmin"],
+            ann[i, "rtmax"],
+            ann[i, "nsamples"],
+            ann[i, "best_score"],
+            ann[i, "best_deviation_mz"],
+            ann[i, "best_npeak"],
+            paste(sprintf(
+                "\"%s\" = %s",
+                colnames(ann)[(ncol(ann) - nsamples + 1):ncol(ann)],
+                ann[i, (ncol(ann) - nsamples + 1):ncol(ann)]
+            ), collapse = ", "),
+            ann[i, "rowid"]
+        ))
+    ))
     db_write_table(db, "spectra_infos", spectra_infos, append = TRUE)
     db_write_table(db, "spectras", spectras, append = TRUE)
     db_write_table(db, "peaks", peaks, append = TRUE)

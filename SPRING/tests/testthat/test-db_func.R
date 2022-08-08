@@ -524,6 +524,7 @@ testthat::test_that("record params", {
 
 testthat::test_that("get annotations", {
     ann <- data.frame(
+        rowid = seq(14),
         pcgroup_id = c(1, 2, 3, 3, 3, 3, 3, 3, 4, 4, 5, 6, 7, 8),
         basepeak_group_id = c(4, 5, 1, 1, 2, 2, 12, 12, 13, 14, 6, 7, 15, 11),
         formula = c(NA, NA, "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
@@ -571,7 +572,7 @@ testthat::test_that("get annotations", {
         check.names = FALSE
     )
     db <- db_connect(":memory:")
-    db_write_table(db, "ann", ann)
+    db_write_table(db, "ann", ann[, -1])
 
     # 1st test : get all annotations
     testthat::expect_identical(
@@ -1445,6 +1446,7 @@ testthat::test_that("copy eic & m/z mat", {
 
 testthat::test_that("db replace ann", {
     ann <- data.frame(
+        rowid = seq(3),
         pcgroup_id = rep(3, 3),
         basepeak_group_id = c(1, 1, 2),
         formula = rep("C19H40N1O7P1", 3),
@@ -1559,7 +1561,7 @@ testthat::test_that("db replace ann", {
     ))
     db <- db_connect(":memory:")
     db_record_xsf(db, list(
-        ann = ann,
+        ann = ann[, -1],
         spectra_infos = spectra_infos,
         spectras = spectras,
         peakgroups = peakgroups,
@@ -1575,7 +1577,7 @@ testthat::test_that("db replace ann", {
         peakgroups
     )
     testthat::expect_equal(
-        db_read_table(db, "ann"),
+        db_get_annotations(db),
         ann
     )
     testthat::expect_equal(

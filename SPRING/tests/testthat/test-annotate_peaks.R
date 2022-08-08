@@ -1273,6 +1273,7 @@ testthat::test_that("reintegrate ann", {
     testthat::expect_equal(
         result$ann,
         data.frame(
+            rowid = c(3, 5, 7),
             pcgroup_id = rep(9, 3),
             basepeak_group_id = c(16, 17, 19),
             formula = rep("C19H40N1O7P1", 3),
@@ -1438,6 +1439,7 @@ testthat::test_that("reintegrate ann", {
     testthat::expect_equal(
         result$ann,
         data.frame(
+            rowid = c(3, 5, 7),
             pcgroup_id = rep(10, 3),
             basepeak_group_id = c(20, 21, 23),
             formula = rep("C19H40N1O7P1", 3),
@@ -1582,10 +1584,6 @@ testthat::test_that("reintegrate ann", {
     testthat::expect_equal(
         nrow(db_get_annotations(db, cpd_name)),
         0
-    )
-    testthat::expect_equal(
-        nrow(result$ann),
-        nrow(db_get_annotations(db, cpd_name))
     )
     testthat::expect_identical(
         result$spectra_infos,
