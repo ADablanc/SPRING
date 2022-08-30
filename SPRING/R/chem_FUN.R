@@ -17,14 +17,9 @@
 #' }
 load_chem_db <- function(database, polarity = NULL, cpd_classes = NULL,
                          cpd_names = NULL) {
-    database <- utils::read.csv(system.file(
-        "extdata",
-        "database",
-        paste(database, "csv", sep = "."),
-        package = "SPRING"
-    ))
+    database <- utils::read.csv(database)
     # the rt in the database is in minutes !!
-    database$rt <- database$rt * 60
+    database$rt <- as.numeric(database$rt) * 60
     if (!is.null(polarity)) {
         if (polarity == "positive") {
             database <- database[which(grepl("\\+$", database$adduct)), ,
@@ -153,7 +148,11 @@ get_ions <- function(forms,
                 adduct$formula_ded
             )
         } else {
-            return(list())
+            return(list(data.frame(matrix(
+                , nrow = 0, ncol = 7, dimnames = list(c(), c(
+                    "ion_id", "formula", "adduct", "ion_formula", "mz",
+                    "abd", "iso"
+                ))))))
         }
     }
     ion_forms <- enviPat::check_chemform(isotopes, ion_forms)
@@ -163,7 +162,11 @@ get_ions <- function(forms,
         ion_forms$monoisotopic_mass > max(resmass[, "m/z"])
     )
     if (length(out_resmass) == length(forms)) {
-        return(list())
+        return(list(data.frame(matrix(
+            , nrow = 0, ncol = 7, dimnames = list(c(), c(
+                "ion_id", "formula", "adduct", "ion_formula", "mz",
+                "abd", "iso"
+            ))))))
     } else if (length(out_resmass) > 0) {
         forms <- forms[-out_resmass]
         ion_forms <- ion_forms[-out_resmass, ]

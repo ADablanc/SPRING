@@ -456,6 +456,12 @@ AnnotationParam <- function(da_tol = 0.015,
     if (!database %in% get_available_database()) {
         stop(sprintf("database %s doesn't exist in software", database))
     }
+    database <- system.file(
+        "extdata",
+        "database",
+        paste(database, "csv", sep = "."),
+        package = "SPRING"
+    )
     if (polarity != "positive" && polarity != "negative") {
         stop("polarity needs to be \"positive\" or \"negative\"")
     }
