@@ -65,7 +65,13 @@ observeEvent(input$process_database, {
     if (input$process_database == "") {
         return(0)
     }
-    cpd_classes <- unique(load_chem_db(input$process_database)$class)
+    database <- system.file(
+        "extdata",
+        "database",
+        paste(input$process_database, "csv", sep = "."),
+        package = "SPRING"
+    )
+    cpd_classes <- unique(load_chem_db(database)$class)
     shinyWidgets::updatePickerInput(
         session,
         inputId = "process_cpd_classes",
@@ -339,6 +345,7 @@ shiny::observeEvent(input$process_launch, {
             abd_tol = params[["Relative abundance tolerance"]],
             instrument = params[["Instrument"]],
             database = params[["Database"]],
+            polarity = params[["polarity"]],
             cpd_classes = params[["Compound classes"]]
         )
         camera_params <- CameraParam(

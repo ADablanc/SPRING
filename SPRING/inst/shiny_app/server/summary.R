@@ -89,6 +89,7 @@ output$summary_table <- DT::renderDataTable({
         db = db(),
         by = input$summary_by
     )
+    actualize$peak_spot ## to force reactualization after process
     ann <- tryCatch({
     # to invalidate the summary table
         ann <- db_get_annotations(params$db)
