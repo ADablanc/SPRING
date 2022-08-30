@@ -728,14 +728,16 @@ db_record_mzdata <- function(db, xset) {
                                            peakgroups[j, "rtmax"]))
                 missing_scans <- scmin:scmax
                 missing_scans <- missing_scans[!missing_scans %in% scans]
-                rawmat <- rbind(
-                    rawmat[, c("time", "intensity", "mz")],
-                    data.frame(
-                        time = ms_file@scantime[missing_scans],
-                        intensity = NA,
-                        mz = NA
+                if (length(missing_scans) > 0) {
+                    rawmat <- rbind(
+                        rawmat[, c("time", "intensity", "mz")],
+                        data.frame(
+                            time = ms_file@scantime[missing_scans],
+                            intensity = NA,
+                            mz = NA
+                        )
                     )
-                )
+                }
                 db_write_table(
                     tmp_db,
                     "eic",
@@ -775,7 +777,9 @@ db_record_mzdata <- function(db, xset) {
     )))
 
     # stop the parallelization if wasn't initialized
-    BiocParallel::bpstop()
+    if (!parallelization) {
+        BiocParallel::bpstop()
+    }
 
     # now for each group id align the EICs & mzmat
     db_execute(db, "DROP TABLE IF EXISTS eic")
@@ -788,19 +792,6 @@ db_record_mzdata <- function(db, xset) {
                 "SELECT * FROM eic WHERE group_id == %s",
                 peakgroups[i, "group_id"])
         )
-        db_write_table(
-            db,
-            "eic",
-            cbind.data.frame(
-                group_id = peakgroups[i, "group_id"],
-                rt = eics[eics$sample == 1, "time"],
-                do.call(
-                    cbind,
-                    setNames(split(eics$int, eics$sample), sample_names)
-                )
-            ),
-            append = TRUE
-        )
         mzmat <- db_get_query(
             tmp_db,
             sprintf(
@@ -808,16 +799,60 @@ db_record_mzdata <- function(db, xset) {
                 peakgroups[i, "group_id"]
             )
         )
+
+        rts <- eics[eics$sample == which.min(table(eics$sample)), "time"]
+        # case of one sample has an rt more than the referent sample
+        if (!all(table(eics$sample) == length(which(eics$sample == 1)))) {
+            #### should happen only if user remove scans in middle of the files
+            # get the sample with the less scan
+            eics <- do.call(cbind, setNames(
+                lapply(
+                    split(eics[, c("time", "intensity")], eics$sample),
+                    function(x)
+                        sapply(rts, function(rt)
+                            x[which.min(abs(x$time - rt)), "intensity"]
+                        )
+                ),
+                sample_names)
+            )
+            mzmat <- do.call(cbind, setNames(
+                lapply(split(mzmat[, c("time", "mz")], mzmat$sample),
+                       function(x)
+                           sapply(rts, function(rt)
+                               x[which.min(abs(x$time - rt)), "mz"]
+                           )
+                   ),
+                sample_names)
+            )
+        } else {
+            eics <- do.call(
+                cbind,
+                setNames(split(eics$int, eics$sample), sample_names)
+            )
+            mzmat <- do.call(
+                cbind,
+                setNames(split(mzmat$mz, mzmat$sample), sample_names)
+            )
+
+        }
+        db_write_table(
+            db,
+            "eic",
+            cbind.data.frame(
+                group_id = peakgroups[i, "group_id"],
+                rt = rts,
+                eics
+            ),
+            append = TRUE
+        )
+
         db_write_table(
             db,
             "mzmat",
             cbind.data.frame(
                 group_id = peakgroups[i, "group_id"],
-                rt = mzmat[mzmat$sample == 1, "time"],
-                do.call(
-                    cbind,
-                    setNames(split(mzmat$mz, mzmat$sample), sample_names)
-                )
+                rt = rts,
+                mzmat
             ),
             append = TRUE
         )
