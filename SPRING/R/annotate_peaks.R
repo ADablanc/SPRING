@@ -152,10 +152,23 @@ annotate_pcgroups <- function(xsa, ann_params) {
     peaks <- data.frame(xset@peaks)
     peaks <- cbind(feature_id = seq(nrow(peaks)), peaks)
     colnames(peaks)[which(colnames(peaks) == "into")] <- "int"
-    # replace the value in peak_groups by the feature id
-    # instead of the intensity
     peakgroups <- data.frame(xset@groups)
-    peakgroups[, 8:ncol(peakgroups)] <- xcms::groupval(xset)
+    if (nrow(peakgroups) == 0) {
+        peakgroups <- data.frame(
+            mzmed = peaks[, "mz"],
+            mzmin = peaks[, "mz"],
+            mzmax  = peaks[, "mz"],
+            rtmed = peaks[, "rt"],
+            rtmin = peaks[, "rt"],
+            rtmax = peaks[, "rt"],
+            npeaks = 1,
+            `1` = peaks[, "feature_id"]
+        )
+    } else {
+        # replace the value in peak_groups by the feature id
+        # instead of the intensity
+        peakgroups[, 8:ncol(peakgroups)] <- xcms::groupval(xset)
+    }
     colnames(peakgroups)[8:ncol(peakgroups)] <- samples
     peakgroups <- cbind(
         group_id = seq(nrow(peakgroups)),
@@ -209,9 +222,10 @@ annotate_pcgroups <- function(xsa, ann_params) {
                 10
         } else {
             pc_group_basepeak <- pcgroup[which.max(
-                apply(pcgroup[, 11:ncol(pcgroup)], 1, function(x) {
-                    max(peaks[x, "int"], na.rm = TRUE)
-                })), ]
+                apply(pcgroup[, 11:ncol(pcgroup), drop = FALSE], 1,
+                      function(x) {
+                          max(peaks[x, "int"], na.rm = TRUE)
+              })), ]
             chem_db_match <- chem_db[0, ]
             da_tol_iso <- ann_params@da_tol
         }
@@ -222,10 +236,10 @@ annotate_pcgroups <- function(xsa, ann_params) {
             # basepeaks
             tmp_ann <- cbind(
                 rtdiff = NA,
-                rt = pc_group_basepeak$rtmed,
-                rtmin = pc_group_basepeak$rtmin,
-                rtmax = pc_group_basepeak$rtmax,
-                nsamples = sum(!is.na(pcgroup[i, 11:ncol(pcgroup)])),
+                rt = cluster$rtmed,
+                rtmin = cluster$rtmin,
+                rtmax = cluster$rtmax,
+                nsamples = sum(!is.na(cluster[i, 11:ncol(pcgroup)])),
                 best_score = 0,
                 best_deviation_mz = NA,
                 best_npeak = 0,
@@ -266,6 +280,11 @@ annotate_pcgroups <- function(xsa, ann_params) {
 
             # for each sample
             for (j in 11:ncol(cluster)) {
+                if (!any(cluster$iso == "M")) {
+                    # something weird happen by CAMERA
+                    # reattribute iso ?
+                    cluster[which.min(cluster$mzmed), "iso"] <- "M"
+                }
                 if (is.na(cluster[cluster$iso == "M", j])) {
                     next
                 }
@@ -335,16 +354,30 @@ annotate_pcgroups <- function(xsa, ann_params) {
                     spectra_id <- spectra_id + 1
                 }
             }
-            tmp_ann <- merge(
-                chem_db_match[, c("class", "name", "referent_adduct",
-                                  "formula")],
-                tmp_ann,
-                by = "formula",
-                all = TRUE,
-                sort = FALSE
-            )
-            if (nrow(chem_db_match) > 0) {
-                tmp_ann$rtdiff <- abs(chem_db_match$rt - tmp_ann$rt)
+            if (any(tmp_ann$best_score > 0)) {
+                tmp_ann <- merge(
+                    chem_db_match[, c("class", "name", "referent_adduct",
+                                      "formula")],
+                    tmp_ann,
+                    by = "formula",
+                    all = TRUE,
+                    sort = FALSE
+                )
+                # tmp_ann is a full join so we need to retrieve foreach row
+                    #  the corresponding cpd name in the chem_db_match
+                tmp_ann$rtdiff <- abs(
+                    chem_db_match[
+                        match(tmp_ann$name, chem_db_match$name),
+                        "rt"
+                    ] - tmp_ann$rt
+                )
+            } else {
+                tmp_ann <- cbind(
+                    class = NA,
+                    name = NA,
+                    referent_adduct = NA,
+                    tmp_ann
+                )
             }
             tmp_ann <- cbind(
                 pcgroup_id = i,
@@ -354,6 +387,9 @@ annotate_pcgroups <- function(xsa, ann_params) {
             ann <- rbind(ann, tmp_ann)
         }
     }
+    ann[which(ann$best_npeak == 0),
+        c("formula", "class", "name", "referent_adduct", "adduct",
+          "ion_formula", "rtdiff")] <- NA
 
     # create the peak groups table which combine XCMS info & CAMERA
     peakgroups <- merge(
