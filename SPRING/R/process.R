@@ -249,27 +249,9 @@ ms_process <- function(raw_files,
             pb_val <- pb_val + 1
             pb_fct(n = pb_val, title = "Group")
         }
-        invisible(utils::capture.output(xsa <- CAMERA::annotate(
+        invisible(utils::capture.output(xsa <- camera_annotate(
             xset,
-            sigma = camera_params@sigma,
-            perfwhm = camera_params@perfwhm,
-            cor_eic_th = camera_params@cor_eic_th,
-            graphMethod = camera_params@graph_method,
-            pval = camera_params@pval,
-            calcCiS = camera_params@calcCiS,
-            calcIso = camera_params@calcIso,
-            calcCaS = camera_params@calcCaS,
-            maxcharge = camera_params@maxcharge,
-            maxiso = camera_params@maxiso,
-            minfrac = camera_params@minfrac,
-            ppm = camera_params@ppm,
-            mzabs = camera_params@mzabs,
-            quick = FALSE,
-            rules = camera_params@rules,
-            polarity = camera_params@polarity,
-            multiplier = camera_params@multiplier,
-            max_peaks = camera_params@max_peaks,
-            intval = camera_params@intval
+            camera_params
         )))
 
         ########## ANNOTATE
@@ -376,4 +358,47 @@ export_annotations <- function(sqlite_path, excel_path, by = "referent") {
         summarised_ann$details
     )
     openxlsx::saveWorkbook(wb, excel_path, overwrite = TRUE)
+}
+
+camera_annotate <- function(xset, camera_params) {
+    invisible(utils::capture.output({
+        xsa <- CAMERA::xsAnnotate(xset, polarity = camera_params@polarity)
+        xsa <- CAMERA::groupFWHM(
+            xsa,
+            sigma = camera_params@sigma,
+            perfwhm = camera_params@perfwhm,
+            intval = camera_params@intval
+        )
+        tryCatch(xsa <- CAMERA::findIsotopes(
+            xsa,
+            maxcharge = camera_params@maxcharge,
+            maxiso = camera_params@maxiso,
+            ppm = camera_params@ppm,
+            mzabs = camera_params@mzabs,
+            intval = camera_params@intval,
+            minfrac = camera_params@minfrac
+        ), error = function(e) NULL)
+        xsa <- CAMERA::groupCorr(
+            xsa,
+            cor_eic_th = camera_params@cor_eic_th,
+            pval = camera_params@pval,
+            graphMethod = camera_params@graph_method,
+            calcIso = camera_params@calcIso,
+            calcCiS = camera_params@calcCiS,
+            calcCaS = camera_params@calcCaS,
+            cor_exp_th = camera_params@cor_eic_th,
+            intval = camera_params@intval
+        )
+        xsa <- CAMERA::findAdducts(
+            xsa,
+            ppm = camera_params@ppm,
+            mzabs = camera_params@mzabs,
+            multiplier = camera_params@multiplier,
+            polarity = camera_params@polarity,
+            rules = camera_params@rules,
+            max_peaks = camera_params@max_peaks,
+            intval = camera_params@intval
+        )
+    }))
+    xsa
 }
