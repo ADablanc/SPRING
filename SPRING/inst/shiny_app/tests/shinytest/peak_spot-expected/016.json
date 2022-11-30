@@ -1019,7 +1019,7 @@
             },
             {
               "text": "LPC 11:0<br />[M+H-H2O]+",
-              "x": 4.78,
+              "x": 4.77,
               "y": 408.251325886321,
               "xref": "x",
               "yref": "y",
@@ -1203,7 +1203,7 @@
             "mode": "markers",
             "type": "scatter",
             "x": [
-              4.78,
+              4.77,
               4.78,
               4.78
             ],
@@ -1224,7 +1224,7 @@
               "text"
             ],
             "text": [
-              "LPC 11:0<br />[M+H-H2O]+<br />m/z: 408.25133<br />rT: 4.78min<br />Intensity: 88 825",
+              "LPC 11:0<br />[M+H-H2O]+<br />m/z: 408.25133<br />rT: 4.77min<br />Intensity: 88 825",
               "LPC 11:0<br />[M+H]+<br />m/z: 426.26213<br />rT: 4.78min<br />Intensity: 6 234 085",
               "LPC 11:0<br />[M+Na]+<br />m/z: 448.2439<br />rT: 4.78min<br />Intensity: 288 524"
             ],

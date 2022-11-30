@@ -8,7 +8,12 @@ testthat::test_that("load_chem_db", {
         formula = c("C30H59N1O3", rep("C19H40N1O7P1", 2)),
         rt = c(195.59999999999999, 295.79999999999995, 291)
     )
-    database <- "test"
+    database <- system.file(
+        "extdata",
+        "database",
+        "test.csv",
+        package = "SPRING"
+    )
     testthat::expect_identical(
         load_chem_db(database),
         chem_db
@@ -62,7 +67,12 @@ testthat::test_that("load_ion_db", {
         iso = c("M", "M+1", "M+2", "M+3", "M", "M+1", "M+2", "M+3", "M", "M+1",
                 "M+2", "M+3")
     )
-    database <- "test"
+    database <- system.file(
+        "extdata",
+        "database",
+        "test.csv",
+        package = "SPRING"
+    )
     instrument <- "QTOF_XevoG2-S_R25000@200"
     polarity <- "positive"
     testthat::expect_equal(
@@ -112,7 +122,11 @@ testthat::test_that("get_ions", {
             adducts[which(adducts$name == "[M-H]-"), ],
             instrument
         ),
-        list()
+        list(data.frame(matrix(
+            , nrow = 0, ncol = 7, dimnames = list(c(), c(
+                "ion_id", "formula", "adduct", "ion_formula", "mz",
+                "abd", "iso"
+            )))))
     )
     # should return nothing cause the m/z ion is out of the resolution list
     # of the instrument obtained from enviPat
@@ -122,7 +136,11 @@ testthat::test_that("get_ions", {
             adducts[which(adducts$name == "[M-H]-"), ],
             instrument
         ),
-        list()
+        list(data.frame(matrix(
+            , nrow = 0, ncol = 7, dimnames = list(c(), c(
+                "ion_id", "formula", "adduct", "ion_formula", "mz",
+                "abd", "iso"
+            )))))
     )
 
     # should return only the C18H38N1O7P1 with [2M+H]+

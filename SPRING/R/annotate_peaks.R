@@ -215,17 +215,11 @@ annotate_pcgroups <- function(xsa, ann_params) {
             )
         })
         if (any(lengths(idx) > 0)) {
-            pc_group_basepeak <- pcgroup[which(
-                lengths(idx) > 0)[1], , drop = FALSE]
             chem_db_match <- chem_db[unlist(idx), , drop = FALSE]
-            da_tol_iso <- max(abs(pc_group_basepeak$mzmed - chem_db_match$mz)) *
-                10
+            da_tol_iso <- max(unlist(sapply(seq(length(idx)), function(j) {
+                abs(chem_db[idx[[j]], "mz"] - pcgroup[j, "mzmed"])
+            }))) * 10
         } else {
-            pc_group_basepeak <- pcgroup[which.max(
-                apply(pcgroup[, 11:ncol(pcgroup), drop = FALSE], 1,
-                      function(x) {
-                          max(peaks[x, "int"], na.rm = TRUE)
-              })), ]
             chem_db_match <- chem_db[0, ]
             da_tol_iso <- ann_params@da_tol
         }
@@ -234,12 +228,18 @@ annotate_pcgroups <- function(xsa, ann_params) {
         for (cluster in split(pcgroup, pcgroup$cluster)) {
             # create the same base for the annotation DataFrame for all
             # basepeaks
+            if (!any(cluster$iso == "M")) {
+                # something weird happen by CAMERA
+                # reattribute iso ?
+                cluster[which.min(cluster$mzmed), "iso"] <- "M"
+            }
+            basepeak <- cluster[cluster$iso == "M", ]
             tmp_ann <- cbind(
                 rtdiff = NA,
-                rt = cluster$rtmed,
-                rtmin = cluster$rtmin,
-                rtmax = cluster$rtmax,
-                nsamples = sum(!is.na(cluster[i, 11:ncol(pcgroup)])),
+                rt = basepeak$rtmed,
+                rtmin = basepeak$rtmin,
+                rtmax = basepeak$rtmax,
+                nsamples = sum(!is.na(basepeak[, 11:ncol(pcgroup)])),
                 best_score = 0,
                 best_deviation_mz = NA,
                 best_npeak = 0,
@@ -247,8 +247,7 @@ annotate_pcgroups <- function(xsa, ann_params) {
             )
 
             # any adduct identified by CAMERA ?
-            hypo_adducts <- which(xsa@annoID[, "id"] ==
-                                      cluster[cluster$iso == "M", "group_id"])
+            hypo_adducts <- which(xsa@annoID[, "id"] == basepeak$group_id)
             if (nrow(chem_db_match) > 0 && length(hypo_adducts) > 0) {
                 l_spectras2 <- do.call(c, lapply(hypo_adducts,
                                                      function(hypo_adduct) {
@@ -280,11 +279,6 @@ annotate_pcgroups <- function(xsa, ann_params) {
 
             # for each sample
             for (j in 11:ncol(cluster)) {
-                if (!any(cluster$iso == "M")) {
-                    # something weird happen by CAMERA
-                    # reattribute iso ?
-                    cluster[which.min(cluster$mzmed), "iso"] <- "M"
-                }
                 if (is.na(cluster[cluster$iso == "M", j])) {
                     next
                 }
@@ -328,10 +322,8 @@ annotate_pcgroups <- function(xsa, ann_params) {
                             score = tmp[[l]]$score,
                             deviation_mz = tmp[[l]]$deviation_mz,
                             npeak = tmp[[l]]$npeak,
-                            basepeak_mz = peaks[cluster[cluster$iso == "M", j],
-                                                "mz"],
-                            basepeak_int = peaks[cluster[cluster$iso == "M", j],
-                                                 "int"],
+                            basepeak_mz = basepeak$mz,
+                            basepeak_int = basepeak$int,
                             sum_int = sum(tmp[[l]]$spectra[
                                 which(!is.na(tmp[[l]]$spectra$mz_theo) &
                                           !is.na(tmp[[l]]$spectra$mz)),

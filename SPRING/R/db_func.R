@@ -353,7 +353,7 @@ db_get_annotations <- function(db,
             paste("\"", names, "\"", sep = "", collapse = ", ")
         ))
     } else if (!is.null(row_ids)) {
-        query <- paste(query, "AND",sprintf(
+        query <- paste(query, "AND", sprintf(
             "ROWID IN (%s)",
             paste(row_ids, collapse = ", ")
         ))
@@ -776,7 +776,6 @@ db_record_mzdata <- function(db, xset) {
         }
     )))
 
-    # stop the parallelization if wasn't initialized
     if (!parallelization) {
         BiocParallel::bpstop()
     }
@@ -802,29 +801,30 @@ db_record_mzdata <- function(db, xset) {
 
         rts <- eics[eics$sample == which.min(table(eics$sample)), "time"]
         # case of one sample has an rt more than the referent sample
-        if (!all(table(eics$sample) == length(which(eics$sample == 1)))) {
-            #### should happen only if user remove scans in middle of the files
-            # get the sample with the less scan
-            eics <- do.call(cbind, setNames(
-                lapply(
-                    split(eics[, c("time", "intensity")], eics$sample),
-                    function(x)
-                        sapply(rts, function(rt)
-                            x[which.min(abs(x$time - rt)), "intensity"]
-                        )
-                ),
-                sample_names)
-            )
-            mzmat <- do.call(cbind, setNames(
-                lapply(split(mzmat[, c("time", "mz")], mzmat$sample),
-                       function(x)
-                           sapply(rts, function(rt)
-                               x[which.min(abs(x$time - rt)), "mz"]
-                           )
-                   ),
-                sample_names)
-            )
-        } else {
+        # if (!all(table(eics$sample) == length(which(eics$sample == 1)))) {
+        #     #### should happen only if user remove scans in middle of the
+                # files
+        #     # get the sample with the less scan
+        #     eics <- do.call(cbind, setNames(
+        #         lapply(
+        #             split(eics[, c("time", "intensity")], eics$sample),
+        #             function(x)
+        #                 sapply(rts, function(rt)
+        #                     x[which.min(abs(x$time - rt)), "intensity"]
+        #                 )
+        #         ),
+        #         sample_names)
+        #     )
+        #     mzmat <- do.call(cbind, setNames(
+        #         lapply(split(mzmat[, c("time", "mz")], mzmat$sample),
+        #                function(x)
+        #                    sapply(rts, function(rt)
+        #                        x[which.min(abs(x$time - rt)), "mz"]
+        #                    )
+        #            ),
+        #         sample_names)
+        #     )
+        # } else {
             eics <- do.call(
                 cbind,
                 setNames(split(eics$int, eics$sample), sample_names)
@@ -834,7 +834,7 @@ db_record_mzdata <- function(db, xset) {
                 setNames(split(mzmat$mz, mzmat$sample), sample_names)
             )
 
-        }
+        # }
         db_write_table(
             db,
             "eic",
@@ -1117,7 +1117,7 @@ db_replace_ann <- function(db,
                            peaks,
                            peakgroups) {
     nsamples <- db_get_nsamples(db)
-    invisible(lapply(seq(nrow(ann)), function(i)
+    invisible(lapply(seq(nrow(ann)), function(i) {
         db_execute(db, sprintf(
             "UPDATE ann SET
                 pcgroup_id = %s,
@@ -1149,7 +1149,7 @@ db_replace_ann <- function(db,
             ), collapse = ", "),
             ann[i, "rowid"]
         ))
-    ))
+    }))
     db_write_table(db, "spectra_infos", spectra_infos, append = TRUE)
     db_write_table(db, "spectras", spectras, append = TRUE)
     db_write_table(db, "peaks", peaks, append = TRUE)

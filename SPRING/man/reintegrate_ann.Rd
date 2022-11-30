@@ -11,9 +11,9 @@ reintegrate_ann(db, cpd_name, rtmin, rtmax)
 
 \item{cpd_name}{`character(1)` compound name}
 
-\item{rtmin}{`numeric(1)` rT born min}
+\item{rtmin}{`numeric(1)` rT born min (in sec)}
 
-\item{rtmax}{`numeric(1)` rT born max}
+\item{rtmax}{`numeric(1)` rT born max (in sec)}
 }
 \value{
 `DataFrame list` with items :

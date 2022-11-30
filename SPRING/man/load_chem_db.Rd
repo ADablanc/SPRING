@@ -7,7 +7,7 @@
 load_chem_db(database, polarity = NULL, cpd_classes = NULL, cpd_names = NULL)
 }
 \arguments{
-\item{database}{`character(1)` database name}
+\item{database}{`character(1)` database path}
 
 \item{polarity}{`character(1)` can be only "positive" or "negative"}
 

@@ -19,35 +19,34 @@ testthat::test_that("annotate peaks", {
     ann <- data.frame(
         pcgroup_id = c(1, 2, 3, 3, 3, 3, 3, 3, 4, 4, 5, 6, 7, 8),
         basepeak_group_id = c(4, 5, 1, 1, 2, 2, 12, 12, 13, 14, 6, 7, 15, 11),
-        formula = c(NA, NA, "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
-                    "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
-                    "C30H59N1O3", "C30H59N1O3", NA, NA, NA, NA),
         class = c(NA, NA, "LPC", "LPC", "LPC", "LPC", "LPC", "LPC", "Cer",
                   "Cer", NA, NA, NA, NA),
         name = c(NA, NA, "LPC 11:0", "LPC 11a:0", "LPC 11:0", "LPC 11a:0",
                  "LPC 11:0", "LPC 11a:0", "Cer (d18:1/C12:0)",
                  "Cer (d18:1/C12:0)", NA, NA, NA, NA),
         referent_adduct = c(NA, NA, "[M+H]+", "[M+H]+", "[M+H]+", "[M+H]+",
-                         "[M+H]+", "[M+H]+", "[M+H-H2O]+", "[M+H-H2O]+", NA, NA,
-                         NA, NA),
+                            "[M+H]+", "[M+H]+", "[M+H-H2O]+", "[M+H-H2O]+", NA,
+                            NA, NA, NA),
+        formula = c(NA, NA, "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
+                    "C19H40N1O7P1", "C19H40N1O7P1", "C19H40N1O7P1",
+                    "C30H59N1O3", "C30H59N1O3", NA, NA, NA, NA),
         adduct = c(NA, NA, "[M+H-H2O]+", "[M+H-H2O]+", "[M+H]+", "[M+H]+",
                    "[M+Na]+", "[M+Na]+", "[M+H-H2O]+", "[M+Na]+", NA, NA, NA,
                    NA),
         ion_formula = c(NA, NA, "C19H39N1O6P1", "C19H39N1O6P1", "C19H41N1O7P1",
                         "C19H41N1O7P1", "C19H40N1O7P1Na1", "C19H40N1O7P1Na1",
                         "C30H58N1O2", "C30H59N1O3Na1", NA, NA, NA, NA),
-        rtdiff = c(NA, NA, 8.99149999999997, 4.19150000000002, 8.99149999999997,
+        rtdiff = c(NA, NA, 9.52199999999993, 4.72199999999998, 8.99149999999997,
                    4.19150000000002, 8.99149999999997, 4.19150000000002,
-                   2.37300000000002, 2.37300000000002, NA, NA, NA, NA),
-        rt = c(279.141, 259.046, 286.8085, 286.8085, 286.8085, 286.8085,
-               286.8085, 286.8085, 197.973, 197.973, 297.915, 308.494, 197.444,
-               306.904),
+                   2.37300000000002, 2.10849999999999, NA, NA, NA, NA),
+        rt = c(279.141, 259.046, 286.278, 286.278, 286.8085, 286.8085, 286.8085,
+               286.8085, 197.973, 197.7085, 297.915, 308.494, 197.444, 306.904),
         rtmin = c(265.656, 250.85, 284.692, 284.692, 284.692, 284.692, 280.99,
                   280.99, 195.858, 182.11, 293.684, 304.789, 196.386, 301.084),
         rtmax = c(293.156, 264.598, 287.864, 287.864, 293.152, 293.152, 292.095,
                   292.095, 200.617, 208.548, 303.202, 310.081, 201.145,
                   309.549),
-        nsamples = c(2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0),
+        nsamples = c(2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 1, 1, 2, 1),
         best_score = c(0, 0, 79.8211975097656, 79.8211975097656,
                        95.0912628173828, 95.0912628173828, 79.6432037353516,
                        79.6432037353516, 71.3979721069336, 71.1946487426758, 0,
@@ -399,6 +398,10 @@ testthat::test_that("annotate peaks", {
             package = "SPRING"
         )
     )
+    xraws <- lapply(xcms::filepaths(xset), xcms::xcmsRaw, profstep = 0)
+    xset@rt <- list(
+        raw = lapply(xraws, function(xraw) xraw@scantime)
+    )
 
     # 1st test: with no peaks
     xset@groups <- matrix(, nrow = 0, ncol = 9, dimnames = list(
@@ -462,7 +465,8 @@ testthat::test_that("annotate peaks", {
     # 2nd test: too restrictive on m/z tolerance
     empty_ann <- data.frame(ann[-c(4, 6, 7), ], row.names = NULL,
                             check.names = FALSE)
-    empty_ann[, c("class", "name", "referent_adduct")] <- as.character(NA)
+    empty_ann[, c("formula", "class", "name", "referent_adduct", "adduct",
+                  "ion_formula")] <- NA
     empty_ann$rtdiff <- as.numeric(NA)
     empty_ann[, c("formula", "adduct", "ion_formula")] <- NA
     empty_ann[, c("best_score", "best_npeak")] <- 0
@@ -1276,10 +1280,10 @@ testthat::test_that("reintegrate ann", {
             rowid = c(3, 5, 7),
             pcgroup_id = rep(9, 3),
             basepeak_group_id = c(16, 17, 19),
-            formula = rep("C19H40N1O7P1", 3),
             class = rep("LPC", 3),
             name = rep("LPC 11:0", 3),
             referent_adduct = rep("[M+H]+", 3),
+            formula = rep("C19H40N1O7P1", 3),
             adduct = c("[M+H-H2O]+", "[M+H]+", "[M+Na]+"),
             ion_formula = c("C19H39N1O6P1", "C19H41N1O7P1", "C19H40N1O7P1Na1"),
             rtdiff = c(9.51899999999995, 9.51899999999995, 9.51899999999995),
@@ -1442,10 +1446,10 @@ testthat::test_that("reintegrate ann", {
             rowid = c(3, 5, 7),
             pcgroup_id = rep(10, 3),
             basepeak_group_id = c(20, 21, 23),
-            formula = rep("C19H40N1O7P1", 3),
             class = rep("LPC", 3),
             name = rep("LPC 11:0", 3),
             referent_adduct = rep("[M+H]+", 3),
+            formula = rep("C19H40N1O7P1", 3),
             adduct = c("[M+H-H2O]+", "[M+H]+", "[M+Na]+"),
             ion_formula = c("C19H39N1O6P1", "C19H41N1O7P1", "C19H40N1O7P1Na1"),
             rtdiff = c(23.27, 24.328, 22.741),

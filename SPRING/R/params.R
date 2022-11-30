@@ -365,7 +365,7 @@ CameraParam <- function(ann_params, cores = 1, sigma = 6, perfwhm = .6,
 #' theoretical peak will be discarded
 #' @slot instrument `character(1)` instrument names from the enviPat package
 #' @slot polarity `character(1)` "positive" or "negative"
-#' @slot database `character(1)` name of the database to load
+#' @slot database `character(1)` path of the database to load
 #' @slot cpd_classes `character vector` compound classes in database to
 #' restrict for annotation
 setClass(

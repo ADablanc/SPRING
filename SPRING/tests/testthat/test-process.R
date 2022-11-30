@@ -92,7 +92,7 @@ testthat::test_that("workflow", {
     )))
 
     # 2nd test: normal
-    capture.output(ms_process(
+    invisible(capture.output(suppressMessages(ms_process(
         raw_files,
         sqlite_path,
         converter,
@@ -101,7 +101,7 @@ testthat::test_that("workflow", {
         pd_params,
         camera_params,
         ann_params
-    ))
+    ))))
     db <- db_connect(sqlite_path)
     db_test <- db_connect(sqlite_path_test)
     testthat::expect_equal(

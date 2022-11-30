@@ -95,10 +95,18 @@ output$peak_spot_eic <- plotly::renderPlotly({
                             name = "toImage",
                             title = "Download plot as a png",
                             icon = htmlwidgets::JS("Plotly.Icons.camera"),
-                            click = htmlwidgets::JS(paste0("function(gd) {Plotly.down",
-                                                           "loadImage(gd, {format:'png",
-                                                           "', width:1200, height:400,",
-                                                           " filename:'Chromatogram'})}"
+                            click = htmlwidgets::JS(
+                                paste0("function(gd) {
+                                       Plotly.downloadImage(
+                                            gd,
+                                            {
+                                                format:'png', ",
+                                                "width:1200, ",
+                                                "height:400, ",
+                                                "filename:'Chromatogram'
+                                            }
+                                   )
+                               }"
                             ))
                         )
                     ),
@@ -108,8 +116,12 @@ output$peak_spot_eic <- plotly::renderPlotly({
                             name = "resetView",
                             title = "Reset legend",
                             icon = htmlwidgets::JS("Plotly.Icons.undo"),
-                            click = htmlwidgets::JS(paste0("function(gd) {Plotly.resty",
-                                                           "le(gd, 'visible', true);}"))
+                            click = htmlwidgets::JS(
+                                paste0("function(gd) {
+                                       Plotly.restyle(gd, 'visible', true);
+                                   }"
+                               )
+                           )
                         )
                     ),
                     list(
@@ -119,7 +131,11 @@ output$peak_spot_eic <- plotly::renderPlotly({
                             icon = htmlwidgets::JS("Plotly.Icons.selectbox"),
                             click = htmlwidgets::JS("
                                 function (gd) {
-                                    Plotly.relayout(gd, \"dragmode\", \"select\");
+                                    Plotly.relayout(
+                                        gd,
+                                        \"dragmode\",
+                                        \"select\"
+                                    );
                                 }
                             ")
                         )

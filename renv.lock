@@ -69,15 +69,18 @@
     },
     "CAMERA": {
       "Package": "CAMERA",
-      "Version": "1.50.0",
-      "Source": "Bioconductor",
-      "git_url": "https://git.bioconductor.org/packages/CAMERA",
-      "git_branch": "RELEASE_3_14",
-      "git_last_commit": "1b7c510",
-      "git_last_commit_date": "2021-10-26",
-      "Hash": "86b991bf474b94de14aad624ff44440a",
+      "Version": "1.51.2",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "shutinet",
+      "RemoteRepo": "CAMERA",
+      "RemoteRef": "master",
+      "RemoteSha": "35a1260f1167c06b3066a1668b18158c433ff2c3",
+      "Hash": "06ad94d905903f9b1bebff8c0f9a2f6d",
       "Requirements": [
         "Biobase",
+        "BiocParallel",
         "Hmisc",
         "RBGL",
         "graph",
@@ -869,18 +872,6 @@
       "Requirements": [
         "foreach",
         "iterators"
-      ]
-    },
-    "doSNOW": {
-      "Package": "doSNOW",
-      "Version": "1.0.20",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "4bf4423d2c8b68c93b47e32ec554c2f1",
-      "Requirements": [
-        "foreach",
-        "iterators",
-        "snow"
       ]
     },
     "dplyr": {

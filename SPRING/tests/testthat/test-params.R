@@ -393,7 +393,12 @@ testthat::test_that("camera_param", {
     testthat::expect_equal(obj@max_peaks, 100)
 
     # test in negative
-    ann_params@database <- "test-neg"
+    ann_params@database <- system.file(
+        "extdata",
+        "database",
+        "test-neg.csv",
+        package = "SPRING"
+    )
     ann_params@polarity <- "negative"
     obj_neg <- CameraParam(
         ann_params = ann_params,
@@ -458,6 +463,12 @@ testthat::test_that("annotation_param", {
     abd_tol <- 25
     instrument <- "QTOF_XevoG2-S_R25000@200"
     database <- "test"
+    database_path <- system.file(
+        "extdata",
+        "database",
+        paste(database, "csv", sep = "."),
+        package = "SPRING"
+    )
     polarity <- "positive"
     cpd_classes <- c("LPC", "Cer")
 
@@ -588,7 +599,7 @@ testthat::test_that("annotation_param", {
     testthat::expect_equal(obj@rt_tol, rt_tol)
     testthat::expect_equal(obj@abd_tol, abd_tol)
     testthat::expect_equal(obj@instrument, instrument)
-    testthat::expect_equal(obj@database, database)
+    testthat::expect_equal(obj@database, database_path)
     testthat::expect_equal(obj@polarity, polarity)
     testthat::expect_equal(
         obj@cpd_classes,
@@ -602,7 +613,12 @@ testthat::test_that("annotation_param", {
             rt_tol = rt_tol,
             abd_tol = abd_tol,
             instrument = instrument,
-            database = database,
+            database = system.file(
+                "extdata",
+                "database",
+                paste(database, "csv", sep = "."),
+                package = "SPRING"
+            ),
             polarity = polarity,
             cpd_classes = paste(
                 unique(load_chem_db(obj@database, obj@polarity)$class),

@@ -103,6 +103,7 @@ ms_process <- function(raw_files,
                        show_txt_pb = TRUE,
                        pb_fct = NULL) {
     tryCatch({
+        time1 <- Sys.time()
         ########## INITIALIZE
         check_ms_process_args(
             raw_files,
@@ -198,12 +199,12 @@ ms_process <- function(raw_files,
             pb_val <- pb_val + 1
             pb_fct(n = pb_val, title = "PeakPicking")
         }
-        ms_files <- MSnbase::readMSData(filepaths, mode = "onDisk")
-        suppressWarnings(suppressMessages(xset <- xcms::findChromPeaks(
+        ms_files <- MSnbase::readMSData(filepaths, mode = "onDisk", msLevel = 1)
+        xset <- suppressWarnings(xcms::findChromPeaks(
             ms_files,
             cwt_params,
             return.type = "xcmsSet"
-        )))
+        ))
         rm(ms_files)
 
         ######### ALIGNMENT
@@ -212,7 +213,7 @@ ms_process <- function(raw_files,
             pb_val <- pb_val + 1
             pb_fct(n = pb_val, title = "Obiwarp")
         }
-        suppressMessages(invisible(capture.output(xset <- xcms::retcor.obiwarp(
+        xset <- xcms::retcor.obiwarp(
             xset,
             plottype = "none",
             profStep = obw_params@binSize,
@@ -226,7 +227,7 @@ ms_process <- function(raw_files,
             factorGap = as.numeric(obw_params@factorGap),
             localAlignment = obw_params@localAlignment,
             initPenalty = as.numeric(obw_params@initPenalty)
-        ))))
+        )
 
         ########### GROUP
         print("Alignment")
@@ -234,14 +235,19 @@ ms_process <- function(raw_files,
             pb_val <- pb_val + 1
             pb_fct(n = pb_val, title = "Alignment")
         }
-        suppressMessages(xset <- xcms::group.density(
+        xset <- xcms::group.density(
             xset,
             minfrac = pd_params@minFraction,
             minsamp = pd_params@minSamples,
             bw = pd_params@bw,
             mzwid = pd_params@binSize,
             max = pd_params@maxFeatures,
-        ))
+        )
+
+        parallel::clusterEvalQ(
+            BiocParallel::bpbackend(),
+            gc()
+        )
 
         ########## CAMERA
         print("Group")
@@ -279,7 +285,7 @@ ms_process <- function(raw_files,
             camera_params,
             ann_params
         )
-
+        print(Sys.time() - time1)
         ########### GENERATE EICs & mzMat
         if (nrow(xsf$peakgroups) > 0) {
             print("GENERATE EICs & mzMat")
@@ -287,8 +293,10 @@ ms_process <- function(raw_files,
                 pb_val <- pb_val + 1
                 pb_fct(n = pb_val, title = "GENERATE EICs & mzMat")
             }
-            db_record_mzdata(db, xset)
+            tryCatch(db_record_mzdata(db, xset), error = function(e) NULL)
         }
+        print(Sys.time() - time1)
+        BiocParallel::bpstop()
         rm(xset)
         RSQLite::dbDisconnect(db)
         if (show_txt_pb) {
@@ -296,7 +304,6 @@ ms_process <- function(raw_files,
             pb_fct(n = pb_val)
             close(pb)
         }
-        BiocParallel::bpstop()
         NULL
     }, error = function(e) {
         try(suppressWarnings(file.remove(sqlite_path)))

@@ -13,7 +13,7 @@ load_ion_db(
 )
 }
 \arguments{
-\item{database}{`character(1)` name of the database to load}
+\item{database}{`character(1)` path to the database to load}
 
 \item{instrument}{`character(1)` instrument name for enviPat}
 

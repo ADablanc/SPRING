@@ -168,12 +168,14 @@ filter_ms_file <- function(ms_file, exp_rt_range, overwrite = TRUE) {
             stop("no spectras between rt filters")
         }
         out_filepath <- file.path(tempdir(), paste0(runif(1), ".mzML"))
-        MSnbase::writeMSData(ms_file[spectras], out_filepath, copy = TRUE)
-        if (overwrite) {
-            file.rename(out_filepath, filepath)
-        } else {
-            return(out_filepath)
-        }
+        tryCatch({
+            MSnbase::writeMSData(ms_file[spectras], out_filepath, copy = TRUE)
+            if (overwrite) {
+                file.rename(out_filepath, filepath)
+            } else {
+                filepath <- out_filepath
+            }
+        }, error = function(e) return(NULL))
     }
     filepath
 }

@@ -22,7 +22,7 @@ theoretical peak will be discarded}
 
 \item{\code{polarity}}{`character(1)` "positive" or "negative"}
 
-\item{\code{database}}{`character(1)` name of the database to load}
+\item{\code{database}}{`character(1)` path of the database to load}
 
 \item{\code{cpd_classes}}{`character vector` compound classes in database to
 restrict for annotation}

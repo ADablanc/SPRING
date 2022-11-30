@@ -2,7 +2,7 @@
 #'
 #' @description
 #' Load chemical database
-#' @param database `character(1)` database name
+#' @param database `character(1)` database path
 #' @param polarity `character(1)` can be only "positive" or "negative"
 #' @param cpd_classes `character vector` compound classes to restrict
 #' @param cpd_names `character vector` compound names to restrict
@@ -45,7 +45,7 @@ load_chem_db <- function(database, polarity = NULL, cpd_classes = NULL,
 #' It will compute each m/z by taking the adduct given in the database for each
 #' compound
 #'
-#' @param database `character(1)` name of the database to load
+#' @param database `character(1)` path to the database to load
 #' @param polarity `character(1)` polarity to restrict database
 #' @param instrument `character(1)` instrument name for enviPat
 #' @param cpd_classes `character vector` compound classes to restrict

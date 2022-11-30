@@ -8,6 +8,8 @@ db_get_peakgroups(db, group_ids = NULL)
 }
 \arguments{
 \item{db}{`SQLiteConnection`}
+
+\item{group_ids}{`numeric` group IDs}
 }
 \value{
 `DataFrame`, each line correspond to a group annotated by
