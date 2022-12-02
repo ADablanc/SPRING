@@ -314,6 +314,15 @@ Plot a peak spot or Kendrick plot. Each basepeak are plotted with their annotati
 db <- db_connect("C:/testdata/220221CCM_global_POS.sqlite")
 plot_peak_spot(db)
 ```
+### Add a new database
+For adding a new database you simply have to add a new csv file in `SPRING/inst/extdata/database`. The csv file must contains the columns: 
+ - class
+ - adduct
+ - name
+ - formula
+ - rt
+ 
+Be careful to not have commas in compound names ! (to avoid it you can put the name with "") 
 ## Shiny app documentation
 ### Load/create project
 After launching the appa modal will propose to load a project or to create one.
