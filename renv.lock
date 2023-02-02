@@ -67,27 +67,6 @@
         "snow"
       ]
     },
-    "CAMERA": {
-      "Package": "CAMERA",
-      "Version": "1.51.2",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteUsername": "shutinet",
-      "RemoteRepo": "CAMERA",
-      "RemoteRef": "master",
-      "RemoteSha": "35a1260f1167c06b3066a1668b18158c433ff2c3",
-      "Hash": "06ad94d905903f9b1bebff8c0f9a2f6d",
-      "Requirements": [
-        "Biobase",
-        "BiocParallel",
-        "Hmisc",
-        "RBGL",
-        "graph",
-        "igraph",
-        "xcms"
-      ]
-    },
     "DBI": {
       "Package": "DBI",
       "Version": "1.1.2",
@@ -224,6 +203,14 @@
         "BiocGenerics",
         "S4Vectors"
       ]
+    },
+    "KernSmooth": {
+      "Package": "KernSmooth",
+      "Version": "2.23-20",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "8dcfa99b14c296bc9f1fd64d52fd3ce7",
+      "Requirements": []
     },
     "MALDIquant": {
       "Package": "MALDIquant",
@@ -425,6 +412,16 @@
       "Hash": "dab19adae4440ae55aa8a9d238b246bb",
       "Requirements": []
     },
+    "RcppArmadillo": {
+      "Package": "RcppArmadillo",
+      "Version": "0.11.4.3.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "836c1aeec6a7a2b28273bd42a0511a9e",
+      "Requirements": [
+        "Rcpp"
+      ]
+    },
     "Rhdf5lib": {
       "Package": "Rhdf5lib",
       "Version": "1.16.0",
@@ -596,6 +593,14 @@
         "vctrs"
       ]
     },
+    "boot": {
+      "Package": "boot",
+      "Version": "1.3-28",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "0baa960e3b49c6176a4f42addcbacc59",
+      "Requirements": []
+    },
     "brew": {
       "Package": "brew",
       "Version": "1.0-7",
@@ -675,6 +680,16 @@
         "backports"
       ]
     },
+    "class": {
+      "Package": "class",
+      "Version": "7.3-19",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "1593b7beb067c8381c0d24e38bd778e0",
+      "Requirements": [
+        "MASS"
+      ]
+    },
     "cli": {
       "Package": "cli",
       "Version": "3.2.0",
@@ -692,6 +707,26 @@
       "Repository": "CRAN",
       "Hash": "3f038e5ac7f41d4ac41ce658c85e3042",
       "Requirements": []
+    },
+    "cliqueMS": {
+      "Package": "cliqueMS",
+      "Version": "1.8.0",
+      "Source": "Bioconductor",
+      "git_url": "https://git.bioconductor.org/packages/cliqueMS",
+      "git_branch": "RELEASE_3_14",
+      "git_last_commit": "d840675",
+      "git_last_commit_date": "2021-10-26",
+      "Hash": "be344cedc93bc9c7c9f2d4971b72e5b0",
+      "Requirements": [
+        "BH",
+        "MSnbase",
+        "Rcpp",
+        "RcppArmadillo",
+        "igraph",
+        "matrixStats",
+        "qlcMatrix",
+        "xcms"
+      ]
     },
     "clue": {
       "Package": "clue",
@@ -873,6 +908,14 @@
         "foreach",
         "iterators"
       ]
+    },
+    "docopt": {
+      "Package": "docopt",
+      "Version": "0.7.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "e9eeef7931ee99ca0093f3f20b88e09b",
+      "Requirements": []
     },
     "dplyr": {
       "Package": "dplyr",
@@ -1753,6 +1796,19 @@
         "rlang"
       ]
     },
+    "qlcMatrix": {
+      "Package": "qlcMatrix",
+      "Version": "0.9.7",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "132c83536ad209678fbfcace91da1302",
+      "Requirements": [
+        "Matrix",
+        "docopt",
+        "slam",
+        "sparsesvd"
+      ]
+    },
     "rappdirs": {
       "Package": "rappdirs",
       "Version": "0.3.3",
@@ -2094,6 +2150,14 @@
         "png"
       ]
     },
+    "slam": {
+      "Package": "slam",
+      "Version": "0.1-50",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "e25793551cbdb843154152e5ee88cbd6",
+      "Requirements": []
+    },
     "snow": {
       "Package": "snow",
       "Version": "0.4-4",
@@ -2108,6 +2172,24 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "947e4e02a79effa5d512473e10f41797",
+      "Requirements": []
+    },
+    "sparsesvd": {
+      "Package": "sparsesvd",
+      "Version": "0.2-2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "5748ba7788e9a81a31f3dc9e0f09dca4",
+      "Requirements": [
+        "Matrix"
+      ]
+    },
+    "spatial": {
+      "Package": "spatial",
+      "Version": "7.3-14",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "a7341b0231ca84a0323982d5ae5a4300",
       "Requirements": []
     },
     "stringi": {
